@@ -12,7 +12,7 @@ from utils.app_logger import get_logger
 log = get_logger("update_checker")
 
 # رابط فحص التحديثات
-VERSION_URL = "https://raw.githubusercontent.com/accounting-platform/updates/main/version.json"
+VERSION_URL = "https://khalilmebarek-creator.github.io/SmartAccounting/version.json"
 FALLBACK_URL = None  # يُحدَّث تلقائياً من config
 
 

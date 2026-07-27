@@ -1,6 +1,6 @@
 import http.server, socketserver, os, subprocess, threading, re, signal, sys
 
-WEBSITE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'website')
+WEBSITE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'docs')
 CLOUDFLARED = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cloudflared.exe')
 OUTPUT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tunnel_url.txt')
 
