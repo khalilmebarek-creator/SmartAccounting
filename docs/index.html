@@ -4,32 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>المنصة المحاسبية الذكية | Smart Accounting Platform</title>
+    <meta name="description" content="منصة محاسبية ذكية متكاملة — 22 شاشة، 28 نسبة مالية، 7 قطاعات صناعية، 6 بنوك جزائرية. نظام جبائي جزائري كامل مع تحليل مالي بالذكاء الاصطناعي.">
+    <meta name="keywords" content="محاسبة, منصة محاسبية, نظام محاسبي, جزائر, ضرائب, تحليل مالي, Smart Accounting, accounting platform, Algeria">
+    <meta name="author" content="Khelifi Mebarek">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="المنصة المحاسبية الذكية">
+    <meta property="og:description" content="نظام محاسبي متكامل — 22 شاشة، 28 نسبة مالية، 6 بنوك جزائرية، نظام جبائي كامل">
+    <meta property="og:image" content="https://khalilmebarek-creator.github.io/SmartAccounting/logo_full.png">
+    <meta property="og:url" content="https://khalilmebarek-creator.github.io/SmartAccounting/">
+    <meta property="og:locale" content="ar_DZ">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:site_name" content="Smart Accounting Platform">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="المنصة المحاسبية الذكية">
+    <meta name="twitter:description" content="نظام محاسبي متكامل — 22 شاشة، 28 نسبة مالية، نظام جبائي جزائري">
+    <meta name="twitter:image" content="https://khalilmebarek-creator.github.io/SmartAccounting/logo_full.png">
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://khalilmebarek-creator.github.io/SmartAccounting/">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="logo_icon.png">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+
+    <!-- AOS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Smart Accounting Platform",
+        "alternateName": "المنصة المحاسبية الذكية",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Windows 10/11",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "DZD" },
+        "description": "نظام محاسبي متكامل يدعم 3 لغات مع نظام جبائي جزائري كامل و28 نسبة مالية",
+        "softwareVersion": "3.0.0",
+        "screenshot": "https://khalilmebarek-creator.github.io/SmartAccounting/logo_full.png"
+    }
+    </script>
 </head>
 <body>
 
+<!-- Skip to content -->
+<a href="#main" class="skip-link">تخطي إلى المحتوى الرئيسي</a>
+
 <!-- ===== NAVBAR ===== -->
-<nav class="navbar" id="navbar">
+<nav class="navbar" id="navbar" role="navigation" aria-label="القائمة الرئيسية">
     <div class="container nav-content">
-        <a href="#" class="logo">
-            <img src="logo_icon.png" alt="logo">
-            <span>المنصة المحاسبية الذكية</span>
+        <a href="#" class="logo" aria-label="الرئيسية">
+            <img src="logo_icon.png" alt="شعار المنصة المحاسبية الذكية" width="36" height="36">
+            <span data-i18n="site_name">المنصة المحاسبية الذكية</span>
         </a>
-        <ul class="nav-links" id="navLinks">
-            <li><a href="#about">عن المشروع</a></li>
-            <li><a href="#features">المميزات</a></li>
-            <li><a href="#modules">الوحدات</a></li>
-            <li><a href="#tech">الإحصائيات</a></li>
-            <li><a href="#download">تحميل</a></li>
-            <li><a href="#updates">التحديثات</a></li>
+        <ul class="nav-links" id="navLinks" role="menubar">
+            <li role="none"><a href="#about" role="menuitem" data-i18n="nav_about">عن المشروع</a></li>
+            <li role="none"><a href="#features" role="menuitem" data-i18n="nav_features">المميزات</a></li>
+            <li role="none"><a href="#modules" role="menuitem" data-i18n="nav_modules">الوحدات</a></li>
+            <li role="none"><a href="#tech" role="menuitem" data-i18n="nav_tech">الإحصائيات</a></li>
+            <li role="none"><a href="#download" role="menuitem" data-i18n="nav_download">تحميل</a></li>
+            <li role="none"><a href="#updates" role="menuitem" data-i18n="nav_updates">التحديثات</a></li>
         </ul>
         <div class="nav-actions">
-            <button class="lang-toggle" id="langToggle">EN</button>
-            <button class="hamburger" id="hamburger">
+            <button class="lang-toggle" id="langToggle" aria-label="تبديل اللغة">EN</button>
+            <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
                 <span></span><span></span><span></span>
             </button>
         </div>
@@ -37,6 +88,7 @@
 </nav>
 
 <!-- ===== HERO ===== -->
+<main id="main">
 <section class="hero" id="hero">
     <div class="hero-bg">
         <div class="hero-shape hero-shape-1"></div>
@@ -45,15 +97,15 @@
     </div>
     <div class="container hero-content">
         <div class="hero-text" data-aos="fade-left" data-aos-delay="100">
-            <div class="hero-badge">v3.0.0 — مشروع تخرج محاسبي</div>
-            <h1>المنصة المحاسبية<br><span class="text-gradient">الذكية</span></h1>
-            <p class="hero-desc">نظام محاسبي متكامل مبني بالذكاء الاصطناعي — يدعم 3 لغات ويشمل النظام الجبائي الجزائري بأكمله</p>
+            <div class="hero-badge" data-i18n="hero_badge">v3.0.0 — مشروع تخرج محاسبي</div>
+            <h1 data-i18n="hero_title">المنصة المحاسبية<br><span class="text-gradient">الذكية</span></h1>
+            <p class="hero-desc" data-i18n="hero_desc">نظام محاسبي متكامل مبني بالذكاء الاصطناعي — يدعم 3 لغات ويشمل النظام الجبائي الجزائري بأكمله</p>
             <div class="hero-buttons">
                 <a href="#download" class="btn btn-primary btn-lg">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    تحميل التطبيق
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span data-i18n="hero_btn1">تحميل التطبيق</span>
                 </a>
-                <a href="#about" class="btn btn-outline btn-lg">اكتشف المزيد</a>
+                <a href="#about" class="btn btn-outline btn-lg" data-i18n="hero_btn2">اكتشف المزيد</a>
             </div>
         </div>
         <div class="hero-visual" data-aos="fade-right" data-aos-delay="300">
@@ -70,13 +122,13 @@
                     <div class="chart-bar accent" style="--h:85%"><span>Q4</span></div>
                 </div>
                 <div class="hero-card-footer">
-                    <div class="stat-mini"><span class="num">+23%</span> نمو الأرباح</div>
-                    <div class="stat-mini"><span class="num">98%</span> دقّة التقارير</div>
+                    <div class="stat-mini"><span class="num">+23%</span> <span data-i18n="hero_profit">نمو الأرباح</span></div>
+                    <div class="stat-mini"><span class="num">98%</span> <span data-i18n="hero_accuracy">دقّة التقارير</span></div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="hero-scroll-indicator">
+    <div class="hero-scroll-indicator" aria-hidden="true">
         <div class="mouse"><div class="wheel"></div></div>
     </div>
 </section>
@@ -84,7 +136,7 @@
 <!-- ===== INTRODUCTION ===== -->
 <section class="intro" id="intro">
     <div class="container">
-        <p class="intro-text" data-aos="fade-up">
+        <p class="intro-text" data-aos="fade-up" data-i18n="intro">
             مشروع تخرج محاسبي متكامل يجمع بين <strong>الذكاء الاصطناعي</strong> و<strong>النظام الجبائي الجزائري</strong> —
             يتضمن 22 شاشة تفاعلية، 28 نسبة مالية، و322 اختبار وحدة ناجح.
         </p>
@@ -95,40 +147,40 @@
 <section class="section about" id="about">
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag">عن المشروع</span>
-            <h2>ما هي المنصة المحاسبية الذكية؟</h2>
+            <span class="section-tag" data-i18n="about_tag">عن المشروع</span>
+            <h2 data-i18n="about_title">ما هي المنصة المحاسبية الذكية؟</h2>
         </div>
         <div class="about-grid">
             <div class="about-card" data-aos="fade-up" data-aos-delay="100">
                 <div class="about-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                 </div>
-                <h3>تطبيق سطح مكتب</h3>
-                <p>تطبيق يعمل على Windows 10/11 — لا يحتاج اتصال بالإنترنت للعمل الأساسي</p>
+                <h3 data-i18n="about_card1_title">تطبيق سطح مكتب</h3>
+                <p data-i18n="about_card1_desc">تطبيق يعمل على Windows 10/11 — لا يحتاج اتصال بالإنترنت للعمل الأساسي</p>
             </div>
             <div class="about-card" data-aos="fade-up" data-aos-delay="200">
                 <div class="about-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
                 </div>
-                <h3>دعم 3 لغات</h3>
-                <p>عربي (RTL) — إنجليزي — فرنسي — مع تبديل فوري بين اللغات</p>
+                <h3 data-i18n="about_card2_title">دعم 3 لغات</h3>
+                <p data-i18n="about_card2_desc">عربي (RTL) — إنجليزي — فرنسي — مع تبديل فوري بين اللغات</p>
             </div>
             <div class="about-card" data-aos="fade-up" data-aos-delay="300">
                 <div class="about-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 </div>
-                <h3>بنية معيارية</h3>
-                <p>26 وحدة برمجية مستقلة — سهل التوسيع والصيانة والتطوير</p>
+                <h3 data-i18n="about_card3_title">بنية معيارية</h3>
+                <p data-i18n="about_card3_desc">26 وحدة برمجية مستقلة — سهل التوسيع والصيانة والتطوير</p>
             </div>
         </div>
 
         <div class="tech-table-wrapper" data-aos="fade-up">
-            <h3 class="tech-table-title">من طوّر المشروع</h3>
+            <h3 class="tech-table-title" data-i18n="dev_title">من طوّر المشروع</h3>
             <div class="dev-card">
                 <div class="dev-avatar">KM</div>
                 <div>
-                    <strong>خليل مبارك</strong>
-                    <p>طالب محاسبة — مشروع تخرج</p>
+                    <strong data-i18n="dev_name">خليل مبارك</strong>
+                    <p data-i18n="dev_role">طالب محاسبة — مشروع تخرج ماجستير</p>
                 </div>
             </div>
         </div>
@@ -139,39 +191,49 @@
 <section class="section features" id="features">
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag">المميزات الرئيسية</span>
-            <h2>لماذا المنصة المحاسبية الذكية؟</h2>
+            <span class="section-tag" data-i18n="features_tag">المميزات الرئيسية</span>
+            <h2 data-i18n="features_title">لماذا المنصة المحاسبية الذكية؟</h2>
         </div>
         <div class="features-grid">
             <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-                <div class="feature-icon">📊</div>
-                <h3>لوحة تحكم ذكية</h3>
-                <p>عرض فوري لأهم المؤشرات المالية — رسوم بيانية تفاعلية ومخططات ديناميكية</p>
+                <div class="feature-icon" aria-hidden="true">📊</div>
+                <h3 data-i18n="feat1_title">لوحة تحكم ذكية</h3>
+                <p data-i18n="feat1_desc">عرض فوري لأهم المؤشرات المالية — رسوم بيانية تفاعلية ومخططات ديناميكية</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                <div class="feature-icon">🧮</div>
-                <h3>28 نسبة مالية</h3>
-                <p>نسب السيولة، الربحية، الرواج، الدعم — مع تحليل لكل نسبة وتصنيف حسب الأداء</p>
+                <div class="feature-icon" aria-hidden="true">🧮</div>
+                <h3 data-i18n="feat2_title">28 نسبة مالية</h3>
+                <p data-i18n="feat2_desc">نسب السيولة، الربحية، الرواج، الدعم — مع تحليل لكل نسبة وتصنيف حسب الأداء</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="feature-icon">🤖</div>
-                <h3>مساعد ذكاء اصطناعي</h3>
-                <p>محادثة ذكية تحلّل البيانات وتقديم توصيات — تعمل أوفلاين وأونلاين</p>
+                <div class="feature-icon" aria-hidden="true">🤖</div>
+                <h3 data-i18n="feat3_title">مساعد ذكاء اصطناعي</h3>
+                <p data-i18n="feat3_desc">محادثة ذكية تحلّل البيانات وتقديم توصيات — تعمل أوفلاين وأونلاين</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-                <div class="feature-icon">🇩🇿</div>
-                <h3>النظام الجبائي الجزائري</h3>
-                <p>حساب TVA، IBS، IRG، CNAS — مع تقويم ضريبي وتنبيهات المواعيد النهائية</p>
+                <div class="feature-icon" aria-hidden="true">🇩🇿</div>
+                <h3 data-i18n="feat4_title">النظام الجبائي الجزائري</h3>
+                <p data-i18n="feat4_desc">حساب TVA، IBS، IRG، CNAS، CNAC — مع تقويم ضريبي وتنبيهات المواعيد النهائية</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                <div class="feature-icon">🔒</div>
-                <h3>أمان متعدد الطبقات</h3>
-                <p>تشفير AES-256، 4 أدوار مستخدمين، 16 صلاحية، مصادقة ثنائية، سجل نشاط</p>
+                <div class="feature-icon" aria-hidden="true">🏦</div>
+                <h3 data-i18n="feat5_title">التكامل البنكي</h3>
+                <p data-i18n="feat5_desc">استيراد كشوفات 6 بنوك جزائرية — كشف حساب CSV + مطابقة تلقائية مع السجلات</p>
             </div>
             <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                <div class="feature-icon">🖨️</div>
-                <h3>طباعة وتصدير احترافي</h3>
-                <p>تصدير PDF، Excel، HTML — مع قوالب تقارير جاهزة وقابلة للتخصيص</p>
+                <div class="feature-icon" aria-hidden="true">📈</div>
+                <h3 data-i18n="feat6_title">المقارنة الصناعية</h3>
+                <p data-i18n="feat6_desc">مقارنة أداء شركتك بـ 7 قطاعات صناعية — رسوم بيانية وتوصيات تحسين</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
+                <div class="feature-icon" aria-hidden="true">🔒</div>
+                <h3 data-i18n="feat7_title">أمان متعدد الطبقات</h3>
+                <p data-i18n="feat7_desc">تشفير AES-256، 4 أدوار مستخدمين، 16 صلاحية، مصادقة ثنائية، سجل نشاط</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-icon" aria-hidden="true">🖨️</div>
+                <h3 data-i18n="feat8_title">طباعة وتصدير احترافي</h3>
+                <p data-i18n="feat8_desc">تصدير PDF، Excel، HTML — مع قوالب تقارير جاهزة وقابلة للتخصيص</p>
             </div>
         </div>
     </div>
@@ -181,59 +243,69 @@
 <section class="section modules" id="modules">
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag">الوحدات</span>
-            <h2>10 وحدات متكاملة</h2>
+            <span class="section-tag" data-i18n="modules_tag">الوحدات</span>
+            <h2 data-i18n="modules_title">26 وحدة متكاملة</h2>
         </div>
         <div class="modules-grid">
             <div class="module-card" data-aos="zoom-in" data-aos-delay="0">
                 <div class="module-num">01</div>
-                <h3>التحليل المالي</h3>
-                <p>تحليل DuPont + 28 نسبة + Z-Score</p>
+                <h3 data-i18n="mod1">التحليل المالي</h3>
+                <p data-i18n="mod1_desc">تحليل DuPont + 28 نسبة + Z-Score</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="50">
                 <div class="module-num">02</div>
-                <h3>التدقيق الذكي</h3>
-                <p>كشف الشذوذ + اكتساب النشاط + التحقق</p>
+                <h3 data-i18n="mod2">التدقيق الذكي</h3>
+                <p data-i18n="mod2_desc">كشف الشذوذ + اكتساب النشاط + التحقق</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="100">
                 <div class="module-num">03</div>
-                <h3>التقارير</h3>
-                <p>قوالب متعددة + تصدير PDF/Excel/HTML</p>
+                <h3 data-i18n="mod3">التقارير</h3>
+                <p data-i18n="mod3_desc">قوالب متعددة + تصدير PDF/Excel/HTML</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="150">
                 <div class="module-num">04</div>
-                <h3>النظام الجبائي</h3>
-                <p>TVA + IBS + IRG + CNAS + CNAC</p>
+                <h3 data-i18n="mod4">النظام الجبائي</h3>
+                <p data-i18n="mod4_desc">TVA + IBS + IRG + CNAS + CNAC</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="0">
                 <div class="module-num">05</div>
-                <h3>التحليل المقارن</h3>
-                <p>مقارنة سنوات مالية + تحليل التغيرات</p>
+                <h3 data-i18n="mod5">التحليل المقارن</h3>
+                <p data-i18n="mod5_desc">مقارنة سنوات مالية + تحليل التغيرات</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="50">
                 <div class="module-num">06</div>
-                <h3>التدفقات النقدية</h3>
-                <p>قائمة التدفقات + التحليل + الرسوم البيانية</p>
+                <h3 data-i18n="mod6">التدفقات النقدية</h3>
+                <p data-i18n="mod6_desc">قائمة التدفقات + التحليل + الرسوم البيانية</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="100">
                 <div class="module-num">07</div>
-                <h3>التخطيط المالي</h3>
-                <p>موازنتات + مراكز تكلفة + نقطة تعادل</p>
+                <h3 data-i18n="mod7">التخطيط المالي</h3>
+                <p data-i18n="mod7_desc">موازنتات + مراكز تكلفة + نقطة تعادل</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="150">
                 <div class="module-num">08</div>
-                <h3>التوقعات</h3>
-                <p>تنبؤ مالي + 3 سيناريوهات + اتجاهات</p>
+                <h3 data-i18n="mod8">التوقعات</h3>
+                <p data-i18n="mod8_desc">تنبؤ مالي + 3 سيناريوهات + اتجاهات</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="0">
                 <div class="module-num">09</div>
-                <h3>المقارنات الصناعية</h3>
-                <p>7 قطاعات + معايير + رسوم بيانية</p>
+                <h3 data-i18n="mod9">المقارنات الصناعية</h3>
+                <p data-i18n="mod9_desc">7 قطاعات + معايير + رسوم بيانية</p>
             </div>
             <div class="module-card" data-aos="zoom-in" data-aos-delay="50">
                 <div class="module-num">10</div>
-                <h3>التكامل البنكي</h3>
-                <p>6 بنوك جزائرية + استيراد كشف حساب + مطابقة</p>
+                <h3 data-i18n="mod10">التكامل البنكي</h3>
+                <p data-i18n="mod10_desc">6 بنوك جزائرية + استيراد كشف حساب + مطابقة</p>
+            </div>
+            <div class="module-card" data-aos="zoom-in" data-aos-delay="100">
+                <div class="module-num">11</div>
+                <h3 data-i18n="mod11">استيراد البيانات</h3>
+                <p data-i18n="mod11_desc">CSV + Excel + معالجة تلقائية للأعمدة</p>
+            </div>
+            <div class="module-card" data-aos="zoom-in" data-aos-delay="150">
+                <div class="module-num">12</div>
+                <h3 data-i18n="mod12">مساعد الذكاء الاصطناعي</h3>
+                <p data-i18n="mod12_desc">تحليل + توصيات + محادثة ذكية</p>
             </div>
         </div>
     </div>
@@ -243,25 +315,25 @@
 <section class="section tech" id="tech">
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag">إحصائيات المشروع</span>
-            <h2>أرقام المشروع</h2>
+            <span class="section-tag" data-i18n="tech_tag">إحصائيات المشروع</span>
+            <h2 data-i18n="tech_title">أرقام المشروع</h2>
         </div>
         <div class="stats-grid" data-aos="fade-up">
             <div class="stat-card" data-aos="zoom-in" data-aos-delay="0">
                 <div class="stat-number" data-count="22">0</div>
-                <div class="stat-label">شاشة تفاعلية</div>
+                <div class="stat-label" data-i18n="stat1">شاشة تفاعلية</div>
             </div>
             <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
                 <div class="stat-number" data-count="28">0</div>
-                <div class="stat-label">نسبة مالية</div>
+                <div class="stat-label" data-i18n="stat2">نسبة مالية</div>
             </div>
             <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
                 <div class="stat-number" data-count="322">0</div>
-                <div class="stat-label">اختبار ناجح</div>
+                <div class="stat-label" data-i18n="stat3">اختبار ناجح</div>
             </div>
             <div class="stat-card" data-aos="zoom-in" data-aos-delay="300">
                 <div class="stat-number" data-count="26">0</div>
-                <div class="stat-label">وحدة برمجية</div>
+                <div class="stat-label" data-i18n="stat4">وحدة برمجية</div>
             </div>
         </div>
     </div>
@@ -275,30 +347,30 @@
     </div>
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag tag-light">تحميل مجاني</span>
-            <h2>حمّل التطبيق الآن</h2>
-            <p class="section-desc-light">متوافق مع Windows 10/11 — لا يحتاج تثبيت Python أو أي برامج إضافية</p>
+            <span class="section-tag tag-light" data-i18n="dl_tag">تحميل مجاني</span>
+            <h2 data-i18n="dl_title">حمّل التطبيق الآن</h2>
+            <p class="section-desc-light" data-i18n="dl_desc">متوافق مع Windows 10/11 — لا يحتاج تثبيت Python أو أي برامج إضافية</p>
         </div>
         <div class="download-grid">
             <div class="download-card" data-aos="fade-up" data-aos-delay="0">
-                <div class="download-icon">⚡</div>
-                <h3>التثبيت السريع</h3>
-                <p>ملف تثبيت يضيف اختصار سطح المكتب وقائمة Start تلقائياً</p>
-                <div class="download-size">~60 MB</div>
-                <a href="SmartAccounting-Setup-v3.0.0.exe" download class="btn btn-primary">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    تحميل المُثبّت
+                <div class="download-icon" aria-hidden="true">⚡</div>
+                <h3 data-i18n="dl_inst_title">التثبيت السريع</h3>
+                <p data-i18n="dl_inst_desc">ملف تثبيت يضيف اختصار سطح المكتب وقائمة Start تلقائياً</p>
+                <div class="download-size">~61 MB</div>
+                <a href="https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.0.0/SmartAccounting-Setup-v3.0.0.exe" class="btn btn-primary" aria-label="تحميل ملف التثبيت">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span data-i18n="dl_inst_btn">تحميل المُثبّت</span>
                 </a>
             </div>
             <div class="download-card featured" data-aos="fade-up" data-aos-delay="150">
-                <div class="featured-badge">مُوصى به</div>
-                <div class="download-icon">💾</div>
-                <h3>النسخة المحمولة</h3>
-                <p>ملف واحد فقط — افتح وأشغّل بدون تثبيت</p>
-                <div class="download-size">~90 MB</div>
-                <a href="SmartAccounting.zip" download class="btn btn-white">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    تحميل ZIP
+                <div class="featured-badge" data-i18n="dl_recommended">مُوصى به</div>
+                <div class="download-icon" aria-hidden="true">💾</div>
+                <h3 data-i18n="dl_port_title">النسخة المحمولة</h3>
+                <p data-i18n="dl_port_desc">ملف واحد فقط — افتح وأشغّل بدون تثبيت</p>
+                <div class="download-size">~137 MB</div>
+                <a href="https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.0.0/SmartAccounting.exe" class="btn btn-white" aria-label="تحميل النسخة المحمولة">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span data-i18n="dl_port_btn">تحميل المحمول</span>
                 </a>
             </div>
         </div>
@@ -309,8 +381,8 @@
 <section class="section updates" id="updates">
     <div class="container">
         <div class="section-header" data-aos="fade-up">
-            <span class="section-tag">آخر التحديثات</span>
-            <h2>ما الجديد؟</h2>
+            <span class="section-tag" data-i18n="upd_tag">آخر التحديثات</span>
+            <h2 data-i18n="upd_title">ما الجديد؟</h2>
         </div>
         <div class="updates-timeline">
             <div class="update-entry" data-aos="fade-left" data-aos-delay="0">
@@ -318,43 +390,45 @@
                 <div class="update-content">
                     <div class="update-meta">
                         <span class="update-version">v3.0.0</span>
-                        <span class="update-date">27 يوليو 2026</span>
+                        <span class="update-date" data-i18n="upd_date">27 يوليو 2026</span>
                     </div>
                     <ul>
-                        <li>نظام فحص التحديثات التلقائي</li>
-                        <li>8 ميزات جديدة: طباعة، Excel، تقويم ضريبي، CSV، بنك، مقارنات</li>
-                        <li>أيقونة التطبيق + ملف تثبيت احترافي</li>
-                        <li>22 شاشة — 322 اختبار</li>
+                        <li data-i18n="upd1">نظام فحص التحديثات التلقائي</li>
+                        <li data-i18n="upd2">8 ميزات جديدة: طباعة، Excel، تقويم ضريبي، CSV، بنك، مقارنات</li>
+                        <li data-i18n="upd3">أيقونة التطبيق + ملف تثبيت احترافي</li>
+                        <li data-i18n="upd4">22 شاشة — 322 اختبار — 7 قطاعات صناعية</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
+</main>
 
 <!-- ===== FOOTER ===== -->
-<footer class="footer">
+<footer class="footer" role="contentinfo">
     <div class="container footer-content">
         <div class="footer-top">
             <div class="footer-brand">
-                <img src="logo_icon.png" alt="logo">
-                <span>المنصة المحاسبية الذكية</span>
+                <img src="logo_icon.png" alt="شعار المنصة" width="32" height="32">
+                <span data-i18n="site_name">المنصة المحاسبية الذكية</span>
             </div>
             <div class="footer-links">
-                <a href="#about">عن المشروع</a>
-                <a href="#features">المميزات</a>
-                <a href="#modules">الوحدات</a>
-                <a href="#download">تحميل</a>
+                <a href="#about" data-i18n="nav_about">عن المشروع</a>
+                <a href="#features" data-i18n="nav_features">المميزات</a>
+                <a href="#modules" data-i18n="nav_modules">الوحدات</a>
+                <a href="#download" data-i18n="nav_download">تحميل</a>
+                <a href="https://github.com/khalilmebarek-creator/SmartAccounting" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
         <div class="footer-bottom">
-            <p class="footer-copy">© 2026 جميع الحقوق محفوظة — مشروع تخرج محاسبي</p>
+            <p class="footer-copy">&copy; 2026 <span data-i18n="footer_rights">جميع الحقوق محفوظة</span> — <span data-i18n="footer_project">مشروع تخرج ماجستير في المحاسبة</span></p>
         </div>
     </div>
 </footer>
 
-<!-- ===== SCRIPTS ===== -->
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
