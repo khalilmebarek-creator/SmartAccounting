@@ -133,13 +133,7 @@ ul{list-style:none}
 
 /* ===== TECH ===== */
 .tech{background:var(--bg-alt)}
-.tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
-.tech-table{width:100%;border-collapse:collapse;background:var(--card-bg);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow)}
-.tech-table th{background:var(--primary);color:#fff;padding:14px 20px;text-align:right;font-size:.9rem}
-.tech-table td{padding:12px 20px;border-bottom:1px solid var(--border);font-size:.9rem}
-.tech-table tr:last-child td{border-bottom:none}
-.tech-table tr:hover td{background:var(--primary-50)}
-.stats-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:900px;margin:0 auto}
 .stat-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 20px;text-align:center;transition:var(--transition)}
 .stat-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
 .stat-number{font-size:2.8rem;font-weight:900;color:var(--primary);line-height:1;margin-bottom:8px}
@@ -197,9 +191,6 @@ ul{list-style:none}
 .btn-white{background:#fff;color:var(--primary)}
 .btn-white:hover{background:var(--primary-50);transform:translateY(-2px);box-shadow:0 4px 12px rgba(255,255,255,.2)}
 
-/* ===== TECH TABLE TITLE ===== */
-.tech-table-title{text-align:center;margin-bottom:16px;font-size:1rem;color:var(--text-secondary)}
-
 /* ===== RTL ===== */
 [dir="rtl"] .hero-text{text-align:right}
 [dir="ltr"] .hero-text{text-align:left}
@@ -224,7 +215,7 @@ ul{list-style:none}
   .features-grid{grid-template-columns:1fr}
   .modules-grid{grid-template-columns:repeat(2,1fr)}
   .download-grid{grid-template-columns:1fr}
-  .stats-col{grid-template-columns:repeat(2,1fr)}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
   .section{padding:64px 0}
   .section-header h2{font-size:1.7rem}
   .footer-top{flex-direction:column;gap:16px;text-align:center}
@@ -232,7 +223,7 @@ ul{list-style:none}
 }
 @media(max-width:480px){
   .modules-grid{grid-template-columns:1fr}
-  .stats-col{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr}
   .hero h1{font-size:1.8rem}
 }
 

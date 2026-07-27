@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             about: 'عن المشروع',
             features: 'المميزات',
             modules: 'الوحدات',
-            tech: 'التقنيات',
+            tech: 'الإحصائيات',
             download: 'تحميل',
             updates: 'التحديثات',
             hero_title_1: 'المنصة المحاسبية',
