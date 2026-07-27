@@ -2,12 +2,11 @@
   "version": "3.0.0",
   "date": "2026-07-27",
   "min_version": "3.0.0",
-  "download_url": "https://liable-vip-equilibrium-sales.trycloudflare.com/SmartAccounting.zip",
-  "installer_url": "https://liable-vip-equilibrium-sales.trycloudflare.com/SmartAccounting-Setup-v3.0.0.exe",
+  "download_url": "https://khalilmebarek-creator.github.io/SmartAccounting/#download",
   "changelog": [
     "إضافة أيقونة التطبيق",
     "إضافة ملف تثبيت (Installer)",
-    "إصلاح مشاكل Smart App Control",
-    "تحسينات الأداء"
+    "نظام فحص التحديثات التلقائي",
+    "8 ميزات جديدة: طباعة، Excel، تقويم ضريبي، CSV، بنك، مقارنات"
   ]
 }
