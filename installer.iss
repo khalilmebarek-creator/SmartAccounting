@@ -51,8 +51,8 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 Name: "associatefiles"; Description: "Associate .sap files with Smart Accounting"; GroupDescription: "File Association:"; Flags: unchecked
 
 [Files]
-Source: "dist\SmartAccounting\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\SmartAccounting\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist_nuitka\run_ui.dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist_nuitka\run_ui.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

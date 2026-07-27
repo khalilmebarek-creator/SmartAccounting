@@ -121,7 +121,7 @@ class DataImportView(BaseView):
         self.lbl_total = QLabel(f"{t('imp_stat_total')}: 0")
         self.lbl_imported = QLabel(f"{t('imp_stat_imported')}: 0")
         self.lbl_skipped = QLabel(f"{t('imp_stat_skipped')}: 0")
-        self.lbl_errors = QLabel(f"{t('imp_stat_errors')}: 0}")
+        self.lbl_errors = QLabel(f"{t('imp_stat_errors')}: 0")
         for lbl in [self.lbl_total, self.lbl_imported, self.lbl_skipped, self.lbl_errors]:
             lbl.setStyleSheet("font-size: 13px; padding: 5px;")
             stats_layout.addWidget(lbl)
