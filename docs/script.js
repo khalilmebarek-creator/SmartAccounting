@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const animateCounters = () => {
         if (countersAnimated) return;
-        const statsSection = document.querySelector('.stats-col');
+        const statsSection = document.querySelector('.stats-grid');
         if (!statsSection) return;
 
         const rect = statsSection.getBoundingClientRect();
