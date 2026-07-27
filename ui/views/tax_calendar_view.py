@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QGroupBox, QFrame,
     QMessageBox, QDialog, QLineEdit, QTextEdit, QDateEdit,
-    QComboBox, QHeaderView, QGridLayout, QScrollArea, QPrinter,
-    QPrintDialog
+    QComboBox, QHeaderView, QGridLayout, QScrollArea
 )
+from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
 from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtGui import QFont, QColor, QTextDocument
 
