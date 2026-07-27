@@ -1,0 +1,301 @@
+@startuml Smart Accounting Platform
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Smart Accounting Platform — UML Class Diagram
+
+package "UI Layer" #LightBlue {
+    class MainWindow {
+        - sidebar: QListWidget
+        - content: QStackedWidget
+        - alert_banner: AlertBanner
+        + setup_ui()
+        + change_view(index)
+        + apply_theme()
+        + apply_language()
+        + _on_login_success()
+        + _do_logout()
+    }
+
+    class LoginView {
+        - login_username: QLineEdit
+        - login_password: QLineEdit
+        - stack: QStackedWidget
+        + do_login()
+        + do_register()
+        __
+        <<signal>> login_success
+    }
+
+    class DataEntryView {
+        - inputs: dict
+        + calculate_ratios()
+        + save_to_db()
+        + clear_fields()
+        __
+        <<signal>> data_calculated
+    }
+
+    class DashboardView {
+        - chart_revenue: FigureCanvas
+        - chart_expenses: FigureCanvas
+        + refresh()
+        __
+        <<signal>> export_pdf_clicked
+    }
+
+    class RatiosView {
+        + refresh()
+    }
+
+    class DuPontView {
+        + refresh()
+    }
+
+    class AuditView {
+        + run_audit()
+    }
+
+    class TaxView {
+        + simulate()
+        __
+        <<signal>> data_changed
+    }
+
+    class ZScoreView {
+        - inputs: dict
+        - engine: CalculationEngine
+        + calculate()
+        + load_from_state()
+    }
+
+    class SecurityView {
+        + refresh()
+    }
+
+    class SettingsView {
+        + save_settings()
+        + retranslate()
+        __
+        <<signal>> settings_changed
+    }
+
+    class ChatView {
+        + send_message()
+    }
+
+    class ComparativeView {
+        + analyze()
+    }
+
+    class CashFlowView {
+        + calculate()
+    }
+
+    class AlertBanner {
+        + show_alert(msg)
+        + dismiss()
+        __
+        <<signal>> view_clicked
+    }
+}
+
+package "Business Logic" #LightGreen {
+    class CalculationEngine {
+        + current_ratio(ca, cl): float
+        + quick_ratio(ca, inv, cl): float
+        + gross_profit_margin(gp, rev): float
+        + net_profit_margin(ni, rev): float
+        + roa(ni, ta): float
+        + roe(ni, eq): float
+        + asset_turnover(rev, ta): float
+        + debt_to_equity(tl, eq): float
+        + debt_ratio(tl, ta): float
+        + z_score(wc, re, ebit, mve, bvd, sales, ta): dict
+        + calculate_all_ratios(data): dict
+    }
+
+    class TaxEngine {
+        + calculate_ibs(income, sector): float
+        + calculate_tva(sales, rate): float
+        + calculate_irg(salary): float
+        + calculate_cnas(salary, employees): dict
+        + calculate_cnac(salary, employees): dict
+        + simulate(data): dict
+    }
+
+    class AuditEngine {
+        + run_audit(data): dict
+        + check_balance(data): list
+        + check_ratio_health(ratios): list
+    }
+
+    class FraudDetector {
+        - _alerts: deque
+        - _audit_approved: bool
+        - _rapid_edit_count: int
+        + check_data_change(field, old, new): list
+        + check_balance_sheet(data): list
+        + check_rapid_edits(): list
+        + check_after_audit(field, new): list
+        + check_tax_consistency(fin, tax): list
+        + mark_audit_approved()
+        + mark_audit_reset()
+        + get_alerts(filter, limit): list
+        + get_alert_count(): dict
+        + clear_alerts()
+    }
+
+    class UserManager {
+        - _users: dict
+        - _current_user: dict
+        + login(user, pass): tuple
+        + logout()
+        + register(user, pass, name, role): tuple
+        + delete_user(user): tuple
+        + is_admin(): bool
+        + is_logged_in(): bool
+        + get_all_users(): list
+    }
+
+    class ActivityLog {
+        - _log: deque
+        + log(action, details)
+        + get_entries(limit): list
+        + clear()
+    }
+
+    class EmailNotifier {
+        - smtp_server: str
+        - smtp_port: int
+        - sender_email: str
+        - sender_password: str
+        - manager_email: str
+        + configure(server, port, user, pass, manager)
+        + send_alert(alert): tuple
+        + send_summary(data, alerts): tuple
+        + is_configured(): bool
+    }
+
+    class BackupManager {
+        + backup(path): tuple
+        + restore(path): tuple
+        + export_all_to_json(dir): tuple
+        + import_from_json(path): tuple
+    }
+
+    class DemoData {
+        + get_data(): dict
+    }
+
+    class ComparativeEngine {
+        + compare(data1, data2): dict
+    }
+
+    class CashFlowEngine {
+        + calculate(data): dict
+    }
+}
+
+package "Data Layer" #LightYellow {
+    class AppState {
+        - company_name: str
+        - fiscal_year: int
+        - financial_data: dict
+        - ratios: dict
+        - tax_summary: dict
+        - language: str
+        - theme: str
+        + save_data()
+        + load_data()
+        + save_settings()
+        + clear()
+        + has_data(): bool
+        + summary(): str
+    }
+
+    class Database {
+        + save_analysis(data): int
+        + get_all_analyses(): list
+        + delete_analysis(id): bool
+    }
+
+    class Config {
+        + APP_TITLE: str
+        + APP_VERSION: str
+        + DATABASE_PATH: str
+        + BASE_DIR: str
+    }
+}
+
+package "Resources" #Plum {
+    class I18n {
+        + t(key): str
+        + set_language(lang)
+    }
+
+    class QSS_Styles {
+        + style.qss (Light)
+        + style_dark.qss (Dark)
+    }
+}
+
+' === Relationships ===
+
+MainWindow o-- LoginView : "shows first"
+MainWindow o-- DataEntryView
+MainWindow o-- DashboardView
+MainWindow o-- RatiosView
+MainWindow o-- DuPontView
+MainWindow o-- AuditView
+MainWindow o-- TaxView
+MainWindow o-- ZScoreView
+MainWindow o-- SecurityView
+MainWindow o-- SettingsView
+MainWindow o-- ChatView
+MainWindow o-- ComparativeView
+MainWindow o-- CashFlowView
+MainWindow o-- AlertBanner
+
+DataEntryView ..> CalculationEngine : "uses"
+DataEntryView ..> FraudDetector : "triggers checks"
+DataEntryView ..> ActivityLog : "logs actions"
+DataEntryView ..> AppState : "reads/writes"
+
+DashboardView ..> AppState : "reads ratios"
+RatiosView ..> AppState : "reads ratios"
+DuPontView ..> AppState : "reads dupont"
+
+TaxView ..> TaxEngine : "uses"
+TaxView ..> FraudDetector : "check_tax_consistency"
+TaxView ..> AppState : "reads/writes tax"
+
+ZScoreView ..> CalculationEngine : "z_score()"
+ZScoreView ..> AppState : "loads from state"
+
+AuditView ..> AuditEngine : "uses"
+AuditView ..> FraudDetector : "mark_approved/reset"
+
+SecurityView ..> FraudDetector : "reads alerts"
+SecurityView ..> EmailNotifier : "sends summary"
+
+SettingsView ..> AppState : "reads/writes settings"
+SettingsView ..> EmailNotifier : "configures"
+
+ChatView ..> Config : "reads api_key"
+
+LoginView ..> UserManager : "authenticates"
+MainWindow ..> UserManager : "login/logout"
+MainWindow ..> ActivityLog : "logs events"
+MainWindow ..> I18n : "translates"
+
+CalculationEngine ..> AppState : "reads data"
+TaxEngine ..> AppState : "reads data"
+
+MainWindow ..> BackupManager : "backup/restore"
+MainWindow ..> DemoData : "loads demo"
+
+@enduml

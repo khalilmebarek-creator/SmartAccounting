@@ -1,0 +1,21 @@
+{
+  "company_name": "",
+  "company_name_fr": "",
+  "fiscal_year": 2024,
+  "company_rc": "",
+  "company_nif": "",
+  "company_address": "",
+  "company_phone": "",
+  "company_email": "",
+  "company_legal_form": "",
+  "company_activity_type": "",
+  "company_bank_account": "",
+  "financial_data": {},
+  "ratios": {},
+  "dupont": {},
+  "working_capital": {},
+  "audit_result": null,
+  "tax_data": {},
+  "tax_summary": null,
+  "tax_obligations": []
+}

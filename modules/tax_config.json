@@ -1,0 +1,167 @@
+{
+  "country": "Algeria",
+  "country_ar": "الجزائر",
+  "year": 2025,
+  "version": "1.0.0",
+  "last_updated": "2025-01-01",
+  "currency": "DZD",
+  "currency_ar": "دينار جزائري",
+
+  "ibs": {
+    "name": "Impôt sur les Bénéfices des Sociétés",
+    "name_ar": "ضريبة أرباح الشركات",
+    "abbreviation": "IBS",
+    "rates": {
+      "production": 0.19,
+      "construction": 0.23,
+      "other": 0.26
+    },
+    "rate_labels_ar": {
+      "production": "نشاط إنتاجي (19%)",
+      "construction": "بناء وأشغال عامة (23%)",
+      "other": "أنشطة أخرى (26%)"
+    },
+    "minimum_tax": 10000,
+    "reinvested_profit_rate": 0.10,
+    "acomptes": [
+      {"month": 3, "day": 20, "label": "أول دفعة مقدمة", "label_en": "1st installment"},
+      {"month": 6, "day": 20, "label": "ثانية دفعة مقدمة", "label_en": "2nd installment"},
+      {"month": 11, "day": 20, "label": "ثالثة دفعة مقدمة", "label_en": "3rd installment"}
+    ],
+    "balance_deadline": {"month": 4, "day": 30, "label": "تصفيه IBS", "label_en": "IBS balance"},
+    "deductions": {
+      "depreciation": "إهلاك الأصول حسب الجدول الجبائي",
+      "provisions": "الاحتياطيات المقبولة جبائياً",
+      "losses": "خسائر التسويات يمكن تعويضها لمدة 4 سنوات"
+    }
+  },
+
+  "tva": {
+    "name": "Taxe sur la Valeur Ajoutée",
+    "name_ar": "ضريبة القيمة المضافة",
+    "abbreviation": "TVA",
+    "rates": {
+      "standard": 0.19,
+      "reduced": 0.09,
+      "zero": 0.0
+    },
+    "rate_labels_ar": {
+      "standard": "النسبة العادية (19%)",
+      "reduced": "النسبة المخفضة (9%)",
+      "zero": "خاضع لـ 0% (معفي)"
+    },
+    "reduced_rate_items": [
+      "المبيعات عبر الإنترنت",
+      "غاز استهلاكي أقل من 2500 وحدة حرارية",
+      "كهرباء استهلاك أقل من 250 كيلوواط/ساعة",
+      "قطع غيار السيارات"
+    ],
+    "exemptions": [
+      "التعليم والصحة",
+      "الخدمات المالية والبنوك",
+      "النقل الدولي",
+      "المواد الأساسية (خبز، حليب، دواء)"
+    ],
+    "declaration_frequency": "شهري",
+    "deadline_day": 20,
+    "deadline_note": "إيداعclaration G N°50 قبل ngày 20 من كل شهر"
+  },
+
+  "irg": {
+    "name": "Impôt sur le Revenu Global",
+    "name_ar": "ضريبة الدخل الشامل",
+    "abbreviation": "IRG",
+    "description": "ضريبة تصاعدية على الرواتب والأجور",
+    "brackets": [
+      {"min": 0, "max": 120000, "rate": 0.0, "label": "معفي"},
+      {"min": 120001, "max": 360000, "rate": 0.20, "label": "20%"},
+      {"min": 360001, "max": 1440000, "rate": 0.30, "label": "30%"},
+      {"min": 1440001, "max": null, "rate": 0.35, "label": "35%"}
+    ],
+    "proportional_deduction": {
+      "rate": 0.40,
+      "min_annual": 12000,
+      "max_annual": 18000,
+      "description": "خصم تناسلي 40% على الرواتب"
+    },
+    "withholding_rate": 0.10,
+    "declaration_frequency": "شهري",
+    "deadline_day": 20
+  },
+
+  "cnas": {
+    "name": "Caisse Nationale des Assurances Sociales",
+    "name_ar": "الصندوق الوطني للتأمينات الاجتماعية",
+    "abbreviation": "CNAS",
+    "employer": {
+      "assurance_sociale": 0.125,
+      "accidents_travail": 0.0125,
+      "retraite": 0.105,
+      "retraite_anticipee": 0.0025,
+      "total": 0.245
+    },
+    "employee": {
+      "assurance_sociale": 0.015,
+      "retraite": 0.0675,
+      "chomage": 0.0075,
+      "total": 0.09
+    },
+    "total_rate": 0.335,
+    "ceiling_multiple": 8,
+    "declaration_frequency": "شهري",
+    "deadline_day": 20,
+    "penalties": {
+      "late_payment": 0.10,
+      "monthly_penalty": 0.03,
+      "note": "غرامة تأخير 10% + 3% شهرياً"
+    }
+  },
+
+  "cnac": {
+    "name": "Caisse Nationale d'Assurance Chômage",
+    "name_ar": "الصندوق الوطني لتأمين البطالة",
+    "abbreviation": "CNAC",
+    "employer_rate": 0.015,
+    "employee_rate": 0.005,
+    "total_rate": 0.02,
+    "declaration_frequency": "شهري",
+    "deadline_day": 20
+  },
+
+  "versement_forfaitaire": {
+    "name": "Versement Forfaitaire",
+    "name_ar": "الدفعات المقدمة على حساب الضريبة",
+    "abbreviation": "VF",
+    "standard_rate": 0.02,
+    "construction_rate": 0.01,
+    "description": "يُدفع شهرياً كدفعة مقدمة على حساب IBS وIRG",
+    "deadline_day": 20
+  },
+
+  "tax_calendar": {
+    "monthly": [
+      {"day": 20, "taxes": ["TVA", "IRG", "CNAS", "CNAC", "VF"], "label": "الالتزامات الشهرية", "label_en": "Monthly obligations"}
+    ],
+    "quarterly": [
+      {"month": 3, "day": 20, "taxes": ["IBS_Acompte_1"], "label": "أول دفعة مقدمة IBS"},
+      {"month": 6, "day": 20, "taxes": ["IBS_Acompte_2"], "label": "ثانية دفعة مقدمة IBS"},
+      {"month": 11, "day": 20, "taxes": ["IBS_Acompte_3"], "label": "ثالثة دفعة مقدمة IBS"}
+    ],
+    "annual": [
+      {"month": 1, "day": 31, "taxes": ["DAS"], "label": "إيداع الإقرار السنوي للرواتب"},
+      {"month": 4, "day": 30, "taxes": ["IBS_Balance"], "label": "تصفيه IBS"},
+      {"month": 4, "day": 30, "taxes": ["IBS_Annual"], "label": "تقديم الإقرار السنوي IBS"}
+    ]
+  },
+
+  "activity_types": [
+    {"key": "production", "label_ar": "نشاط إنتاجي (صناعة)", "label_en": "Manufacturing", "ibs_rate_key": "production"},
+    {"key": "construction", "label_ar": "بناء وأشغال عامة", "label_en": "Construction", "ibs_rate_key": "construction"},
+    {"key": "commerce", "label_ar": "تجارة", "label_en": "Trade", "ibs_rate_key": "other"},
+    {"key": "services", "label_ar": "خدمات", "label_en": "Services", "ibs_rate_key": "other"},
+    {"key": "tourism", "label_ar": "سياحة", "label_en": "Tourism", "ibs_rate_key": "construction"},
+    {"key": "transport", "label_ar": "نقل", "label_en": "Transport", "ibs_rate_key": "other"},
+    {"key": "tech", "label_ar": "تكنولوجيا", "label_en": "Technology", "ibs_rate_key": "other"},
+    {"key": "real_estate", "label_ar": "عقارات", "label_en": "Real Estate", "ibs_rate_key": "other"}
+  ]
+}

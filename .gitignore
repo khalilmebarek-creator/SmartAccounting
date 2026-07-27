@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Build artifacts
+dist/
+build/
+installer_output/
+distribution/
+*.spec
+
+# Binary files
+*.exe
+*.zip
+*.7z
+*.ico
+
+# PyInstaller generated
+*.manifest
+
+# Data (user files)
+users.json
+*.db
+data/
+logs/
+backups/
+tunnel_url.txt
+tunnel_error.txt
+tunnel_output.txt
+settings.json
+tax_reminders.json
+fraud_log.json
+file.txt
+tmp*.txt
+tests_run4.txt

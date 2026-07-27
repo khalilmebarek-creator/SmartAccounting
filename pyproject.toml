@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "accounting-platform"
+version = "2.1.0"
+description = "المنصة المحاسبية الذكية — Smart Accounting Platform"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11,<3.14"
+authors = [
+    {name = "Accounting Platform Team"}
+]
+keywords = ["accounting", "finance", "tax", "algeria", "pyqt5"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
+
+dependencies = [
+    "PyQt5>=5.15.11,<6.0",
+    "matplotlib>=3.7.0,<4.0",
+    "pandas>=2.0.0,<3.0",
+    "openpyxl>=3.1.0,<4.0",
+    "fpdf2>=2.8.0,<3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-cov>=5.0,<6.0",
+    "ruff>=0.5.0,<1.0",
+    "mypy>=1.10,<2.0",
+]
+
+[project.scripts]
+accounting-platform = "ui.run_ui:main"
+accounting-cli = "main:main"
+
+[project.gui-scripts]
+accounting-gui = "ui.run_ui:main"
+
+[tool.setuptools.packages.find]
+include = ["database*", "modules*", "ui*", "utils*"]
+exclude = ["tests*", "docs*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["database", "modules", "ui", "utils", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E741",   # ambiguous variable name
+    "B008",   # function call in default argument (PyQt5 pattern)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["database", "modules", "ui", "utils"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow",
+    "gui: marks tests requiring display",
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_untyped_defs = false

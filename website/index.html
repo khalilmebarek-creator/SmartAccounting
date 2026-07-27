@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنصة المحاسبية الذكية | Smart Accounting Platform</title>
+    <link rel="icon" type="image/png" href="logo_icon.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2980B9">
+    <meta name="description" content="نظام محاسبي متكامل بالذكاء الاصطناعي — دعم عربي/إنجليزي/فرنسي — النظام الجبائي الجزائري">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <img src="logo_icon.png" alt="logo" style="height:36px;width:36px;vertical-align:middle;margin-left:8px;">
+                المنصة المحاسبية الذكية
+            </div>
+            <ul class="nav-links">
+                <li><a href="#features">المميزات</a></li>
+                <li><a href="#modules">الوحدات</a></li>
+                <li><a href="#screens">الشاشات</a></li>
+                <li><a href="#tech">التقنيات</a></li>
+                <li><a href="#new">جديد</a></li>
+                <li><a href="#download">تحميل</a></li>
+            </ul>
+            <button class="lang-toggle" id="langToggle">EN</button>
+            <button class="hamburger" id="hamburger">☰</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container hero-content">
+            <img src="logo_icon.png" alt="Smart Accounting Logo" style="width:100px;height:100px;margin-bottom:20px;">
+            <h1>المنصة المحاسبية الذكية</h1>
+            <p class="hero-subtitle">نظام محاسبي متكامل بالذكاء الاصطناعي — دعم عربي/إنجليزي/فرنسي — النظام الجبائي الجزائري</p>
+            <div class="hero-badges">
+                <span class="badge">Python 3.13</span>
+                <span class="badge">PyQt5</span>
+                <span class="badge">SQLite</span>
+                <span class="badge">AI Chat</span>
+                <span class="badge">v3.0.0</span>
+                <span class="badge badge-new">NEW</span>
+            </div>
+            <div class="hero-buttons">
+                <a href="#download" class="btn btn-primary">📥 تحميل التطبيق</a>
+                <a href="#features" class="btn btn-outline">المزيد من المعلومات</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="stats-bar">
+        <div class="container stats-grid">
+            <div class="stat-item">
+                <span class="stat-number" data-target="22">0</span>
+                <span class="stat-label">شاشة تفاعلية</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="28">0</span>
+                <span class="stat-label">نسبة مالية</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="3">0</span>
+                <span class="stat-label">لغات مدعومة</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="322">0</span>
+                <span class="stat-label">اختبار ناجح</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="26">0</span>
+                <span class="stat-label">وحدة برمجية</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="section-title">✨ المميزات الرئيسية</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>تحليل النسب المالية</h3>
+                    <p>حساب 28 نسبة مالية شاملة: السيولة، الربحية، الكفاءة، والاستدانة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>تحليل DuPont</h3>
+                    <p>تفكيك العائد على حقوق الملكية إلى مكوناته الثلاث: هامش الربح، دوران الأصول، والرافعة المالية</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>النظام الجبائي الجزائري</h3>
+                    <p>حساب IBS، TVA، IRG، CNAS، CNAC مع المحاكاة الشاملة والتقويم الجبائي</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>مساعد الذكاء الاصطناعي</h3>
+                    <p>شات ذكي للتحليل المالي — وضع متصل (OpenAI) ووضع محلي بدون إنترنت</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>التنبؤ المالي</h3>
+                    <p>تصور النمو المستقبلي بثلاث سيناريوهات: متفائل، أساسي، متشائم</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>التخطيط المالي</h3>
+                    <p>إنشاء موازنتات سنوية ومقارنة الفعلي مع المخطط مع تحليل الانحرافات</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🏢</div>
+                    <h3>مراكز التكلفة</h3>
+                    <p>تقسيم التكاليف على الأقسام وتحليل ربحية كل قسم وترتيبها حسب الكفاءة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>نقطة التعادل</h3>
+                    <p>حساب نقطة التعادل، هامش المساهمة، وتحليل الحساسية</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Z-Score (Altman)</h3>
+                    <p>تقدير احتمالية إفلاس الشركة باستخدام النموذج الخماسي</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>التحليل المقارن</h3>
+                    <p>مقارنة الأداء المالي بين سنوات مالية متعددة مع تحليل التغيرات</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>التدقيق الذكي</h3>
+                    <p>كشف الشذوذ المالي بقواعد ذكية مع تصنيف التنبيهات حسب الخطورة</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📄</div>
+                    <h3>التقارير والتصدير</h3>
+                    <p>تصدير PDF، HTML، Excel، TXT مع قوالب تقارير جاهزة وقابلة للتخصيص</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="new" class="section section-dark">
+        <div class="container">
+            <h2 class="section-title">🆕 المميزات الجديدة — Phase 4</h2>
+            <div class="features-grid">
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">🖨️</div>
+                    <h3>طباعة مباشرة</h3>
+                    <p>طباعة أي تقرير مباشرة من التطبيق مع دعم RTL والتنسيق الاحترافي</p>
+                </div>
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">📊</div>
+                    <h3>تصدير Excel متقدم</h3>
+                    <p>أوراق متعددة (9 ورقات) مع رسوم بيانية وتنسيق احترافي وتلوين الأعمدة</p>
+                </div>
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">📅</div>
+                    <h3>التقويم الجبائي</h3>
+                    <p>تذكيرات المواعيد الضريبية — TVA شهري، IBS ربع سنوي، CNAS، CNAC</p>
+                </div>
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">📥</div>
+                    <h3>استيراد CSV/Excel</h3>
+                    <p>استيراد مجمّع للبيانات المالية مع تعيين تلقائي ويدوي للأعمدة</p>
+                </div>
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">🏦</div>
+                    <h3>تكامل البنوك</h3>
+                    <p>استيراد كشف حساب بنكي — دعم BNA، CPA، BADR، BEA، CCP — مطابقة تلقائية</p>
+                </div>
+                <div class="feature-card feature-new">
+                    <div class="feature-icon">📊</div>
+                    <h3>المعايير المرجعية</h3>
+                    <p>مقارنة أداء الشركة بـ 7 قطاعات جزائرية مع رسوم رادارية واقتراحات التحسين</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="modules" class="section">
+        <div class="container">
+            <h2 class="section-title">📦 الوحدات الرئيسية</h2>
+            <div class="modules-grid">
+                <div class="module-card">
+                    <h3>🧮 محرك الحسابات</h3>
+                    <p>28 نسبة مالية + تحليل DuPont + Z-Score + نقطة التعادل</p>
+                </div>
+                <div class="module-card">
+                    <h3>💰 النظام الجبائي</h3>
+                    <p>IBS، TVA، IRG، CNAS، CNAC — الضرائب الجزائرية الكاملة</p>
+                </div>
+                <div class="module-card">
+                    <h3>🤖 الذكاء الاصطناعي</h3>
+                    <p>شات ذكي + مساعد محلي + تحليل آلي للبيانات المالية</p>
+                </div>
+                <div class="module-card">
+                    <h3>📊 التنبؤ والتخطيط</h3>
+                    <p>تنبؤ مالي + موازنة + مراكز تكلفة + تحليل تعادل</p>
+                </div>
+                <div class="module-card">
+                    <h3>🔒 الأمان</h3>
+                    <p>تشفير AES-GCM + أدوار صلاحيات + 2FA + سجل عمليات</p>
+                </div>
+                <div class="module-card">
+                    <h3>💾 الحفظ والاستعادة</h3>
+                    <p>SQLite + نسخ احتياطي تلقائي + تصدير/استيراد JSON</p>
+                </div>
+                <div class="module-card module-new">
+                    <h3>🖨️ الطباعة والتصدير</h3>
+                    <p>طباعة مباشرة + Excel متقدم (9 أوراق) + PDF احترافي</p>
+                </div>
+                <div class="module-card module-new">
+                    <h3>📅 التقويم الجبائي</h3>
+                    <p>تذكيرات المواعيد الضريبية + تقويم شامل + تنبيهات ذكية</p>
+                </div>
+                <div class="module-card module-new">
+                    <h3>📥 استيراد البيانات</h3>
+                    <p>CSV/Excel + استيراد بنكي + مطابقة تلقائية + تعيين أعمدة</p>
+                </div>
+                <div class="module-card module-new">
+                    <h3>📊 المعايير المرجعية</h3>
+                    <p>7 قطاعات جزائرية + مقارنة + رسوم رادارية + اقتراحات</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="screens" class="section section-dark">
+        <div class="container">
+            <h2 class="section-title">🖥️ الشاشات الـ 22</h2>
+            <div class="screens-grid">
+                <div class="screen-tag">🔐 تسجيل الدخول</div>
+                <div class="screen-tag">📋 إدخال البيانات</div>
+                <div class="screen-tag">📊 لوحة التحكم</div>
+                <div class="screen-tag">📈 النسب المالية</div>
+                <div class="screen-tag">🔄 تحليل DuPont</div>
+                <div class="screen-tag">🔍 التدقيق والمراجعة</div>
+                <div class="screen-tag">📄 التقارير</div>
+                <div class="screen-tag">⚙️ الإعدادات</div>
+                <div class="screen-tag">💬 شات الذكاء الاصطناعي</div>
+                <div class="screen-tag">💰 النظام الجبائي</div>
+                <div class="screen-tag">📊 التحليل المقارن</div>
+                <div class="screen-tag">💵 التدفقات النقدية</div>
+                <div class="screen-tag">🔒 الأمان</div>
+                <div class="screen-tag">📊 Z-Score</div>
+                <div class="screen-tag">📈 التنبؤ المالي</div>
+                <div class="screen-tag">💰 الموازنة</div>
+                <div class="screen-tag">🏢 مراكز التكلفة</div>
+                <div class="screen-tag">📊 نقطة التعادل</div>
+                <div class="screen-tag screen-new">📊 المعايير المرجعية</div>
+                <div class="screen-tag screen-new">📅 التقويم الجبائي</div>
+                <div class="screen-tag screen-new">📥 استيراد البيانات</div>
+                <div class="screen-tag screen-new">🏦 تكامل البنوك</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tech" class="section">
+        <div class="container">
+            <h2 class="section-title">🛠️ التقنيات المستخدمة</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <span class="tech-name">Python 3.13</span>
+                    <span class="tech-desc">اللغة الأساسية</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">PyQt5</span>
+                    <span class="tech-desc">واجهة الرسوميات</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">SQLite</span>
+                    <span class="tech-desc">قاعدة البيانات</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">Matplotlib</span>
+                    <span class="tech-desc">الرسوم البيانية</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">Pandas</span>
+                    <span class="tech-desc">تحليل البيانات</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">OpenPyXL</span>
+                    <span class="tech-desc">تصدير Excel المتقدم</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">FPDF2</span>
+                    <span class="tech-desc">تصدير PDF</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">Cryptography</span>
+                    <span class="tech-desc">تشفير AES-GCM</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">Flask</span>
+                    <span class="tech-desc">خادم الويب</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">PyInstaller</span>
+                    <span class="tech-desc">التعبئة</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">cloudflared</span>
+                    <span class="tech-desc">نشر روابط مشاركة</span>
+                </div>
+                <div class="tech-item">
+                    <span class="tech-name">NumPy</span>
+                    <span class="tech-desc">حسابات الرسوم البيانية</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="section section-dark">
+        <div class="container download-content">
+            <h2 class="section-title">📥 تحميل التطبيق</h2>
+            
+            <div class="download-card">
+                <h3>المنصة المحاسبية الذكية v3.0.0</h3>
+                <p>اختر الطريقة المناسبة لتثبيت التطبيق</p>
+                <div class="download-specs">
+                    <div class="spec-item"><strong>الحجم:</strong> ~146 MB (ZIP)</div>
+                    <div class="spec-item"><strong>النظام:</strong> Windows 64-bit</div>
+                    <div class="spec-item"><strong>الشاشة:</strong> 22 شاشة تفاعلية</div>
+                    <div class="spec-item"><strong>الاختبارات:</strong> 322 اختبار ناجح</div>
+                </div>
+                
+                <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-top:30px;">
+                    <div style="flex:1;min-width:250px;background:var(--bg-secondary);border:2px solid var(--primary);border-radius:12px;padding:25px;text-align:center;">
+                        <div style="font-size:2rem;margin-bottom:10px;">⚡</div>
+                        <h4 style="color:var(--primary);margin-bottom:8px;">تثبيت سريع (موصى به)</h4>
+                        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:15px;">ملف تثبيت يضيف اختصار سطح المكتب وقائمة Start</p>
+                        <a href="SmartAccounting-Setup-v3.0.0.exe" download class="btn btn-primary">📥 SmartAccounting-Setup-v3.0.0.exe</a>
+                    </div>
+                    
+                    <div style="flex:1;min-width:250px;background:var(--bg-secondary);border:2px solid var(--border-color);border-radius:12px;padding:25px;text-align:center;">
+                        <div style="font-size:2rem;margin-bottom:10px;">💾</div>
+                        <h4 style="color:var(--text-primary);margin-bottom:8px;">نسخة محمولة</h4>
+                        <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:15px;">ملف واحد جاهز للتشغيل — لا يحتاج تثبيت</p>
+                        <a href="SmartAccounting.zip" download class="btn btn-secondary">📥 SmartAccounting-Portable.zip</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="updates" class="section">
+        <div class="container">
+            <h2 class="section-title">🔄 سجل التحديثات</h2>
+            <div id="updates-list" class="updates-list">
+                <div class="update-item">
+                    <div class="update-header">
+                        <span class="update-version">v3.0.0</span>
+                        <span class="update-date">27 يوليو 2026</span>
+                    </div>
+                    <ul class="update-changes">
+                        <li>إضافة أيقونة التطبيق</li>
+                        <li>إضافة ملف تثبيت (Installer)</li>
+                        <li>نظام فحص التحديثات التلقائي</li>
+                        <li>8 ميزات جديدة: طباعة، Excel متقدم، تقويم ضريبي، استيراد CSV، ربط بنكي، مقارنات صناعية</li>
+                        <li>22 شاشة تفاعلية</li>
+                        <li>322 اختبار ناجح</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-content">
+            <img src="logo_icon.png" alt="logo" style="width:40px;height:40px;margin-bottom:10px;">
+            <p>المنصة المحاسبية الذكية v3.0.0 — مشروع تخرج محاسبي</p>
+            <p>Python 3.13 + PyQt5 + SQLite — دعم عربي / إنجليزي / فرنسي</p>
+            <p>22 شاشة — 28 نسبة مالية — 26 وحدة — 322 اختبار</p>
+            <p class="footer-copy">© 2026 جميع الحقوق محفوظة</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+# Base view class with common layout helpers
+# ===========================================
+
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel
+from PyQt5.QtGui import QFont
+
+from ui.resources.i18n import t
+
+
+class BaseView(QWidget):
+    """Base class for all views — provides common layout and helper methods."""
+
+    def __init__(self):
+        super().__init__()
+        self._main_layout = QVBoxLayout()
+        self._main_layout.setContentsMargins(20, 20, 20, 20)
+        self._main_layout.setSpacing(15)
+        self.setLayout(self._main_layout)
+
+    def _make_header(self, title_key: str, subtitle_key: str = None):
+        """Add a standard title + optional subtitle to the layout."""
+        title = QLabel(t(title_key))
+        title.setObjectName("headerTitle")
+        self._main_layout.addWidget(title)
+
+        if subtitle_key:
+            sub = QLabel(t(subtitle_key))
+            sub.setObjectName("headerSubtitle")
+            self._main_layout.addWidget(sub)
+
+        return title
+
+    def _make_card(self, title_key: str = None) -> QFrame:
+        """Create a styled card frame."""
+        card = QFrame()
+        card.setObjectName("card")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(10)
+
+        if title_key:
+            lbl = QLabel(t(title_key))
+            lbl.setObjectName("cardTitle")
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(13)
+            lbl.setFont(font)
+            layout.addWidget(lbl)
+
+        card.setLayout(layout)
+        return card
+
+    def _make_stat_card(self, title: str, value: str = "0", color: str = "#333") -> QFrame:
+        """Create a stat card with title + large value."""
+        frame = QFrame()
+        frame.setObjectName("card")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+
+        lbl_title = QLabel(title)
+        lbl_title.setStyleSheet("font-size: 11px; color: #888;")
+        lbl_value = QLabel(value)
+        lbl_value.setObjectName("statValue")
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(18)
+        lbl_value.setFont(font)
+        lbl_value.setStyleSheet(f"color: {color};")
+        layout.addWidget(lbl_title)
+        layout.addWidget(lbl_value)
+
+        frame.setLayout(layout)
+        return frame
