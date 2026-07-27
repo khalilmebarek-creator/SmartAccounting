@@ -485,5 +485,54 @@ class ExcelExporter:
         if "Sheet" in wb.sheetnames:
             del wb["Sheet"]
 
+    def export_comparison(self, data: List[Dict], filepath: str,
+                          title: str = "Benchmark Comparison") -> bool:
+        """تصدير تقرير المقارنة الصناعية"""
+        try:
+            from openpyxl import Workbook
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Benchmark"
+            ws.sheet_properties.tabColor = "2980B9"
+
+            ws.merge_cells('A1:G1')
+            ws['A1'] = title
+            ws['A1'].font = self.TITLE_FONT
+            ws['A1'].alignment = self.CENTER_ALIGN
+
+            ws.merge_cells('A2:G2')
+            ws['A2'] = f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            ws['A2'].font = self.SUBTITLE_FONT
+            ws['A2'].alignment = self.CENTER_ALIGN
+
+            headers = ["Ratio", "Company Value", "Sector Min",
+                       "Sector Avg", "Sector Max", "Status", "Score"]
+            for col, h in enumerate(headers, 1):
+                ws.cell(row=4, column=col, value=h)
+            self._style_header_row(ws, 4, 7)
+
+            row = 5
+            for item in data:
+                ws.cell(row=row, column=1, value=item.get("Ratio", ""))
+                for col_idx, key in enumerate(
+                    ["Company Value", "Sector Min", "Sector Avg",
+                     "Sector Max", "Status", "Score"], 2
+                ):
+                    ws.cell(row=row, column=col_idx, value=item.get(key, ""))
+                self._style_data_row(ws, row, 7)
+                row += 1
+
+            ws.column_dimensions['A'].width = 25
+            for c in ['B', 'C', 'D', 'E', 'F', 'G']:
+                ws.column_dimensions[c].width = 16
+
+            self._remove_default_sheet(wb)
+            wb.save(filepath)
+            logger.info(f"Benchmark comparison saved to {filepath}")
+            return True
+        except Exception as e:
+            logger.error(f"Export comparison error: {e}")
+            return False
+
 
 excel_exporter = ExcelExporter()
