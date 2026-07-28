@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QPushButton
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
 from PyQt5.QtGui import QFont, QIcon, QKeySequence
 
 from ui.views.data_entry import DataEntryView
@@ -92,10 +92,61 @@ class MainWindow(QMainWindow):
             msg.setInformativeText("هل تريد تحميل التحديث؟")
             msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
             if msg.exec_() == QMessageBox.Yes:
-                import webbrowser
-                webbrowser.open(info.get('download_url', 'https://github.com'))
+                self._perform_update(info)
         except Exception:
             pass
+
+    def _perform_update(self, info: dict):
+        """تحميل التحديث وتشغيله مع نافذة تقدم"""
+        from PyQt5.QtWidgets import QProgressDialog, QApplication
+        from modules.update_checker import download_installer
+
+        installer_url = info.get("installer_url") or info.get("download_url")
+        if not installer_url:
+            return
+
+        self.close()
+
+        progress = QProgressDialog(
+            "جاري تحميل التحديث...\nDownloading update...",
+            None, 0, 100
+        )
+        progress.setWindowTitle("تحديث | Update")
+        progress.setWindowModality(2)
+        progress.setMinimumWidth(400)
+        progress.show()
+
+        class DownloadThread(QThread):
+            progress_signal = pyqtSignal(int, int)
+            done_signal = pyqtSignal(str)
+
+            def __init__(self, url):
+                super().__init__()
+                self.url = url
+
+            def run(self):
+                def _progress(downloaded, total):
+                    self.progress_signal.emit(downloaded, total)
+
+                path = download_installer(self.url, progress_callback=_progress)
+                self.done_signal.emit(path if path else "")
+
+        self._dl_thread = DownloadThread(installer_url)
+        self._dl_thread.progress_signal.connect(
+            lambda d, t: progress.setValue(int(d / max(t, 1) * 100))
+        )
+        self._dl_thread.done_signal.connect(
+            lambda path: self._on_download_done(path, progress)
+        )
+        self._dl_thread.start()
+
+    def _on_download_done(self, path: str, progress):
+        """بعد انتهاء التحميل — تشغيل المثبت والخروج"""
+        progress.close()
+        if path:
+            import subprocess
+            subprocess.Popen([path])
+        QApplication.quit()
 
     def _on_update_check_done(self, has_update: bool, info: dict):
         """الاستجابة لفحص التحديثات — من background thread"""

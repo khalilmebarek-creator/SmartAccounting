@@ -3,10 +3,10 @@
   "date": "2026-07-28",
   "min_version": "3.0.0",
   "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.2",
+  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.1.2/SmartAccounting-Setup-v3.1.2.exe",
   "changelog": [
     "إصلاح التقويم الجبائي — اختيار السنة يحدّث العرض فوراً",
     "إصلاح المعايير المرجعية — تغيير القطاع يحدّث النتائج تلقائياً",
-    "إصلاح نظام إشعار التحديثات",
-    "إصلاح استعادة كلمة المرور بنظام الرمز الآمن"
+    "تحميل التحديث مباشرة من التطبيق — نافذة تقدم + تشغيل تلقائي"
   ]
 }

@@ -2,9 +2,11 @@
 # ==============
 
 import json
+import os
+import tempfile
 import urllib.request
 import urllib.error
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Callable
 
 from config import APP_VERSION
 from utils.app_logger import get_logger
@@ -116,3 +118,44 @@ def check_updates_async(callback=None, timeout: int = 5):
     thread = threading.Thread(target=_check, daemon=True)
     thread.start()
     return thread
+
+
+def download_installer(
+    installer_url: str,
+    progress_callback: Callable = None,
+    chunk_size: int = 8192,
+) -> Optional[str]:
+    """
+    تحميل ملف التثبيت مع إظهار التقدم
+    progress_callback: دالة تستقبل (downloaded_bytes, total_bytes)
+    Returns: مسار الملف المحمل أو None عند الفشل
+    """
+    try:
+        req = urllib.request.Request(
+            installer_url,
+            headers={"User-Agent": "SmartAccounting/updater"},
+        )
+        with urllib.request.urlopen(req, timeout=60) as response:
+            total = int(response.headers.get("Content-Length", 0))
+            downloaded = 0
+
+            suffix = ".exe" if ".exe" in installer_url else ".zip"
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+            path = tmp.name
+
+            while True:
+                chunk = response.read(chunk_size)
+                if not chunk:
+                    break
+                tmp.write(chunk)
+                downloaded += len(chunk)
+                if progress_callback:
+                    progress_callback(downloaded, total)
+
+            tmp.close()
+            log.info(f"Downloaded installer: {path} ({downloaded} bytes)")
+            return path
+
+    except Exception as e:
+        log.error(f"Download failed: {e}")
+        return None
