@@ -74,8 +74,6 @@ class DataEntryView(QWidget):
         self.setup_ui()
         if state.financial_data:
             self._load_from_state()
-        else:
-            self.load_default_data()
         self._push_undo()
 
     def setup_ui(self):
@@ -575,8 +573,6 @@ class DataEntryView(QWidget):
         """تحديث الواجهة من AppState عند العودة للشاشة"""
         if state.financial_data:
             self._load_from_state()
-        else:
-            self.load_default_data()
 
     def load_default_data(self):
         """تحميل بيانات تجريبية افتراضية"""
