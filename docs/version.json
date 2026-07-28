@@ -1,14 +1,13 @@
 {
-  "version": "3.1.0",
+  "version": "3.1.1",
   "date": "2026-07-28",
   "min_version": "3.0.0",
-  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.0",
+  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.1",
   "changelog": [
+    "إصلاح نظام إشعار التحديثات — يظهر الآن عند توفر إصدار جديد",
     "إصلاح استعادة كلمة المرور بنظام الرمز الآمن",
-    "إظهار/إخفاء كلمة المرور 👁️",
-    "تحسين التسجيل — الإيميل يملأ تلقائياً",
-    "إصلاح تحميل البيانات المالية من أول مرة",
-    "تحسين التنقل بالـ Tab بين الحقول",
-    "إصلاح crash في فحص التحديثات"
+    "إظهار/إخفاء كلمة المرور",
+    "تحسين تحميل البيانات المالية",
+    "تحسين التنقل بالـ Tab"
   ]
 }
