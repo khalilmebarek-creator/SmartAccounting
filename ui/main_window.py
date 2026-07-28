@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QPushButton
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 from PyQt5.QtGui import QFont, QIcon, QKeySequence
 
 from ui.views.data_entry import DataEntryView
@@ -51,9 +51,12 @@ class MainWindow(QMainWindow):
     """النافذة الرئيسية للتطبيق"""
 
     log = get_logger("main_window")
+    update_ready = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()
+        self._pending_update_info = {}
+        self.update_ready.connect(self._show_update_safe)
         self.setup_ui()
         self.apply_style()
         self.apply_language()
@@ -73,12 +76,9 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-    def _show_update_safe(self):
-        """عرض رسالة التحديث بأمان من أي thread"""
+    def _show_update_safe(self, info: dict):
+        """عرض رسالة التحديث بأمان عبر signal"""
         try:
-            info = getattr(self, '_pending_update_info', None)
-            if not info:
-                return
             from PyQt5.QtWidgets import QMessageBox
             from config import APP_VERSION
             msg = QMessageBox(self)
@@ -100,14 +100,7 @@ class MainWindow(QMainWindow):
     def _on_update_check_done(self, has_update: bool, info: dict):
         """الاستجابة لفحص التحديثات — من background thread"""
         if has_update and info:
-            self._pending_update_info = info
-            try:
-                from PyQt5.QtCore import QMetaObject, Qt
-                QMetaObject.invokeMethod(
-                    self, "_show_update_safe", Qt.QueuedConnection,
-                )
-            except Exception:
-                pass
+            self.update_ready.emit(info)
 
     def setup_ui(self):
         """إنشاء الواجهة الرئيسية"""
