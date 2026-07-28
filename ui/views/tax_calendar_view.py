@@ -162,7 +162,16 @@ class TaxCalendarView(BaseView):
         sep.setObjectName("separator")
         self._main_layout.addWidget(sep)
 
-        upcoming_group = QGroupBox(t("taxcal_upcoming"))
+        self.empty_guide = QLabel(t("taxcal_empty_guide"))
+        self.empty_guide.setObjectName("card")
+        self.empty_guide.setWordWrap(True)
+        self.empty_guide.setAlignment(Qt.AlignCenter)
+        self.empty_guide.setMinimumHeight(80)
+        self.empty_guide.setStyleSheet("padding: 20px; font-size: 14px;")
+        self.empty_guide.hide()
+        self._main_layout.addWidget(self.empty_guide)
+
+        self.upcoming_group = QGroupBox(t("taxcal_upcoming"))
         upcoming_layout = QVBoxLayout()
         self.upcoming_table = QTableWidget()
         self.upcoming_table.setColumnCount(7)
@@ -178,8 +187,8 @@ class TaxCalendarView(BaseView):
         self.upcoming_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.upcoming_table.setMinimumHeight(250)
         upcoming_layout.addWidget(self.upcoming_table)
-        upcoming_group.setLayout(upcoming_layout)
-        self._main_layout.addWidget(upcoming_group, 1)
+        self.upcoming_group.setLayout(upcoming_layout)
+        self._main_layout.addWidget(self.upcoming_group, 1)
 
         cal_sep = QFrame()
         cal_sep.setFrameShape(QFrame.HLine)
@@ -303,6 +312,10 @@ class TaxCalendarView(BaseView):
         self._fill_table(reminders)
         year = self.year_combo.currentData() if hasattr(self, 'year_combo') else None
         self._build_calendar_overview(year)
+
+        has_reminders = len(reminders) > 0
+        self.empty_guide.setVisible(not has_reminders)
+        self.upcoming_group.setVisible(has_reminders)
 
     def _fill_table(self, reminders):
         self.upcoming_table.setRowCount(len(reminders))

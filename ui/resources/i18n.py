@@ -896,6 +896,7 @@ LANGUAGES = {
         "taxcal_name_required": "أدخل اسم التذكير أولاً",
         "taxcal_print_date": "تاريخ الطباعة",
         "taxcal_year": "السنة:",
+        "taxcal_empty_guide": "💡 لم تقم بإضافة أي تذكير بعد.\nاضغط على 'إضافة تذكير مخصص' لإضافة أول تذكير،\nأو سيتم تحميل المواعيد الجبائية تلقائياً حسب سنتك المالية.",
         # Benchmarks
         "sidebar_benchmarks": "📊 المعايير المرجعية",
         "bench_title": "📊 المقارنة مع معايير القطاع",
@@ -936,6 +937,7 @@ LANGUAGES = {
         "bench_report_sector": "القطاع",
         "bench_export_title": "تصدير تقرير المعايير",
         "bench_export_success": "تم التصدير بنجاح",
+        "bench_empty_guide": "💡 لم تقم بإدخال البيانات المالية بعد.\nاذهب إلى شاشة إدخال البيانات، أدخل أرقامك، ثم احسب النسب المالية.\nبعدها ارجع إلى هنا لمقارنة أدائك بمعايير القطاع.",
         # Data Import
         "sidebar_data_import": "📥 استيراد البيانات",
         "imp_title": "📥 استيراد البيانات من CSV/Excel",
@@ -1900,6 +1902,7 @@ LANGUAGES = {
         "taxcal_name_required": "Enter a reminder name first",
         "taxcal_print_date": "Print Date",
         "taxcal_year": "Year:",
+        "taxcal_empty_guide": "💡 No reminders added yet.\nClick 'Add Custom Reminder' to create your first one,\nor tax deadlines will load automatically based on your fiscal year.",
         # Benchmarks
         "sidebar_benchmarks": "📊 Industry Benchmarks",
         "bench_title": "📊 Industry Benchmark Comparison",
@@ -1940,6 +1943,7 @@ LANGUAGES = {
         "bench_report_sector": "Sector",
         "bench_export_title": "Export Benchmark Report",
         "bench_export_success": "Exported successfully",
+        "bench_empty_guide": "💡 You haven't entered any financial data yet.\nGo to the Data Entry screen, enter your numbers, then calculate ratios.\nCome back here to compare your performance against sector benchmarks.",
         # Data Import
         "sidebar_data_import": "📥 Data Import",
         "imp_title": "📥 CSV/Excel Data Import",
@@ -2904,6 +2908,7 @@ LANGUAGES = {
         "taxcal_name_required": "Entrez un nom de rappel d'abord",
         "taxcal_print_date": "Date d'impression",
         "taxcal_year": "Année:",
+        "taxcal_empty_guide": "💡 Aucun rappel ajouté pour le moment.\nCliquez sur 'Ajouter un Rappel' pour créer votre premier rappel,\nou les échéances fiscales se chargeront automatiquement selon votre année fiscale.",
         # Benchmarks
         "sidebar_benchmarks": "📊 Référentiels Sectoriels",
         "bench_title": "📊 Comparaison aux Référentiels Sectoriels",
@@ -2944,6 +2949,7 @@ LANGUAGES = {
         "bench_report_sector": "Secteur",
         "bench_export_title": "Exporter le Rapport",
         "bench_export_success": "Exporté avec succès",
+        "bench_empty_guide": "💡 Vous n'avez pas encore saisi de données financières.\nAllez dans l'écran de saisie, entrez vos chiffres, puis calculez les ratios.\nRevenez ici pour comparer vos performances aux références du secteur.",
         # Data Import
         "sidebar_data_import": "📥 Importation de Données",
         "imp_title": "📥 Importation CSV/Excel",

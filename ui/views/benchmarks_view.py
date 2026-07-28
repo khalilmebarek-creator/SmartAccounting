@@ -120,6 +120,15 @@ class BenchmarkView(BaseView):
         self.table_title.setObjectName("sectionTitle")
         self.content_layout.addWidget(self.table_title)
 
+        self.empty_guide = QLabel(t("bench_empty_guide"))
+        self.empty_guide.setObjectName("card")
+        self.empty_guide.setWordWrap(True)
+        self.empty_guide.setAlignment(Qt.AlignCenter)
+        self.empty_guide.setMinimumHeight(100)
+        self.empty_guide.setStyleSheet("padding: 20px; font-size: 14px;")
+        self.empty_guide.hide()
+        self.content_layout.addWidget(self.empty_guide)
+
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels([
@@ -169,6 +178,8 @@ class BenchmarkView(BaseView):
 
         scroll.setWidget(scroll_content)
         self._main_layout.addWidget(scroll, 1)
+
+        self.refresh()
 
     def _on_sector_changed(self, index):
         if not state.has_data():
@@ -549,7 +560,24 @@ class BenchmarkView(BaseView):
             self.rating_value.setText("")
             self.table.setRowCount(0)
             self.suggestions_list.clear()
+            self.empty_guide.show()
+            self.table_title.hide()
+            self.table.hide()
+            self.score_frame.hide()
+            self.suggestions_title.hide()
+            self.suggestions_list.hide()
+            self.radar_frame.hide()
+            self.bar_frame.hide()
             return
+
+        self.empty_guide.hide()
+        self.table_title.show()
+        self.table.show()
+        self.score_frame.show()
+        self.suggestions_title.show()
+        self.suggestions_list.show()
+        self.radar_frame.show()
+        self.bar_frame.show()
 
         self.sector_combo.blockSignals(True)
         self.sector_combo.clear()
