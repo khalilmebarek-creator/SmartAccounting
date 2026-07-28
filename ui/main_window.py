@@ -140,12 +140,36 @@ class MainWindow(QMainWindow):
         self._dl_thread.start()
 
     def _on_download_done(self, path: str, progress):
-        """تشغيل المثبت بصمت ثم الخروج"""
+        """تشغيل المثبت → إعادة التشغيل بعد التثبيت"""
         progress.close()
         from PyQt5.QtWidgets import QApplication
-        import subprocess
-        if path:
-            subprocess.Popen([path, "/SILENT", "/SUPPRESSMSGBOXES"])
+        import subprocess, os, sys, uuid
+
+        if not path or not os.path.exists(path):
+            QApplication.quit()
+            return
+
+        if getattr(sys, 'frozen', False):
+            exe_dir = os.path.dirname(sys.argv[0])
+            exe_path = os.path.join(exe_dir, "SmartAccounting.exe")
+        else:
+            exe_path = ""
+
+        bat_path = os.path.join(
+            os.environ["TEMP"], f"smart_update_{uuid.uuid4().hex[:8]}.bat"
+        )
+        with open(bat_path, "w") as f:
+            f.write(f'@echo off\n')
+            f.write(f'timeout /t 2 /nobreak >nul\n')
+            f.write(f'start /wait "" "{path}" /SILENT /SUPPRESSMSGBOXES\n')
+            if exe_path:
+                f.write(f'start "" "{exe_path}"\n')
+            f.write(f'del "%~f0"\n')
+
+        subprocess.Popen(
+            ["cmd.exe", "/c", "start", "/min", bat_path],
+            shell=True, creationflags=subprocess.CREATE_NO_WINDOW
+        )
         QApplication.quit()
 
     def _on_update_check_done(self, has_update: bool, info: dict):
