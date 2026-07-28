@@ -40,6 +40,7 @@ class BenchmarkView(BaseView):
         self.sector_combo.setMinimumHeight(36)
         for s in benchmark_analyzer.get_sectors_list():
             self.sector_combo.addItem(s["name_ar"], s["code"])
+        self.sector_combo.currentIndexChanged.connect(self._on_sector_changed)
         controls.addWidget(self.sector_combo)
 
         self.compare_btn = QPushButton(t("bench_compare"))
@@ -168,6 +169,14 @@ class BenchmarkView(BaseView):
 
         scroll.setWidget(scroll_content)
         self._main_layout.addWidget(scroll, 1)
+
+    def _on_sector_changed(self, index):
+        if not state.has_data():
+            return
+        company_ratios = self._get_company_ratios()
+        if not company_ratios:
+            return
+        self.run_comparison()
 
     def run_comparison(self):
         if not state.has_data():
@@ -542,9 +551,11 @@ class BenchmarkView(BaseView):
             self.suggestions_list.clear()
             return
 
+        self.sector_combo.blockSignals(True)
         self.sector_combo.clear()
         for s in benchmark_analyzer.get_sectors_list():
             self.sector_combo.addItem(s["name_ar"], s["code"])
+        self.sector_combo.blockSignals(False)
 
     def retranslate(self):
         title = self.findChild(QLabel, "headerTitle")

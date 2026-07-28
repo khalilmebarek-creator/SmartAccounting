@@ -129,6 +129,21 @@ class TaxCalendarView(BaseView):
         self._main_layout.addLayout(stats_layout)
 
         toolbar = QHBoxLayout()
+
+        year_lbl = QLabel(t("taxcal_year"))
+        toolbar.addWidget(year_lbl)
+        self.year_combo = QComboBox()
+        self.year_combo.setMinimumWidth(100)
+        self.year_combo.setMinimumHeight(36)
+        current_year = datetime.now().year
+        for y in range(current_year + 1, current_year - 4, -1):
+            self.year_combo.addItem(str(y), y)
+        idx = self.year_combo.findData(state.fiscal_year)
+        if idx >= 0:
+            self.year_combo.setCurrentIndex(idx)
+        self.year_combo.currentIndexChanged.connect(self._on_year_changed)
+        toolbar.addWidget(self.year_combo)
+
         self.refresh_btn = QPushButton(t("taxcal_refresh"))
         self.refresh_btn.clicked.connect(self.refresh)
         toolbar.addWidget(self.refresh_btn)
@@ -185,19 +200,26 @@ class TaxCalendarView(BaseView):
         cal_group.setLayout(cal_group_layout)
         self._main_layout.addWidget(cal_group)
 
-        self._build_calendar_overview()
+        year = self.year_combo.currentData()
+        self._build_calendar_overview(year)
 
-    def _build_calendar_overview(self):
+    def _on_year_changed(self, index):
+        year = self.year_combo.currentData()
+        if year:
+            self._build_calendar_overview(year)
+
+    def _build_calendar_overview(self, year=None):
         for i in range(self.calendar_layout.count()):
             w = self.calendar_layout.itemAt(i).widget()
             if w:
                 w.setParent(None)
                 w.deleteLater()
 
-        try:
-            year = state.fiscal_year
-        except Exception:
-            year = datetime.now().year
+        if year is None:
+            try:
+                year = state.fiscal_year
+            except Exception:
+                year = datetime.now().year
 
         cal_summary = tax_reminders.get_calendar_summary(year)
         month_keys = [
@@ -279,7 +301,8 @@ class TaxCalendarView(BaseView):
             self._stat_labels["month"].setText(str(len(month_items)))
 
         self._fill_table(reminders)
-        self._build_calendar_overview()
+        year = self.year_combo.currentData() if hasattr(self, 'year_combo') else None
+        self._build_calendar_overview(year)
 
     def _fill_table(self, reminders):
         self.upcoming_table.setRowCount(len(reminders))
@@ -433,4 +456,5 @@ class TaxCalendarView(BaseView):
         ])
         if self._stat_labels.get("next"):
             pass
-        self._build_calendar_overview()
+        year = self.year_combo.currentData() if hasattr(self, 'year_combo') else None
+        self._build_calendar_overview(year)

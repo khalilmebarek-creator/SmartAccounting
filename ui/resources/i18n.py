@@ -895,6 +895,7 @@ LANGUAGES = {
         "taxcal_save_reminder": "💾 حفظ التذكير",
         "taxcal_name_required": "أدخل اسم التذكير أولاً",
         "taxcal_print_date": "تاريخ الطباعة",
+        "taxcal_year": "السنة:",
         # Benchmarks
         "sidebar_benchmarks": "📊 المعايير المرجعية",
         "bench_title": "📊 المقارنة مع معايير القطاع",
@@ -1898,6 +1899,7 @@ LANGUAGES = {
         "taxcal_save_reminder": "💾 Save Reminder",
         "taxcal_name_required": "Enter a reminder name first",
         "taxcal_print_date": "Print Date",
+        "taxcal_year": "Year:",
         # Benchmarks
         "sidebar_benchmarks": "📊 Industry Benchmarks",
         "bench_title": "📊 Industry Benchmark Comparison",
@@ -2901,6 +2903,7 @@ LANGUAGES = {
         "taxcal_save_reminder": "💾 Enregistrer",
         "taxcal_name_required": "Entrez un nom de rappel d'abord",
         "taxcal_print_date": "Date d'impression",
+        "taxcal_year": "Année:",
         # Benchmarks
         "sidebar_benchmarks": "📊 Référentiels Sectoriels",
         "bench_title": "📊 Comparaison aux Référentiels Sectoriels",
