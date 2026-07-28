@@ -187,7 +187,7 @@ Accounting_Platform/
 
 | الملف | العدد | الحالة |
 |-------|-------|--------|
-| test_calculations.py | ✅ | 29 |
+| test_calculations.py | ✅ | 27 |
 | test_audit.py | ✅ | 19 |
 | test_analysis.py | ✅ | 14 |
 | test_validation.py | ✅ | 13 |
@@ -199,12 +199,12 @@ Accounting_Platform/
 | test_validators.py | ✅ | 24 |
 | test_edge_cases.py | ✅ | 31 |
 | test_tax.py | ✅ | 19 |
-| test_ui.py | ✅ | 34 |
+| test_ui.py | ✅ | 42 |
 | test_security.py | ✅ | 40 |
 | test_demo_data.py | ✅ | 10 |
 | test_new_modules.py | ✅ | 24 |
 | test_new_features.py | ✅ | 11 |
-| **المجموع** | **✅ 322** | |
+| **المجموع** | **✅ 351** | |
 
 ---
 
@@ -241,4 +241,5 @@ Accounting_Platform/
 | 32 | 2026-07-27 | v3.0.0 إعادة هيكلة كاملة + 22 شاشة | ✅ |
 | 33 | 2026-07-28 | v3.1.0 إصلاح البيانات المالية | ✅ |
 | 34 | 2026-07-28 | v3.1.1 UI/UX fixes (5 مشاكل) + تحديث checker | ✅ 322 اختبار |
-| 35 | 2026-07-28 | v3.1.2 إصلاح التنقل: سنة التقويم + تحديث المعايير | ✅ 322 اختبار |
+| 35 | 2026-07-28 | v3.1.2 إصلاح التنقل: سنة التقويم + تحديث المعايير + اختبارات UI | ✅ 322 اختبار |
+| 36 | 2026-07-28 | v3.1.2 تحسين التحديث التلقائي: batch script + إعادة تشغيل + إصدار | ✅ 351 اختبار |
