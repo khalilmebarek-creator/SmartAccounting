@@ -97,17 +97,13 @@ class MainWindow(QMainWindow):
             pass
 
     def _perform_update(self, info: dict):
-        """تحميل التحديث مع نافذة تقدم ثم عرض المسار"""
-        from PyQt5.QtWidgets import QProgressDialog, QApplication, QMessageBox
+        """تحميل التحديث → تشغيل المثبت → إعادة التشغيل تلقائياً"""
+        from PyQt5.QtWidgets import QProgressDialog, QApplication
         from modules.update_checker import download_installer
-        import os
 
         installer_url = info.get("installer_url") or info.get("download_url")
         if not installer_url:
             return
-
-        desktop = os.path.join(os.path.expanduser("~"), "Desktop")
-        out_path = os.path.join(desktop, "SmartAccounting-Setup-latest.exe")
 
         self.close()
 
@@ -124,23 +120,17 @@ class MainWindow(QMainWindow):
             progress_signal = pyqtSignal(int, int)
             done_signal = pyqtSignal(str)
 
-            def __init__(self, url, path):
+            def __init__(self, url):
                 super().__init__()
                 self.url = url
-                self.path = path
 
             def run(self):
                 def _progress(downloaded, total):
                     self.progress_signal.emit(downloaded, total)
-
-                path = download_installer(
-                    self.url,
-                    progress_callback=_progress,
-                    output_path=self.path,
-                )
+                path = download_installer(self.url, progress_callback=_progress)
                 self.done_signal.emit(path if path else "")
 
-        self._dl_thread = DownloadThread(installer_url, out_path)
+        self._dl_thread = DownloadThread(installer_url)
         self._dl_thread.progress_signal.connect(
             lambda d, t: progress.setValue(int(d / max(t, 1) * 100))
         )
@@ -150,24 +140,12 @@ class MainWindow(QMainWindow):
         self._dl_thread.start()
 
     def _on_download_done(self, path: str, progress):
-        """بعد انتهاء التحميل — عرض المسار والخروج"""
+        """تشغيل المثبت بصمت ثم الخروج"""
         progress.close()
-        from PyQt5.QtWidgets import QMessageBox, QApplication
-        import os
-
-        if path and os.path.exists(path):
-            QMessageBox.information(
-                None,
-                "تم التحميل | Download Complete",
-                f"تم تحميل التحديث إلى:\n{path}\n\nيرجى تشغيل الملف يدوياً.",
-            )
-            os.startfile(os.path.dirname(path))
-        else:
-            QMessageBox.critical(
-                None,
-                "فشل التحميل | Download Failed",
-                "حدث خطأ أثناء تحميل التحديث. حاول مرة أخرى لاحقاً.",
-            )
+        from PyQt5.QtWidgets import QApplication
+        import subprocess
+        if path:
+            subprocess.Popen([path, "/SILENT", "/SUPPRESSMSGBOXES"])
         QApplication.quit()
 
     def _on_update_check_done(self, has_update: bool, info: dict):

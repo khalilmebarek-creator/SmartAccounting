@@ -31,6 +31,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=force
 RestartApplications=no
+AppMutex=SmartAccountingMutex
 UninstallDisplayName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 VersionInfoVersion={#MyAppVersion}.0
@@ -68,7 +69,7 @@ Root: HKA; Subkey: "Software\Classes\SmartAccounting.File\DefaultIcon"; ValueTyp
 Root: HKA; Subkey: "Software\Classes\SmartAccounting.File\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: associatefiles
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}\data"
