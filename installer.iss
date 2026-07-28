@@ -2,7 +2,7 @@
 ; =====================================================
 
 #define MyAppName "Smart Accounting Platform"
-#define MyAppVersion "3.0.0"
+#define MyAppVersion "3.1.0"
 #define MyAppPublisher "Smart Accounting Team"
 #define MyAppURL "https://github.com/accounting-platform"
 #define MyAppExeName "SmartAccounting.exe"
