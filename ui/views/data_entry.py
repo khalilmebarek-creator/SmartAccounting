@@ -397,7 +397,26 @@ class DataEntryView(QWidget):
 
         self.overlay = LoadingOverlay(self)
 
+        self._setup_tab_order()
         self._connect_validation_signals()
+
+    def _setup_tab_order(self):
+        fields = [
+            self.company_name, self.company_name_fr,
+            self.fiscal_year, self.company_nif,
+            self.company_rc, self.company_legal_form,
+            self.company_activity, self.company_bank,
+            self.company_address, self.company_phone,
+            self.company_email,
+            self.current_assets, self.inventory,
+            self.current_liabilities, self.total_assets,
+            self.total_liabilities, self.equity,
+            self.revenue, self.cogs,
+            self.gross_profit, self.net_income,
+            self.avg_receivables, self.avg_inventory,
+        ]
+        for i in range(len(fields) - 1):
+            self.setTabOrder(fields[i], fields[i + 1])
 
     def _make_spin(self):
         """إنشاء spin box للأرقام المالية"""
@@ -547,10 +566,17 @@ class DataEntryView(QWidget):
         if state.ratios:
             self.save_btn.setEnabled(True)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        from PyQt5.QtCore import QTimer
+        QTimer.singleShot(50, self.refresh)
+
     def refresh(self):
         """تحديث الواجهة من AppState عند العودة للشاشة"""
         if state.financial_data:
             self._load_from_state()
+        else:
+            self.load_default_data()
 
     def load_default_data(self):
         """تحميل بيانات تجريبية افتراضية"""

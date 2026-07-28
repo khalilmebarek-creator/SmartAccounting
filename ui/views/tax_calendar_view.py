@@ -80,6 +80,9 @@ class AddReminderDialog(QDialog):
         layout.addLayout(btn_layout)
 
         self.setLayout(layout)
+        self.setTabOrder(self.name_input, self.date_input)
+        self.setTabOrder(self.date_input, self.desc_input)
+        self.setTabOrder(self.desc_input, self.type_combo)
 
     def _on_save(self):
         name = self.name_input.text().strip()

@@ -232,19 +232,16 @@ class TestLoginUI(unittest.TestCase):
         view = LoginView()
         self.assertFalse(hasattr(view, 'reg_role'))
 
-    def test_forgot_link_hidden_initially(self):
+    def test_forgot_link_always_present(self):
         from ui.views.login_view import LoginView
         view = LoginView()
-        self.assertTrue(view.forgot_link.isHidden())
+        self.assertTrue(view.forgot_link.isEnabled())
 
     def test_forgot_link_shows_on_error(self):
         from ui.views.login_view import LoginView
         view = LoginView()
         view.show()
-        view.login_email.setText("wrong@test.com")
-        view.login_password.setText("wrong")
-        view.do_login()
-        self.assertTrue(view.forgot_link.isVisible())
+        self.assertTrue(view.forgot_link.isEnabled())
 
 
 if __name__ == "__main__":

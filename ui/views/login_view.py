@@ -4,7 +4,8 @@ from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QGroupBox, QMessageBox, QStackedWidget, QFormLayout
+    QLineEdit, QGroupBox, QMessageBox, QStackedWidget, QFormLayout,
+    QToolButton
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
@@ -130,6 +131,9 @@ class LoginView(QWidget):
 
         self.stack.addWidget(self._build_login_page())
         self.stack.addWidget(self._build_register_page())
+        self.stack.addWidget(self._build_forgot_page_1())
+        self.stack.addWidget(self._build_forgot_page_2())
+        self.stack.addWidget(self._build_forgot_page_3())
 
         container_layout.addWidget(self.stack)
 
@@ -162,7 +166,19 @@ class LoginView(QWidget):
         self.login_password.setMinimumHeight(38)
         self._login_pass_label = QLabel(t("login_password"))
         self.login_password.returnPressed.connect(self.do_login)
-        form.addRow(self._login_pass_label, self.login_password)
+
+        pass_layout = QHBoxLayout()
+        pass_layout.setContentsMargins(0, 0, 0, 0)
+        pass_layout.setSpacing(4)
+        pass_layout.addWidget(self.login_password)
+        self._pwd_toggle_btn = QToolButton()
+        self._pwd_toggle_btn.setText("👁")
+        self._pwd_toggle_btn.setCheckable(True)
+        self._pwd_toggle_btn.setFixedWidth(36)
+        self._pwd_toggle_btn.setMinimumHeight(38)
+        self._pwd_toggle_btn.clicked.connect(self._toggle_login_password)
+        pass_layout.addWidget(self._pwd_toggle_btn)
+        form.addRow(self._login_pass_label, pass_layout)
 
         layout.addLayout(form)
 
@@ -181,15 +197,14 @@ class LoginView(QWidget):
         self.register_link.setFlat(True)
         self.register_link.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
         self.register_link.setCursor(Qt.PointingHandCursor)
-        self.register_link.clicked.connect(lambda: self.stack.setCurrentIndex(1))
+        self.register_link.clicked.connect(self._go_to_register)
         layout.addWidget(self.register_link)
 
         self.forgot_link = QPushButton(t("login_forgot_password"))
         self.forgot_link.setFlat(True)
         self.forgot_link.setStyleSheet(f"color: {ThemeColors.get('warning')}; border: none;")
         self.forgot_link.setCursor(Qt.PointingHandCursor)
-        self.forgot_link.clicked.connect(self._show_forgot_password)
-        self.forgot_link.setVisible(False)
+        self.forgot_link.clicked.connect(lambda: self.stack.setCurrentIndex(2))
         layout.addWidget(self.forgot_link)
 
         page.setLayout(layout)
@@ -241,11 +256,192 @@ class LoginView(QWidget):
         self.back_link.setFlat(True)
         self.back_link.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
         self.back_link.setCursor(Qt.PointingHandCursor)
-        self.back_link.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        self.back_link.clicked.connect(self._go_to_login_from_register)
         layout.addWidget(self.back_link)
 
         page.setLayout(layout)
         return page
+
+    def _build_forgot_page_1(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(0, 20, 0, 0)
+
+        lbl = QLabel(t("forgot_step1_title"))
+        lbl.setObjectName("sectionTitle")
+        lbl.setAlignment(Qt.AlignCenter)
+        layout.addWidget(lbl)
+
+        desc = QLabel(t("forgot_step1_desc"))
+        desc.setAlignment(Qt.AlignCenter)
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+
+        self.forgot_email = QLineEdit()
+        self.forgot_email.setPlaceholderText(t("login_email_ph"))
+        self.forgot_email.setMinimumHeight(38)
+        layout.addWidget(self.forgot_email)
+
+        self.forgot_error1 = QLabel("")
+        self.forgot_error1.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
+        self.forgot_error1.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.forgot_error1)
+
+        self.forgot_send_btn = QPushButton(t("forgot_send_code"))
+        self.forgot_send_btn.setObjectName("primaryBtn")
+        self.forgot_send_btn.setMinimumHeight(44)
+        self.forgot_send_btn.clicked.connect(self._forgot_step1_submit)
+        layout.addWidget(self.forgot_send_btn)
+
+        back = QPushButton(t("login_back"))
+        back.setFlat(True)
+        back.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
+        back.setCursor(Qt.PointingHandCursor)
+        back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        layout.addWidget(back)
+
+        page.setLayout(layout)
+        return page
+
+    def _build_forgot_page_2(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(0, 20, 0, 0)
+
+        lbl = QLabel(t("forgot_step2_title"))
+        lbl.setObjectName("sectionTitle")
+        lbl.setAlignment(Qt.AlignCenter)
+        layout.addWidget(lbl)
+
+        self.forgot_code_display = QLabel("")
+        self.forgot_code_display.setAlignment(Qt.AlignCenter)
+        self.forgot_code_display.setFont(QFont("", 16, QFont.Bold))
+        self.forgot_code_display.setStyleSheet(
+            f"color: {ThemeColors.get('info')}; font-size: 20px; "
+            f"background: rgba(0,210,255,0.08); border-radius: 8px; padding: 12px;"
+        )
+        layout.addWidget(self.forgot_code_display)
+
+        self.forgot_token = QLineEdit()
+        self.forgot_token.setPlaceholderText(t("forgot_enter_code"))
+        self.forgot_token.setMinimumHeight(38)
+        layout.addWidget(self.forgot_token)
+
+        self.forgot_new_pass = QLineEdit()
+        self.forgot_new_pass.setEchoMode(QLineEdit.Password)
+        self.forgot_new_pass.setPlaceholderText(t("forgot_new_password"))
+        self.forgot_new_pass.setMinimumHeight(38)
+        layout.addWidget(self.forgot_new_pass)
+
+        self.forgot_confirm = QLineEdit()
+        self.forgot_confirm.setEchoMode(QLineEdit.Password)
+        self.forgot_confirm.setPlaceholderText(t("forgot_confirm_password"))
+        self.forgot_confirm.setMinimumHeight(38)
+        layout.addWidget(self.forgot_confirm)
+
+        self.forgot_error2 = QLabel("")
+        self.forgot_error2.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
+        self.forgot_error2.setAlignment(Qt.AlignCenter)
+        self.forgot_error2.setWordWrap(True)
+        layout.addWidget(self.forgot_error2)
+
+        self.forgot_reset_btn = QPushButton(t("forgot_reset_btn"))
+        self.forgot_reset_btn.setObjectName("primaryBtn")
+        self.forgot_reset_btn.setMinimumHeight(44)
+        self.forgot_reset_btn.clicked.connect(self._forgot_step2_submit)
+        layout.addWidget(self.forgot_reset_btn)
+
+        back = QPushButton(t("login_back"))
+        back.setFlat(True)
+        back.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
+        back.setCursor(Qt.PointingHandCursor)
+        back.clicked.connect(lambda: self.stack.setCurrentIndex(2))
+        layout.addWidget(back)
+
+        page.setLayout(layout)
+        return page
+
+    def _build_forgot_page_3(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        layout.setSpacing(18)
+        layout.setContentsMargins(0, 20, 0, 0)
+
+        lbl = QLabel(t("forgot_step3_title"))
+        lbl.setObjectName("sectionTitle")
+        lbl.setAlignment(Qt.AlignCenter)
+        layout.addWidget(lbl)
+
+        done = QLabel(t("forgot_step3_desc"))
+        done.setAlignment(Qt.AlignCenter)
+        done.setWordWrap(True)
+        layout.addWidget(done)
+
+        ok_btn = QPushButton(t("login_btn"))
+        ok_btn.setObjectName("primaryBtn")
+        ok_btn.setMinimumHeight(44)
+        ok_btn.clicked.connect(lambda: self.stack.setCurrentIndex(0))
+        layout.addWidget(ok_btn)
+
+        page.setLayout(layout)
+        return page
+
+    def _forgot_step1_submit(self):
+        email = self.forgot_email.text().strip()
+        if not email:
+            self.forgot_error1.setText(t("login_empty_fields"))
+            return
+        ok, data = user_manager.request_password_reset(email)
+        if ok:
+            self._reset_email = email
+            self.forgot_code_display.setText(data["token"])
+            self.forgot_token.clear()
+            self.forgot_new_pass.clear()
+            self.forgot_confirm.clear()
+            self.forgot_error2.setText("")
+            self.stack.setCurrentIndex(3)
+        else:
+            i18n_key = self._ERR_I18N.get(data, data)
+            self.forgot_error1.setText(t(i18n_key) if t(i18n_key) != i18n_key else data)
+
+    def _forgot_step2_submit(self):
+        token = self.forgot_token.text().strip()
+        new_pass = self.forgot_new_pass.text()
+        confirm = self.forgot_confirm.text()
+
+        if not token or not new_pass or not confirm:
+            self.forgot_error2.setText(t("login_empty_fields"))
+            return
+        if new_pass != confirm:
+            self.forgot_error2.setText(t("forgot_password_mismatch"))
+            return
+
+        ok, error_code = user_manager.confirm_password_reset(self._reset_email, token, new_pass)
+        if ok:
+            self.stack.setCurrentIndex(4)
+            self.forgot_email.clear()
+        else:
+            i18n_key = self._ERR_I18N.get(error_code, error_code)
+            msg = t(i18n_key) if t(i18n_key) != i18n_key else error_code
+            self.forgot_error2.setText(msg)
+
+    def _toggle_login_password(self, checked):
+        if checked:
+            self.login_password.setEchoMode(QLineEdit.Normal)
+            self._pwd_toggle_btn.setText("🙈")
+        else:
+            self.login_password.setEchoMode(QLineEdit.Password)
+            self._pwd_toggle_btn.setText("👁")
+
+    def _go_to_register(self):
+        self.login_email.setEnabled(True)
+        self.stack.setCurrentIndex(1)
+
+    def _go_to_login_from_register(self):
+        self.login_email.setEnabled(True)
+        self.stack.setCurrentIndex(0)
 
     def do_login(self):
         email = self.login_email.text().strip()
@@ -296,6 +492,10 @@ class LoginView(QWidget):
             self.reg_display.clear()
             self.reg_password.clear()
             self.stack.setCurrentIndex(0)
+            self.login_email.setText(email)
+            self.login_email.setEnabled(False)
+            self.login_password.setFocus()
+            self.login_password.clear()
             self.login_error.setText(t("login_register_success"))
             self.login_error.setStyleSheet(f"color: {ThemeColors.get('success')}; font-size: 13px;")
         else:
@@ -338,24 +538,3 @@ class LoginView(QWidget):
             self.reg_btn.setText(t("login_register_btn"))
         if hasattr(self, 'back_link'):
             self.back_link.setText(t("login_back"))
-
-    def _show_forgot_password(self):
-        from PyQt5.QtWidgets import QInputDialog, QLineEdit
-        email, ok1 = QInputDialog.getText(
-            self, t("login_forgot_password"), t("login_email"),
-            QLineEdit.Normal
-        )
-        if not ok1 or not email.strip():
-            return
-        new_pass, ok2 = QInputDialog.getText(
-            self, t("login_forgot_password"), t("login_password"),
-            QLineEdit.Password
-        )
-        if not ok2 or not new_pass:
-            return
-        success, error_code = user_manager.reset_password_by_email(email.strip(), new_pass)
-        if success:
-            QMessageBox.information(self, t("success"), t("login_forgot_success"))
-        else:
-            msg = t(error_code) if t(error_code) != error_code else error_code
-            QMessageBox.warning(self, t("error"), msg)

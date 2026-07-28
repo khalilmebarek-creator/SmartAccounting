@@ -105,13 +105,19 @@ class UserManager:
         self._failed_attempts = {}
         self._lockout_until = {}
         self._otp_store = {}
+        self._reset_tokens = {}
         self._load()
 
     def _load(self):
         if os.path.exists(USERS_FILE):
             try:
                 with open(USERS_FILE, "r", encoding="utf-8") as f:
-                    self._users = json.load(f)
+                    data = json.load(f)
+                if isinstance(data, dict) and "_users" in data:
+                    self._users = data["_users"]
+                    self._reset_tokens = data.get("_reset_tokens", {})
+                else:
+                    self._users = data
             except Exception as e:
                 logger.error(f"Failed to load users: {e}")
                 self._users = {}
@@ -132,8 +138,12 @@ class UserManager:
 
     def _save(self):
         try:
+            data = {
+                "_users": self._users,
+                "_reset_tokens": self._reset_tokens,
+            }
             with open(USERS_FILE, "w", encoding="utf-8") as f:
-                json.dump(self._users, f, ensure_ascii=False, indent=2)
+                json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception as e:
             logger.error(f"Failed to save users: {e}")
 
@@ -316,6 +326,47 @@ class UserManager:
         self._users[username]["must_change_password"] = True
         self._save()
         logger.info(f"Password reset for: {username} via email")
+        return True, "ok"
+
+    def request_password_reset(self, email: str) -> tuple:
+        import secrets, time
+        email = email.strip().lower()
+        username, _ = self._find_by_email(email)
+        if username is None:
+            return False, "err_email_not_found"
+        token = f"{secrets.randbelow(9000) + 1000}"
+        if not hasattr(self, '_reset_tokens'):
+            self._reset_tokens = {}
+        self._reset_tokens[email] = {
+            "token": token,
+            "expires_at": time.time() + 1800,
+            "username": username,
+        }
+        self._save()
+        logger.info(f"Password reset requested for: {email}")
+        return True, {"token": token, "email": email}
+
+    def confirm_password_reset(self, email: str, token: str, new_password: str) -> tuple:
+        import time
+        email = email.strip().lower()
+        if not hasattr(self, '_reset_tokens') or email not in self._reset_tokens:
+            return False, "err_reset_no_request"
+        record = self._reset_tokens[email]
+        if time.time() > record["expires_at"]:
+            del self._reset_tokens[email]
+            self._save()
+            return False, "err_reset_expired"
+        if record["token"] != token.strip():
+            return False, "err_reset_invalid_token"
+        ok, err = validate_password_strength(new_password)
+        if not ok:
+            return False, err
+        username = record["username"]
+        self._users[username]["password"] = _hash_password(new_password)
+        self._users[username]["must_change_password"] = False
+        del self._reset_tokens[email]
+        self._save()
+        logger.info(f"Password reset confirmed for: {username}")
         return True, "ok"
 
     def needs_password_change(self) -> bool:

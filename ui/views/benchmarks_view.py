@@ -65,6 +65,10 @@ class BenchmarkView(BaseView):
 
         self._main_layout.addLayout(controls)
 
+        self.setTabOrder(self.sector_combo, self.compare_btn)
+        self.setTabOrder(self.compare_btn, self.print_btn)
+        self.setTabOrder(self.print_btn, self.export_btn)
+
         sep = QFrame()
         sep.setFrameShape(QFrame.HLine)
         sep.setObjectName("separator")
