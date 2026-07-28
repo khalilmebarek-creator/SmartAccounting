@@ -123,11 +123,13 @@ def check_updates_async(callback=None, timeout: int = 5):
 def download_installer(
     installer_url: str,
     progress_callback: Callable = None,
+    output_path: str = None,
     chunk_size: int = 8192,
 ) -> Optional[str]:
     """
     تحميل ملف التثبيت مع إظهار التقدم
     progress_callback: دالة تستقبل (downloaded_bytes, total_bytes)
+    output_path: مسار الحفظ (اختياري — افتراضياً Temp)
     Returns: مسار الملف المحمل أو None عند الفشل
     """
     try:
@@ -139,20 +141,25 @@ def download_installer(
             total = int(response.headers.get("Content-Length", 0))
             downloaded = 0
 
-            suffix = ".exe" if ".exe" in installer_url else ".zip"
-            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-            path = tmp.name
+            if output_path:
+                path = output_path
+                f = open(path, "wb")
+            else:
+                suffix = ".exe" if ".exe" in installer_url else ".zip"
+                tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+                path = tmp.name
+                f = tmp
 
             while True:
                 chunk = response.read(chunk_size)
                 if not chunk:
                     break
-                tmp.write(chunk)
+                f.write(chunk)
                 downloaded += len(chunk)
                 if progress_callback:
                     progress_callback(downloaded, total)
 
-            tmp.close()
+            f.close()
             log.info(f"Downloaded installer: {path} ({downloaded} bytes)")
             return path
 
