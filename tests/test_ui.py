@@ -244,5 +244,135 @@ class TestLoginUI(unittest.TestCase):
         self.assertTrue(view.forgot_link.isEnabled())
 
 
+class TestBenchmarksView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.benchmarks_view import BenchmarkView
+        self.bv = BenchmarkView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.bv)
+
+    def test_sector_combo_exists(self):
+        self.assertTrue(hasattr(self.bv, 'sector_combo'))
+
+    def test_sector_combo_has_items(self):
+        self.assertGreater(self.bv.sector_combo.count(), 0)
+
+    def test_compare_button_exists(self):
+        self.assertTrue(hasattr(self.bv, 'compare_btn'))
+
+    def test_score_defaults_to_dash(self):
+        self.assertEqual(self.bv.score_value.text(), "--")
+
+    def test_empty_guide_shows_when_no_data(self):
+        self.assertTrue(hasattr(self.bv, 'empty_guide'))
+        self.assertIsNotNone(self.bv.empty_guide)
+        self.assertEqual(self.bv.empty_guide.objectName(), "card")
+
+
+class TestTaxCalendarView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.tax_calendar_view import TaxCalendarView
+        self.tcv = TaxCalendarView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.tcv)
+
+    def test_year_combo_exists(self):
+        self.assertTrue(hasattr(self.tcv, 'year_combo'))
+
+    def test_year_combo_has_items(self):
+        self.assertGreater(self.tcv.year_combo.count(), 0)
+
+    def test_upcoming_table_exists(self):
+        self.assertTrue(hasattr(self.tcv, 'upcoming_table'))
+
+    def test_refresh_button_exists(self):
+        self.assertTrue(hasattr(self.tcv, 'refresh_btn'))
+
+    def test_empty_guide_exists(self):
+        self.assertTrue(hasattr(self.tcv, 'empty_guide'))
+        self.assertIsNotNone(self.tcv.empty_guide)
+        self.assertEqual(self.tcv.empty_guide.objectName(), "card")
+
+
+class TestDataEntryView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.data_entry import DataEntryView
+        self.dev = DataEntryView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.dev)
+
+    def test_demo_button_exists(self):
+        self.assertTrue(hasattr(self.dev, 'demo_btn'))
+        self.assertEqual(self.dev.demo_btn.objectName(), "secondaryBtn")
+
+    def test_demo_button_text_is_set(self):
+        self.assertTrue(len(self.dev.demo_btn.text()) > 0)
+
+    def test_save_button_starts_disabled(self):
+        self.assertFalse(self.dev.save_btn.isEnabled())
+
+    def test_company_name_starts_empty(self):
+        self.assertEqual(self.dev.company_name.text(), "")
+
+    def test_company_name_fr_starts_empty(self):
+        self.assertEqual(self.dev.company_name_fr.text(), "")
+
+    def test_company_nif_starts_empty(self):
+        self.assertEqual(self.dev.company_nif.text(), "")
+
+    def test_company_rc_starts_empty(self):
+        self.assertEqual(self.dev.company_rc.text(), "")
+
+    def test_company_bank_starts_empty(self):
+        self.assertEqual(self.dev.company_bank.text(), "")
+
+    def test_company_address_starts_empty(self):
+        self.assertEqual(self.dev.company_address.text(), "")
+
+    def test_company_phone_starts_empty(self):
+        self.assertEqual(self.dev.company_phone.text(), "")
+
+    def test_company_email_starts_empty(self):
+        self.assertEqual(self.dev.company_email.text(), "")
+
+    def test_legal_form_starts_at_0(self):
+        self.assertEqual(self.dev.company_legal_form.currentIndex(), 0)
+
+    def test_activity_starts_at_0(self):
+        self.assertEqual(self.dev.company_activity.currentIndex(), 0)
+
+    def test_fiscal_year_default_2024(self):
+        self.assertEqual(self.dev.fiscal_year.value(), 2024)
+
+    def test_financial_spins_start_zero(self):
+        self.assertEqual(self.dev.current_assets.value(), 0.0)
+        self.assertEqual(self.dev.inventory.value(), 0.0)
+        self.assertEqual(self.dev.current_liabilities.value(), 0.0)
+        self.assertEqual(self.dev.total_assets.value(), 0.0)
+        self.assertEqual(self.dev.total_liabilities.value(), 0.0)
+        self.assertEqual(self.dev.equity.value(), 0.0)
+        self.assertEqual(self.dev.revenue.value(), 0.0)
+        self.assertEqual(self.dev.cogs.value(), 0.0)
+        self.assertEqual(self.dev.gross_profit.value(), 0.0)
+        self.assertEqual(self.dev.net_income.value(), 0.0)
+        self.assertEqual(self.dev.avg_receivables.value(), 0.0)
+        self.assertEqual(self.dev.avg_inventory.value(), 0.0)
+
+    def test_load_demo_data_fills_fields(self):
+        self.dev.load_default_data()
+        self.assertNotEqual(self.dev.company_name.text(), "")
+        self.assertNotEqual(self.dev.company_name_fr.text(), "")
+        self.assertGreater(self.dev.current_assets.value(), 0)
+        self.assertGreater(self.dev.revenue.value(), 0)
+        self.assertNotEqual(self.dev.company_legal_form.currentIndex(), 0)
+        self.assertNotEqual(self.dev.company_activity.currentIndex(), 0)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

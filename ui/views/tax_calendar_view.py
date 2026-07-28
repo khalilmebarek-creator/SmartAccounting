@@ -219,7 +219,10 @@ class TaxCalendarView(BaseView):
 
     def _build_calendar_overview(self, year=None):
         for i in range(self.calendar_layout.count()):
-            w = self.calendar_layout.itemAt(i).widget()
+            item = self.calendar_layout.itemAt(i)
+            if item is None:
+                continue
+            w = item.widget()
             if w:
                 w.setParent(None)
                 w.deleteLater()

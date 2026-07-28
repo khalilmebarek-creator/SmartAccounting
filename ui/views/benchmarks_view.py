@@ -151,7 +151,7 @@ class BenchmarkView(BaseView):
         radar_layout.setContentsMargins(10, 10, 10, 10)
         self.radar_chart_layout = QVBoxLayout()
         self.radar_chart_layout.setContentsMargins(0, 0, 0, 0)
-        self.radar_frame.setLayout(radar_chart_layout)
+        self.radar_frame.setLayout(self.radar_chart_layout)
         charts_layout.addWidget(self.radar_frame, 1)
 
         self.bar_frame = QFrame()

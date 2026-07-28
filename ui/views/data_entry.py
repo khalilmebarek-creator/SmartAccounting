@@ -355,6 +355,13 @@ class DataEntryView(QWidget):
         self.import_btn.clicked.connect(self.import_from_excel)
         buttons_layout.addWidget(self.import_btn)
 
+        self.demo_btn = QPushButton(t("btn_load_demo"))
+        self.demo_btn.setObjectName("secondaryBtn")
+        self.demo_btn.setMinimumSize(QSize(160, 42))
+        self.demo_btn.setToolTip(t("tip_load_demo"))
+        self.demo_btn.clicked.connect(self.load_default_data)
+        buttons_layout.addWidget(self.demo_btn)
+
         buttons_layout.addSpacing(20)
 
         self.undo_btn = QPushButton("↩ Undo")
