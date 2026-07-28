@@ -73,29 +73,41 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-    def _on_update_check_done(self, has_update: bool, info: dict):
-        """الاستجابة لفحص التحديثات"""
-        if has_update and info:
-            from PyQt5.QtCore import QMetaObject, Qt, Q_ARG
+    def _show_update_safe(self):
+        """عرض رسالة التحديث بأمان من أي thread"""
+        try:
+            info = getattr(self, '_pending_update_info', None)
+            if not info:
+                return
             from PyQt5.QtWidgets import QMessageBox
             from config import APP_VERSION
-            
-            def _show_update():
-                msg = QMessageBox(self)
-                msg.setIcon(QMessageBox.Information)
-                msg.setWindowTitle("تحديث متاح | Update Available")
-                msg.setText(
-                    f"نسخة جديدة متاحة: {info['remote']}\\n"
-                    f"النسخة الحالية: {APP_VERSION}\\n\\n"
-                    f"التحديثات:\\n" + "\\n".join(f"• {c}" for c in info.get('changelog', []))
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setWindowTitle("تحديث متاح | Update Available")
+            msg.setText(
+                f"نسخة جديدة متاحة: {info.get('remote', '')}\n"
+                f"النسخة الحالية: {APP_VERSION}\n\n"
+                f"التحديثات:\n" + "\n".join(f"• {c}" for c in info.get('changelog', []))
+            )
+            msg.setInformativeText("هل تريد تحميل التحديث؟")
+            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            if msg.exec_() == QMessageBox.Yes:
+                import webbrowser
+                webbrowser.open(info.get('download_url', 'https://github.com'))
+        except Exception:
+            pass
+
+    def _on_update_check_done(self, has_update: bool, info: dict):
+        """الاستجابة لفحص التحديثات — من background thread"""
+        if has_update and info:
+            self._pending_update_info = info
+            try:
+                from PyQt5.QtCore import QMetaObject, Qt
+                QMetaObject.invokeMethod(
+                    self, "_show_update_safe", Qt.QueuedConnection,
                 )
-                msg.setInformativeText("هل تريد تحميل التحديث؟")
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                if msg.exec_() == QMessageBox.Yes:
-                    import webbrowser
-                    webbrowser.open(info.get('download_url', 'https://github.com'))
-            
-            QMetaObject.invokeMethod(self, "_show_update_safe", Qt.QueuedConnection)
+            except Exception:
+                pass
 
     def setup_ui(self):
         """إنشاء الواجهة الرئيسية"""
