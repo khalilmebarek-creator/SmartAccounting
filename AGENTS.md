@@ -17,4 +17,14 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 ## قواعد الرفع
 - بعد كل تعديل كود، تحديث الموقع (docs/) مطلوب
 - بعد كل تعديل، تحديث PROJECT_MAP.md مطلوب
-- الإصدار الحالي: v3.1.2
+- الإصدار الحالي: v3.1.3
+
+## الحالة الحالية (2026-07-30)
+- 20 نسبة مالية في RatiosView + z_score في منفصل
+- 3 حقول إدخال جديدة: cash, operating_expenses, average_payables
+- 37 اختبارات كلها ناجحة
+- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (66.9 MB)
+- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.3.exe (41.4 MB)
+- ZIP: installer_output/SmartAccounting-v3.1.3-win64.zip (21.2 MB)
+- رُفع assets إلى GitHub release v3.1.3
+- auto-update: يشير version.json إلى v3.1.3 (تاريخ 2026-07-30)
