@@ -1,9 +1,9 @@
 {
-  "version": "3.1.2",
+  "version": "3.1.3",
   "date": "2026-07-30",
   "min_version": "3.0.0",
-  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.2",
-  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.1.2/SmartAccounting-Setup-v3.1.2.exe",
+  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.3",
+  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.1.3/SmartAccounting-Setup-v3.1.3.exe",
   "changelog": [
     "إضافة 8 نسب مالية جديدة: نسبة السيولة النقدية، هامش الربح التشغيلي، فترة الاحتفاظ بالمخزون، دوران الموردين، فترة سداد الموردين، الدورة التشغيلية، دورة التحويل النقدي، نسبة حقوق الملكية",
     "إضافة 3 حقول إدخال جديدة: النقدية، المصاريف التشغيلية، متوسط الموردين",
