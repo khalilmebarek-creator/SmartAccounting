@@ -9,7 +9,7 @@ import os
 def main():
     print("=" * 60)
     print("  Smart Accounting Platform - Nuitka Build")
-    print("  (Compiles Python to C → Native Machine Code)")
+    print("  (Compiles Python to C -> Native Machine Code)")
     print("=" * 60)
 
     # Clean previous builds
@@ -35,9 +35,9 @@ def main():
         "--nofollow-import-to=tkinter,unittest,test,scipy",
         "--company-name=Smart Accounting Team",
         "--product-name=Smart Accounting Platform",
-        "--product-version=3.0.0",
+        "--product-version=3.1.2",
         "--file-description=Educational Accounting Software",
-        "--file-version=3.0.0.0",
+        "--file-version=3.1.2.0",
         "--assume-yes-for-downloads",
         "ui/run_ui.py",
     ]

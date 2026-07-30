@@ -36,16 +36,19 @@ class PasswordChangeDialog(QMessageBox):
         old_pass = QLineEdit()
         old_pass.setEchoMode(QLineEdit.Password)
         old_pass.setMinimumHeight(34)
+        old_pass.setLayoutDirection(Qt.LeftToRight)
         layout.addRow(t("pwd_old"), old_pass)
 
         new_pass = QLineEdit()
         new_pass.setEchoMode(QLineEdit.Password)
         new_pass.setMinimumHeight(34)
+        new_pass.setLayoutDirection(Qt.LeftToRight)
         layout.addRow(t("pwd_new"), new_pass)
 
         confirm_pass = QLineEdit()
         confirm_pass.setEchoMode(QLineEdit.Password)
         confirm_pass.setMinimumHeight(34)
+        confirm_pass.setLayoutDirection(Qt.LeftToRight)
         layout.addRow(t("pwd_confirm"), confirm_pass)
 
         error_label = QLabel("")
@@ -164,6 +167,7 @@ class LoginView(QWidget):
         self.login_password.setEchoMode(QLineEdit.Password)
         self.login_password.setPlaceholderText(t("login_password"))
         self.login_password.setMinimumHeight(38)
+        self.login_password.setLayoutDirection(Qt.LeftToRight)
         self._login_pass_label = QLabel(t("login_password"))
         self.login_password.returnPressed.connect(self.do_login)
 
@@ -235,6 +239,7 @@ class LoginView(QWidget):
         self.reg_password.setEchoMode(QLineEdit.Password)
         self.reg_password.setPlaceholderText(t("login_reg_password_ph"))
         self.reg_password.setMinimumHeight(38)
+        self.reg_password.setLayoutDirection(Qt.LeftToRight)
         self._reg_pass_label = QLabel(t("login_password"))
         form.addRow(self._reg_pass_label, self.reg_password)
 
@@ -333,12 +338,14 @@ class LoginView(QWidget):
         self.forgot_new_pass.setEchoMode(QLineEdit.Password)
         self.forgot_new_pass.setPlaceholderText(t("forgot_new_password"))
         self.forgot_new_pass.setMinimumHeight(38)
+        self.forgot_new_pass.setLayoutDirection(Qt.LeftToRight)
         layout.addWidget(self.forgot_new_pass)
 
         self.forgot_confirm = QLineEdit()
         self.forgot_confirm.setEchoMode(QLineEdit.Password)
         self.forgot_confirm.setPlaceholderText(t("forgot_confirm_password"))
         self.forgot_confirm.setMinimumHeight(38)
+        self.forgot_confirm.setLayoutDirection(Qt.LeftToRight)
         layout.addWidget(self.forgot_confirm)
 
         self.forgot_error2 = QLabel("")

@@ -259,6 +259,14 @@ class DataEntryView(QWidget):
         self.equity.setMinimumWidth(160)
         balance_layout.addWidget(self.equity, 1, 5)
 
+        # Row 3
+        self.cash_label = QLabel(t("cash"))
+        self.cash_label.setMinimumWidth(120)
+        balance_layout.addWidget(self.cash_label, 2, 0)
+        self.cash = self._make_spin()
+        self.cash.setMinimumWidth(160)
+        balance_layout.addWidget(self.cash, 2, 1)
+
         self.balance_group.setLayout(balance_layout)
         main_layout.addWidget(self.balance_group)
 
@@ -316,6 +324,21 @@ class DataEntryView(QWidget):
         self.avg_inventory = self._make_spin()
         self.avg_inventory.setMinimumWidth(160)
         income_layout.addWidget(self.avg_inventory, 1, 5)
+
+        # Row 2
+        self.operating_expenses_label = QLabel(t("de_operating_expenses"))
+        self.operating_expenses_label.setMinimumWidth(120)
+        income_layout.addWidget(self.operating_expenses_label, 2, 0)
+        self.operating_expenses = self._make_spin()
+        self.operating_expenses.setMinimumWidth(160)
+        income_layout.addWidget(self.operating_expenses, 2, 1)
+
+        self.avg_payables_label = QLabel(t("de_avg_payables"))
+        self.avg_payables_label.setMinimumWidth(120)
+        income_layout.addWidget(self.avg_payables_label, 2, 2)
+        self.avg_payables = self._make_spin()
+        self.avg_payables.setMinimumWidth(160)
+        income_layout.addWidget(self.avg_payables, 2, 3)
 
         self.income_group.setLayout(income_layout)
         main_layout.addWidget(self.income_group)
@@ -414,11 +437,12 @@ class DataEntryView(QWidget):
             self.company_address, self.company_phone,
             self.company_email,
             self.current_assets, self.inventory,
-            self.current_liabilities, self.total_assets,
-            self.total_liabilities, self.equity,
+            self.current_liabilities, self.cash,
+            self.total_assets, self.total_liabilities, self.equity,
             self.revenue, self.cogs,
-            self.gross_profit, self.net_income,
-            self.avg_receivables, self.avg_inventory,
+            self.gross_profit, self.operating_expenses,
+            self.net_income, self.avg_receivables,
+            self.avg_inventory, self.avg_payables,
         ]
         for i in range(len(fields) - 1):
             self.setTabOrder(fields[i], fields[i + 1])
@@ -439,15 +463,18 @@ class DataEntryView(QWidget):
             self.current_assets: "tip_current_assets",
             self.inventory: "tip_inventory",
             self.current_liabilities: "tip_current_liabilities",
+            self.cash: "tip_cash",
             self.total_assets: "tip_total_assets",
             self.total_liabilities: "tip_total_liabilities",
             self.equity: "tip_equity",
             self.revenue: "tip_revenue",
             self.cogs: "tip_cogs",
             self.gross_profit: "tip_gross_profit",
+            self.operating_expenses: "tip_operating_expenses",
             self.net_income: "tip_net_income",
             self.avg_receivables: "tip_avg_receivables",
             self.avg_inventory: "tip_avg_inventory",
+            self.avg_payables: "tip_avg_payables",
         }
         for widget, key in tips.items():
             widget.setToolTip(t(key))
@@ -480,6 +507,7 @@ class DataEntryView(QWidget):
         self.current_assets_label.setText(t("current_assets"))
         self.inventory_label.setText(t("inventory"))
         self.current_liabilities_label.setText(t("current_liabilities"))
+        self.cash_label.setText(t("cash"))
         self.total_assets_label.setText(t("total_assets"))
         self.total_liabilities_label.setText(t("total_liabilities"))
         self.equity_label.setText(t("equity"))
@@ -487,9 +515,11 @@ class DataEntryView(QWidget):
         self.revenue_label.setText(t("revenue"))
         self.cogs_label.setText(t("de_cogs_short"))
         self.gross_profit_label.setText(t("de_gross_profit"))
+        self.operating_expenses_label.setText(t("de_operating_expenses"))
         self.net_income_label.setText(t("net_income"))
         self.avg_receivables_label.setText(t("de_avg_receivables"))
         self.avg_inventory_label.setText(t("de_avg_inventory"))
+        self.avg_payables_label.setText(t("de_avg_payables"))
         self.calculate_btn.setText(t("btn_calculate"))
         self.save_btn.setText(t("btn_save_db"))
         self.clear_btn.setText(t("btn_clear"))
@@ -558,15 +588,18 @@ class DataEntryView(QWidget):
         self.current_assets.setValue(fd.get('current_assets', 0) or 0)
         self.inventory.setValue(fd.get('inventory', 0) or 0)
         self.current_liabilities.setValue(fd.get('current_liabilities', 0) or 0)
+        self.cash.setValue(fd.get('cash', 0) or 0)
         self.total_assets.setValue(fd.get('total_assets', 0) or 0)
         self.total_liabilities.setValue(fd.get('total_liabilities', 0) or 0)
         self.equity.setValue(fd.get('equity', 0) or 0)
         self.revenue.setValue(fd.get('revenue', 0) or 0)
         self.cogs.setValue(fd.get('cost_of_goods_sold', 0) or 0)
         self.gross_profit.setValue(fd.get('gross_profit', 0) or 0)
+        self.operating_expenses.setValue(fd.get('operating_expenses', 0) or 0)
         self.net_income.setValue(fd.get('net_income', 0) or 0)
         self.avg_receivables.setValue(fd.get('average_receivables', 0) or 0)
         self.avg_inventory.setValue(fd.get('average_inventory', 0) or 0)
+        self.avg_payables.setValue(fd.get('average_payables', 0) or 0)
         self._suppress_validation = False
         if state.ratios:
             self.save_btn.setEnabled(True)
@@ -597,15 +630,18 @@ class DataEntryView(QWidget):
         self.current_assets.setValue(100000)
         self.inventory.setValue(20000)
         self.current_liabilities.setValue(50000)
+        self.cash.setValue(8000)
         self.total_assets.setValue(500000)
         self.total_liabilities.setValue(200000)
         self.equity.setValue(300000)
         self.revenue.setValue(200000)
         self.cogs.setValue(120000)
         self.gross_profit.setValue(30000)
+        self.operating_expenses.setValue(15000)
         self.net_income.setValue(15000)
         self.avg_receivables.setValue(40000)
         self.avg_inventory.setValue(25000)
+        self.avg_payables.setValue(18000)
 
     def get_data(self):
         """جمع كل البيانات من الحقول"""
@@ -624,15 +660,18 @@ class DataEntryView(QWidget):
             'current_assets': self.current_assets.value(),
             'inventory': self.inventory.value(),
             'current_liabilities': self.current_liabilities.value(),
+            'cash': self.cash.value(),
             'total_assets': self.total_assets.value(),
             'total_liabilities': self.total_liabilities.value(),
             'equity': self.equity.value(),
             'revenue': self.revenue.value(),
             'cost_of_goods_sold': self.cogs.value(),
             'gross_profit': self.gross_profit.value(),
+            'operating_expenses': self.operating_expenses.value(),
             'net_income': self.net_income.value(),
             'average_receivables': self.avg_receivables.value(),
-            'average_inventory': self.avg_inventory.value()
+            'average_inventory': self.avg_inventory.value(),
+            'average_payables': self.avg_payables.value()
         }
 
     def _validate_and_get_data(self):
@@ -792,9 +831,10 @@ class DataEntryView(QWidget):
         self.company_phone.clear()
         self.company_email.clear()
         for spin in [self.current_assets, self.inventory, self.current_liabilities,
-                    self.total_assets, self.total_liabilities, self.equity,
-                    self.revenue, self.cogs, self.gross_profit, self.net_income,
-                    self.avg_receivables, self.avg_inventory]:
+                    self.cash, self.total_assets, self.total_liabilities, self.equity,
+                    self.revenue, self.cogs, self.gross_profit, self.operating_expenses,
+                    self.net_income, self.avg_receivables, self.avg_inventory,
+                    self.avg_payables]:
             spin.setValue(0)
         state.clear()
         activity_log.log("clear_fields", "All fields cleared")
@@ -884,15 +924,18 @@ class DataEntryView(QWidget):
             'current_assets': self.current_assets,
             'inventory': self.inventory,
             'current_liabilities': self.current_liabilities,
+            'cash': self.cash,
             'total_assets': self.total_assets,
             'total_liabilities': self.total_liabilities,
             'equity': self.equity,
             'revenue': self.revenue,
             'cost_of_goods_sold': self.cogs,
             'gross_profit': self.gross_profit,
+            'operating_expenses': self.operating_expenses,
             'net_income': self.net_income,
             'average_receivables': self.avg_receivables,
-            'average_inventory': self.avg_inventory
+            'average_inventory': self.avg_inventory,
+            'average_payables': self.avg_payables
         }
         for key, widget in mapping.items():
             if key in data:
@@ -918,9 +961,10 @@ class DataEntryView(QWidget):
     def _get_current_state(self):
         data = {}
         for spin in ['current_assets', 'inventory', 'current_liabilities',
-                     'total_assets', 'total_liabilities', 'equity',
-                     'revenue', 'cogs', 'gross_profit', 'net_income',
-                     'avg_receivables', 'avg_inventory']:
+                     'cash', 'total_assets', 'total_liabilities', 'equity',
+                     'revenue', 'cogs', 'gross_profit', 'operating_expenses',
+                     'net_income', 'avg_receivables', 'avg_inventory',
+                     'avg_payables']:
             data[spin] = getattr(self, spin).value()
         for txt in ['company_name', 'company_name_fr', 'company_nif',
                     'company_rc', 'company_bank', 'company_address',
@@ -934,11 +978,13 @@ class DataEntryView(QWidget):
     def _restore_state(self, saved):
         spin_map = {
             'current_assets': self.current_assets, 'inventory': self.inventory,
-            'current_liabilities': self.current_liabilities, 'total_assets': self.total_assets,
+            'current_liabilities': self.current_liabilities, 'cash': self.cash,
+            'total_assets': self.total_assets,
             'total_liabilities': self.total_liabilities, 'equity': self.equity,
             'revenue': self.revenue, 'cogs': self.cogs, 'gross_profit': self.gross_profit,
+            'operating_expenses': self.operating_expenses,
             'net_income': self.net_income, 'avg_receivables': self.avg_receivables,
-            'avg_inventory': self.avg_inventory
+            'avg_inventory': self.avg_inventory, 'avg_payables': self.avg_payables
         }
         for k, w in spin_map.items():
             if k in saved:

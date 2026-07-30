@@ -24,6 +24,7 @@ DEMO_DATA = {
         "total_liabilities": 55000000,
         "current_liabilities": 30000000,
         "accounts_payable": 18000000,
+        "average_payables": 18000000,
         "short_term_debt": 12000000,
         "non_current_liabilities": 25000000,
         "long_term_debt": 25000000,

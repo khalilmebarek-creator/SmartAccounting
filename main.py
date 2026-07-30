@@ -54,7 +54,9 @@ def main():
         'current_assets': 100000,
         'inventory': 20000,
         'current_liabilities': 50000,
+        'cash': 8000,
         'gross_profit': 30000,
+        'operating_expenses': 15000,
         'net_income': 15000,
         'revenue': 200000,
         'total_assets': 500000,
@@ -62,6 +64,7 @@ def main():
         'cost_of_goods_sold': 120000,
         'average_receivables': 40000,
         'average_inventory': 25000,
+        'average_payables': 18000,
         'total_liabilities': 200000
     }
     

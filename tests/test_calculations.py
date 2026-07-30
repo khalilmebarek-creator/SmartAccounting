@@ -22,7 +22,9 @@ class TestCalculationEngine(unittest.TestCase):
             'current_assets': 100000,
             'inventory': 20000,
             'current_liabilities': 50000,
+            'cash': 8000,
             'gross_profit': 30000,
+            'operating_expenses': 15000,
             'net_income': 15000,
             'revenue': 200000,
             'total_assets': 500000,
@@ -30,6 +32,7 @@ class TestCalculationEngine(unittest.TestCase):
             'cost_of_goods_sold': 120000,
             'average_receivables': 40000,
             'average_inventory': 25000,
+            'average_payables': 18000,
             'total_liabilities': 200000
         }
     
@@ -48,12 +51,21 @@ class TestCalculationEngine(unittest.TestCase):
     def test_quick_ratio_normal(self):
         """اختبار النسبة السريعة"""
         result = self.engine.quick_ratio(100000, 20000, 50000)
-        # (100000 - 20000) / 50000 = 1.6
         self.assertEqual(result, 1.6)
     
     def test_quick_ratio_zero_liabilities(self):
         """اختبار النسبة السريعة - التزامات صفر"""
         result = self.engine.quick_ratio(100000, 20000, 0)
+        self.assertEqual(result, 0)
+    
+    def test_cash_ratio_normal(self):
+        """اختبار نسبة السيولة النقدية"""
+        result = self.engine.cash_ratio(8000, 50000)
+        self.assertAlmostEqual(result, 0.16)
+    
+    def test_cash_ratio_zero_liabilities(self):
+        """اختبار نسبة السيولة النقدية - التزامات صفر"""
+        result = self.engine.cash_ratio(8000, 0)
         self.assertEqual(result, 0)
     
     # ===== اختبارات نسب الربحية =====
@@ -67,6 +79,15 @@ class TestCalculationEngine(unittest.TestCase):
     def test_gross_profit_margin_zero_revenue(self):
         """اختبار هامش الربح - إيرادات صفر"""
         result = self.engine.gross_profit_margin(30000, 0)
+        self.assertEqual(result, 0)
+    
+    def test_operating_profit_margin(self):
+        """اختبار هامش الربح التشغيلي"""
+        result = self.engine.operating_profit_margin(15000, 200000)
+        self.assertEqual(result, 7.5)
+    
+    def test_operating_profit_margin_zero_revenue(self):
+        result = self.engine.operating_profit_margin(15000, 0)
         self.assertEqual(result, 0)
     
     def test_net_profit_margin(self):
@@ -123,6 +144,31 @@ class TestCalculationEngine(unittest.TestCase):
         # 120000 / 25000 = 4.8
         self.assertEqual(result, 4.8)
     
+    def test_days_inventory_outstanding(self):
+        """اختبار فترة الاحتفاظ بالمخزون"""
+        result = self.engine.days_inventory_outstanding(4.8)
+        self.assertEqual(result, 76)
+    
+    def test_payables_turnover(self):
+        """اختبار دوران الموردين"""
+        result = self.engine.payables_turnover(120000, 18000)
+        self.assertAlmostEqual(result, 6.6667, places=4)
+    
+    def test_days_payable_outstanding(self):
+        """اختبار فترة سداد الموردين"""
+        result = self.engine.days_payable_outstanding(6.6667)
+        self.assertEqual(result, 55)
+    
+    def test_operating_cycle(self):
+        """اختبار الدورة التشغيلية"""
+        result = self.engine.operating_cycle(76, 73)
+        self.assertEqual(result, 149)
+    
+    def test_cash_conversion_cycle(self):
+        """اختبار دورة التحويل النقدي"""
+        result = self.engine.cash_conversion_cycle(76, 73, 55)
+        self.assertEqual(result, 94)
+    
     # ===== اختبارات نسب الاستدانة =====
     
     def test_debt_to_equity(self):
@@ -137,6 +183,11 @@ class TestCalculationEngine(unittest.TestCase):
         # 200000 / 500000 = 0.4
         self.assertEqual(result, 0.4)
     
+    def test_equity_ratio(self):
+        """اختبار نسبة حقوق الملكية"""
+        result = self.engine.equity_ratio(300000, 500000)
+        self.assertEqual(result, 0.6)
+    
     # ===== اختبار الدالة الشاملة =====
     
     def test_calculate_all_ratios_success(self):
@@ -145,12 +196,15 @@ class TestCalculationEngine(unittest.TestCase):
         
         # التحقق من وجود كل النسب
         expected_keys = [
-            'current_ratio', 'quick_ratio',
-            'gross_profit_margin', 'net_profit_margin',
+            'current_ratio', 'quick_ratio', 'cash_ratio',
+            'gross_profit_margin', 'operating_profit_margin', 'net_profit_margin',
             'roa', 'roe',
             'asset_turnover', 'receivables_turnover',
             'days_sales_outstanding', 'inventory_turnover',
-            'debt_to_equity', 'debt_ratio'
+            'days_inventory_outstanding', 'payables_turnover',
+            'days_payable_outstanding', 'operating_cycle',
+            'cash_conversion_cycle',
+            'debt_to_equity', 'debt_ratio', 'equity_ratio'
         ]
         for key in expected_keys:
             self.assertIn(key, ratios)

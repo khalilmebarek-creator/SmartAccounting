@@ -34,10 +34,16 @@ class CalculationEngine:
     def quick_ratio(self, current_assets: float, inventory: float, current_liabilities: float) -> float:
         return self._round(self._safe_div(current_assets - inventory, current_liabilities))
     
+    def cash_ratio(self, cash: float, current_liabilities: float) -> float:
+        return self._round(self._safe_div(cash, current_liabilities))
+    
     # ===== نسب الربحية =====
     
     def gross_profit_margin(self, gross_profit: float, revenue: float) -> float:
         return self._round(self._safe_div(gross_profit, revenue) * 100)
+    
+    def operating_profit_margin(self, operating_income: float, revenue: float) -> float:
+        return self._round(self._safe_div(operating_income, revenue) * 100)
     
     def net_profit_margin(self, net_income: float, revenue: float) -> float:
         return self._round(self._safe_div(net_income, revenue) * 100)
@@ -62,6 +68,22 @@ class CalculationEngine:
     def inventory_turnover(self, cost_of_goods_sold: float, average_inventory: float) -> float:
         return self._round(self._safe_div(cost_of_goods_sold, average_inventory))
     
+    def days_inventory_outstanding(self, inventory_turnover: float) -> float:
+        return self._round(self._safe_div(365, inventory_turnover), 0)
+    
+    def payables_turnover(self, cost_of_goods_sold: float, average_payables: float) -> float:
+        return self._round(self._safe_div(cost_of_goods_sold, average_payables))
+    
+    def days_payable_outstanding(self, payables_turnover: float) -> float:
+        return self._round(self._safe_div(365, payables_turnover), 0)
+    
+    def operating_cycle(self, days_inventory_outstanding: float, days_sales_outstanding: float) -> float:
+        return self._round(days_inventory_outstanding + days_sales_outstanding, 0)
+    
+    def cash_conversion_cycle(self, days_inventory_outstanding: float, days_sales_outstanding: float,
+                               days_payable_outstanding: float) -> float:
+        return self._round(days_inventory_outstanding + days_sales_outstanding - days_payable_outstanding, 0)
+    
     # ===== نسب الاستدانة =====
     
     def debt_to_equity(self, total_liabilities: float, equity: float) -> float:
@@ -69,6 +91,9 @@ class CalculationEngine:
     
     def debt_ratio(self, total_liabilities: float, total_assets: float) -> float:
         return self._round(self._safe_div(total_liabilities, total_assets))
+    
+    def equity_ratio(self, equity: float, total_assets: float) -> float:
+        return self._round(self._safe_div(equity, total_assets))
     
     # ===== دالة شاملة لحساب جميع النسب =====
     
@@ -81,7 +106,9 @@ class CalculationEngine:
             'current_assets': float,
             'inventory': float,
             'current_liabilities': float,
+            'cash': float (اختياري),
             'gross_profit': float,
+            'operating_expenses': float (اختياري),
             'net_income': float,
             'revenue': float,
             'total_assets': float,
@@ -89,24 +116,33 @@ class CalculationEngine:
             'cost_of_goods_sold': float,
             'average_receivables': float,
             'average_inventory': float,
+            'average_payables': float (اختياري),
             'total_liabilities': float
         }
         """
         
         try:
             ratios = {}
+            operating_income = financial_data.get('operating_income', 0) or 0
+            if operating_income == 0 and 'gross_profit' in financial_data and 'operating_expenses' in financial_data:
+                operating_income = max(0, (financial_data.get('gross_profit', 0) or 0) - (financial_data.get('operating_expenses', 0) or 0))
+
             ratio_calcs = [
                 ('current_ratio', self.current_ratio, financial_data['current_assets'], financial_data['current_liabilities']),
                 ('quick_ratio', self.quick_ratio, financial_data['current_assets'], financial_data['inventory'], financial_data['current_liabilities']),
+                ('cash_ratio', self.cash_ratio, financial_data.get('cash', 0) or 0, financial_data['current_liabilities']),
                 ('gross_profit_margin', self.gross_profit_margin, financial_data['gross_profit'], financial_data['revenue']),
+                ('operating_profit_margin', self.operating_profit_margin, operating_income, financial_data['revenue']),
                 ('net_profit_margin', self.net_profit_margin, financial_data['net_income'], financial_data['revenue']),
                 ('roa', self.roa, financial_data['net_income'], financial_data['total_assets']),
                 ('roe', self.roe, financial_data['net_income'], financial_data['equity']),
                 ('asset_turnover', self.asset_turnover, financial_data['revenue'], financial_data['total_assets']),
                 ('receivables_turnover', self.receivables_turnover, financial_data['revenue'], financial_data['average_receivables']),
                 ('inventory_turnover', self.inventory_turnover, financial_data['cost_of_goods_sold'], financial_data['average_inventory']),
+                ('payables_turnover', self.payables_turnover, financial_data.get('cost_of_goods_sold', 0) or 0, financial_data.get('average_payables', 0) or 0),
                 ('debt_to_equity', self.debt_to_equity, financial_data['total_liabilities'], financial_data['equity']),
                 ('debt_ratio', self.debt_ratio, financial_data['total_liabilities'], financial_data['total_assets']),
+                ('equity_ratio', self.equity_ratio, financial_data['equity'], financial_data['total_assets']),
             ]
 
             for entry in ratio_calcs:
@@ -125,6 +161,41 @@ class CalculationEngine:
             except Exception as e:
                 ratios['days_sales_outstanding'] = 0
                 logger.warning(f"Ratio days_sales_outstanding failed: {e}")
+
+            try:
+                ratios['days_inventory_outstanding'] = self.days_inventory_outstanding(
+                    ratios.get('inventory_turnover', 0)
+                )
+            except Exception as e:
+                ratios['days_inventory_outstanding'] = 0
+                logger.warning(f"Ratio days_inventory_outstanding failed: {e}")
+
+            try:
+                ratios['days_payable_outstanding'] = self.days_payable_outstanding(
+                    ratios.get('payables_turnover', 0)
+                )
+            except Exception as e:
+                ratios['days_payable_outstanding'] = 0
+                logger.warning(f"Ratio days_payable_outstanding failed: {e}")
+
+            try:
+                ratios['operating_cycle'] = self.operating_cycle(
+                    ratios.get('days_inventory_outstanding', 0),
+                    ratios.get('days_sales_outstanding', 0)
+                )
+            except Exception as e:
+                ratios['operating_cycle'] = 0
+                logger.warning(f"Ratio operating_cycle failed: {e}")
+
+            try:
+                ratios['cash_conversion_cycle'] = self.cash_conversion_cycle(
+                    ratios.get('days_inventory_outstanding', 0),
+                    ratios.get('days_sales_outstanding', 0),
+                    ratios.get('days_payable_outstanding', 0)
+                )
+            except Exception as e:
+                ratios['cash_conversion_cycle'] = 0
+                logger.warning(f"Ratio cash_conversion_cycle failed: {e}")
 
             logger.info(f"Ratios calculated: ROE={ratios.get('roe',0)}%, CR={ratios.get('current_ratio',0)}")
             return ratios
@@ -191,13 +262,19 @@ class CalculationEngine:
             logger.warning("No ratios to print")
             return
         
-        logger.info("Ratios: CR=%.2f, QR=%.2f, GPM=%.2f%%, NPM=%.2f%%, ROA=%.2f%%, ROE=%.2f%%",
+        logger.info("Ratios: CR=%.2f, QR=%.2f, CashR=%.2f, GPM=%.2f%%, OPM=%.2f%%, NPM=%.2f%%, ROA=%.2f%%, ROE=%.2f%%",
                      ratios.get('current_ratio', 0), ratios.get('quick_ratio', 0),
-                     ratios.get('gross_profit_margin', 0), ratios.get('net_profit_margin', 0),
+                     ratios.get('cash_ratio', 0),
+                     ratios.get('gross_profit_margin', 0), ratios.get('operating_profit_margin', 0),
+                     ratios.get('net_profit_margin', 0),
                      ratios.get('roa', 0), ratios.get('roe', 0))
-        logger.info("Efficiency: AT=%.2f, RT=%.2f, DSO=%.0f, IT=%.2f",
+        logger.info("Efficiency: AT=%.2f, RT=%.2f, DSO=%.0f, IT=%.2f, DIO=%.0f, PT=%.2f, DPO=%.0f, OC=%.0f, CCC=%.0f",
                      ratios.get('asset_turnover', 0), ratios.get('receivables_turnover', 0),
-                     ratios.get('days_sales_outstanding', 0), ratios.get('inventory_turnover', 0))
-        logger.info("Leverage: D/E=%.2f, DR=%.2f",
-                     ratios.get('debt_to_equity', 0), ratios.get('debt_ratio', 0))
+                     ratios.get('days_sales_outstanding', 0), ratios.get('inventory_turnover', 0),
+                     ratios.get('days_inventory_outstanding', 0), ratios.get('payables_turnover', 0),
+                     ratios.get('days_payable_outstanding', 0), ratios.get('operating_cycle', 0),
+                     ratios.get('cash_conversion_cycle', 0))
+        logger.info("Leverage: D/E=%.2f, DR=%.2f, ER=%.2f",
+                     ratios.get('debt_to_equity', 0), ratios.get('debt_ratio', 0),
+                     ratios.get('equity_ratio', 0))
         
