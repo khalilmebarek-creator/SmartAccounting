@@ -161,6 +161,12 @@ ul{list-style:none}
 .download-card h3{font-size:1.3rem;margin-bottom:8px}
 .download-card p{font-size:.9rem;color:rgba(255,255,255,.7);margin-bottom:16px}
 .download-size{font-size:.8rem;color:rgba(255,255,255,.5);margin-bottom:20px}
+.download-note{max-width:800px;margin:28px auto 0;display:flex;align-items:flex-start;gap:14px;background:rgba(255,214,0,.1);border:1px solid rgba(255,214,0,.35);border-radius:var(--radius-lg);padding:18px 22px;text-align:right}
+.download-note-icon{font-size:1.6rem;flex-shrink:0}
+.download-note p{font-size:.88rem;color:rgba(255,255,255,.85);line-height:1.7;margin:0}
+.download-note code{background:rgba(0,0,0,.35);padding:2px 8px;border-radius:6px;font-size:.8rem;color:var(--accent);direction:ltr;display:inline-block;margin:4px 0}
+.download-note strong{color:var(--accent)}
+.download-note em{font-style:italic}
 
 /* ===== UPDATES ===== */
 .updates{background:var(--bg)}

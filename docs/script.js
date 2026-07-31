@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dl_port_desc: 'ملف مضغوط يحتوي على التطبيق — افتح وأشغّل بدون تثبيت',
             dl_port_btn: 'تحميل المحمول',
             dl_recommended: 'مُوصى به',
+            dl_note_sac: '<strong>ملاحظة لمستخدمي Windows 11:</strong> إذا ظهرت رسالة "An Application Control policy has blocked this file" عند فتح التطبيق، فالمشكلة من ميزة <em>Smart App Control</em> — يُحل بإيقافها من: <code>Windows Security ← App &amp; browser control ← Smart App Control settings ← Off</code> (التطبيق يدعم Windows 10 و 11، والمشكلة خاصة ببعض أجهزة Windows 11 فقط).',
             upd_tag: 'آخر التحديثات',
             upd_title: 'ما الجديد؟',
             upd_date: '27 يوليو 2026',
@@ -308,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dl_port_desc: 'Compressed archive — extract and run without installation',
             dl_port_btn: 'Download Portable',
             dl_recommended: 'Recommended',
+            dl_note_sac: '<strong>Note for Windows 11 users:</strong> If you see "An Application Control policy has blocked this file" when opening the app, it\'s caused by the <em>Smart App Control</em> feature — fix it by turning it off: <code>Windows Security ← App &amp; browser control ← Smart App Control settings ← Off</code> (the app supports Windows 10 &amp; 11; this only affects some Windows 11 devices).',
             upd_tag: 'Latest Updates',
             upd_title: 'What\'s New?',
             upd_date: 'July 27, 2026',
@@ -425,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dl_port_desc: 'Archive compressée — extrayez et exécutez sans installation',
             dl_port_btn: 'Télécharger Portable',
             dl_recommended: 'Recommandé',
+            dl_note_sac: '<strong>Note pour les utilisateurs de Windows 11 :</strong> Si le message "An Application Control policy has blocked this file" s\'affiche à l\'ouverture de l\'application, c\'est dû à la fonction <em>Smart App Control</em> — désactivez-la : <code>Windows Security ← App &amp; browser control ← Smart App Control settings ← Off</code> (l\'application prend en charge Windows 10 et 11 ; ce problème ne touche que certains appareils Windows 11).',
             upd_tag: 'Dernières Mises à Jour',
             upd_title: 'Nouveautés?',
             upd_date: '27 Juillet 2026',
@@ -477,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (t[key]) {
-                if (key === 'hero_title' || key === 'intro') {
+                if (key === 'hero_title' || key === 'intro' || key === 'dl_note_sac') {
                     el.innerHTML = t[key];
                 } else {
                     el.textContent = t[key];
