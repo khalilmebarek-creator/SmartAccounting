@@ -161,14 +161,21 @@ class MainWindow(QMainWindow):
         with open(bat_path, "w") as f:
             f.write(f'@echo off\n')
             f.write(f'timeout /t 2 /nobreak >nul\n')
-            f.write(f'start /wait "" "{path}" /SILENT /SUPPRESSMSGBOXES\n')
+            f.write(f'start /wait "" "{path}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART\n')
             if exe_path:
                 f.write(f'start "" "{exe_path}"\n')
             f.write(f'del "%~f0"\n')
 
+        vbs_path = os.path.join(
+            os.environ["TEMP"], f"smart_update_{uuid.uuid4().hex[:8]}.vbs"
+        )
+        with open(vbs_path, "w") as f:
+            f.write('Set shell = CreateObject("WScript.Shell")\n')
+            f.write(f'shell.Run "{bat_path}", 0, False\n')
+
         subprocess.Popen(
-            ["cmd.exe", "/c", "start", "/min", bat_path],
-            shell=True, creationflags=subprocess.CREATE_NO_WINDOW
+            ["wscript.exe", vbs_path],
+            shell=False, creationflags=subprocess.CREATE_NO_WINDOW
         )
         QApplication.quit()
 
