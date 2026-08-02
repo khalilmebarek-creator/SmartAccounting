@@ -169,6 +169,105 @@ class TestFinancialAnalyzer(unittest.TestCase):
         self.assertIn('analysis_results', summary)
         self.assertIn('report', summary)
 
+    # ===== اختبارات dupont_waterfall - شلال DuPont =====
+
+    def test_dupont_waterfall_decomposition(self):
+        """اختبار تحليل الشلال - مجموع المكونات يساوي ROE"""
+        waterfall = self.analyzer.dupont_waterfall(7.5, 0.4, 1.6667)
+        # base = NPM = 7.5
+        self.assertEqual(waterfall['base'], 7.5)
+        # turnover_effect = NPM × (AT - 1) = 7.5 × (-0.6) = -4.5
+        self.assertEqual(waterfall['turnover_effect'], -4.5)
+        # leverage_effect = NPM × AT × (EM - 1) = 7.5 × 0.4 × 0.6667 = 2.0
+        self.assertEqual(waterfall['leverage_effect'], 2.0)
+        # base + turnover_effect + leverage_effect = ROE
+        self.assertEqual(
+            waterfall['base'] + waterfall['turnover_effect'] + waterfall['leverage_effect'],
+            waterfall['total']
+        )
+        self.assertEqual(waterfall['total'], 5.0)
+
+    def test_dupont_waterfall_matches_roe(self):
+        """اختبار إن مجموع الشلال يساوي ROE المحسوب في dupont_analysis"""
+        dupont = self.analyzer.dupont_analysis(15000, 200000, 500000, 300000)
+        waterfall = self.analyzer.dupont_waterfall(
+            dupont['net_profit_margin'],
+            dupont['asset_turnover'],
+            dupont['equity_multiplier']
+        )
+        self.assertAlmostEqual(waterfall['total'], dupont['roe'], places=1)
+
+    def test_dupont_waterfall_zero_values(self):
+        """اختبار الشلال مع قيم صفر"""
+        waterfall = self.analyzer.dupont_waterfall(0, 0, 0)
+        self.assertEqual(waterfall['base'], 0)
+        self.assertEqual(waterfall['turnover_effect'], 0)
+        self.assertEqual(waterfall['leverage_effect'], 0)
+        self.assertEqual(waterfall['total'], 0)
+
+    # ===== اختبارات dupont_industry_comparison - مقارنة القطاع =====
+
+    def test_dupont_industry_comparison(self):
+        """اختبار مقارنة DuPont مع متوسط القطاع التجاري"""
+        dupont = {'net_profit_margin': 8, 'asset_turnover': 1.5,
+                  'equity_multiplier': 1.8, 'roe': 21.6}
+        result = self.analyzer.dupont_industry_comparison(dupont, "commercial")
+        self.assertIn('roe', result)
+        self.assertIn('net_profit_margin', result)
+        self.assertIn('asset_turnover', result)
+        self.assertIn('equity_multiplier', result)
+        # commercial: roe avg 12, npm avg 5, at avg 1.2, debt avg 1.0 => EM = 2.0
+        self.assertEqual(result['roe']['sector_average'], 12)
+        self.assertEqual(result['roe']['status'], 'above')
+        self.assertEqual(result['net_profit_margin']['status'], 'above')
+        self.assertEqual(result['asset_turnover']['status'], 'above')
+        self.assertEqual(result['equity_multiplier']['status'], 'below')
+
+    def test_dupont_industry_comparison_unknown_sector(self):
+        """اختبار المقارنة مع قطاع غير معروف"""
+        dupont = {'net_profit_margin': 8, 'asset_turnover': 1.5,
+                  'equity_multiplier': 1.8, 'roe': 21.6}
+        result = self.analyzer.dupont_industry_comparison(dupont, "unknown")
+        self.assertEqual(result, {})
+
+    # ===== اختبارات dupont_recommendations - التوصيات =====
+
+    def test_dupont_recommendations_codes(self):
+        """اختبار توصيات DuPont حسب حالة المكونات"""
+        dupont = {'net_profit_margin': 3, 'asset_turnover': 0.4,
+                  'equity_multiplier': 3.5, 'roe': 4.2}
+        recommendations = self.analyzer.dupont_recommendations(dupont)
+        codes = [r['code'] for r in recommendations]
+        self.assertIn('rec_npm_low', codes)
+        self.assertIn('rec_at_low', codes)
+        self.assertIn('rec_em_high', codes)
+        self.assertIn('rec_roe_low', codes)
+        # الأعلى خطورة أولاً
+        self.assertEqual(recommendations[0]['code'], 'rec_roe_low')
+        self.assertEqual(recommendations[0]['level'], 'critical')
+
+    def test_dupont_recommendations_strong_performance(self):
+        """اختبار التوصيات مع أداء قوي"""
+        dupont = {'net_profit_margin': 12, 'asset_turnover': 1.8,
+                  'equity_multiplier': 1.8, 'roe': 38.9}
+        recommendations = self.analyzer.dupont_recommendations(dupont)
+        codes = [r['code'] for r in recommendations]
+        self.assertIn('rec_npm_strong', codes)
+        self.assertIn('rec_at_strong', codes)
+        self.assertNotIn('rec_em_high', codes)
+
+    def test_dupont_recommendations_with_industry_gap(self):
+        """اختبار التوصيات مع فجوة صناعية (المقارنة مع القطاع)"""
+        dupont = {'net_profit_margin': 3, 'asset_turnover': 0.4,
+                  'equity_multiplier': 1.8, 'roe': 2.16}
+        recommendations = self.analyzer.dupont_recommendations(dupont, sector_code="commercial")
+        industry_gaps = [r for r in recommendations if r['code'] == 'rec_industry_gap']
+        # npm (3 < 5)، at (0.4 < 1.2)، roe (2.16 < 12) — كلها تحت المتوسط
+        self.assertGreaterEqual(len(industry_gaps), 3)
+        # أول فجوة: roe مقابل متوسط القطاع (12)
+        self.assertEqual(industry_gaps[0]['target'], 12)
+        self.assertEqual(sorted(g['target'] for g in industry_gaps), [1.2, 5, 12])
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

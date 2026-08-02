@@ -17,34 +17,22 @@ from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
 from PyQt5.QtGui import QFont, QIcon, QKeySequence
 
-from ui.views.data_entry import DataEntryView
-from ui.views.dashboard import DashboardView
-from ui.views.ratios_view import RatiosView
-from ui.views.analysis_view import DuPontView
-from ui.views.audit_view import AuditView
-from ui.views.reports_view import ReportsView
-from ui.views.settings_view import SettingsView
-from ui.views.chat_view import ChatView
-from ui.views.tax_view import TaxView
-from ui.views.comparative_view import ComparativeView
-from ui.views.cashflow_view import CashFlowView
-from ui.views.security_view import SecurityView
-from ui.views.zscore_view import ZScoreView
 from ui.views.login_view import LoginView
-from ui.views.forecasting_view import ForecastingView
-from ui.views.budget_view import BudgetView
-from ui.views.cost_center_view import CostCenterView
-from ui.views.breakeven_view import BreakEvenView
-from ui.views.benchmarks_view import BenchmarkView
-from ui.views.tax_calendar_view import TaxCalendarView
-from ui.views.data_import_view import DataImportView
-from ui.views.bank_sync_view import BankSyncView
 from ui.widgets.alert_banner import AlertBanner
 from modules.activity_log import activity_log
 from modules.user_manager import user_manager
 from utils.app_logger import get_logger
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t, Translator
+
+
+def _lazy_view_factory(module_name, class_name):
+    """إنشاء دالة تُحمّل المشهد عند الطلب فقط (تحميل كسول لتقليل زمن الإقلاع والذاكرة)"""
+    def _create_view():
+        from importlib import import_module
+        module = import_module(module_name)
+        return getattr(module, class_name)()
+    return _create_view
 
 
 class MainWindow(QMainWindow):
@@ -99,11 +87,17 @@ class MainWindow(QMainWindow):
     def _perform_update(self, info: dict):
         """تحميل التحديث → تشغيل المثبت → إعادة التشغيل تلقائياً"""
         from PyQt5.QtWidgets import QProgressDialog, QApplication
-        from modules.update_checker import download_installer
+        from modules.update_checker import download_installer, backup_current_executable
 
         installer_url = info.get("installer_url") or info.get("download_url")
         if not installer_url:
             return
+
+        # نسخ احتياطي للإصدار الحالي قبل التحديث (لخيار التراجع)
+        try:
+            backup_current_executable()
+        except Exception:
+            pass
 
         self.close()
 
@@ -142,10 +136,13 @@ class MainWindow(QMainWindow):
     def _on_download_done(self, path: str, progress):
         """تشغيل المثبت → إعادة التشغيل بعد التثبيت"""
         progress.close()
-        from PyQt5.QtWidgets import QApplication
+        from PyQt5.QtWidgets import QApplication, QMessageBox
         import subprocess, os, sys, uuid
 
         if not path or not os.path.exists(path):
+            QMessageBox.critical(
+                self, t("update_error_title"), t("update_error_download")
+            )
             QApplication.quit()
             return
 
@@ -181,8 +178,52 @@ class MainWindow(QMainWindow):
 
     def _on_update_check_done(self, has_update: bool, info: dict):
         """الاستجابة لفحص التحديثات — من background thread"""
-        if has_update and info:
+        if has_update and info and info.get("eligible", True):
             self.update_ready.emit(info)
+
+    def _perform_rollback(self):
+        """استعادة النسخة السابقة (تراجع) — نسخ احتياطي قبل آخر تحديث"""
+        from PyQt5.QtWidgets import QMessageBox, QApplication
+        from modules.update_checker import has_rollback_backup
+
+        if not getattr(sys, 'frozen', False):
+            QMessageBox.information(
+                self, t("update_rollback_title"), t("update_rollback_dev")
+            )
+            return
+        if not has_rollback_backup():
+            QMessageBox.information(
+                self, t("update_rollback_title"), t("update_rollback_none")
+            )
+            return
+
+        answer = QMessageBox.question(
+            self, t("update_rollback_title"), t("update_rollback_confirm"),
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if answer != QMessageBox.Yes:
+            return
+
+        import subprocess, uuid
+        exe_path = sys.executable
+        bat = os.path.join(os.environ["TEMP"], f"smart_rollback_{uuid.uuid4().hex[:8]}.bat")
+        with open(bat, "w") as f:
+            f.write("@echo off\n")
+            f.write("timeout /t 2 /nobreak >nul\n")
+            f.write(f'copy /Y "{exe_path}.previous.exe" "{exe_path}" >nul\n')
+            f.write(f'start "" "{exe_path}"\n')
+            f.write("del \"%~f0\"\n")
+
+        vbs = os.path.join(os.environ["TEMP"], f"smart_rollback_{uuid.uuid4().hex[:8]}.vbs")
+        with open(vbs, "w") as f:
+            f.write('Set shell = CreateObject("WScript.Shell")\n')
+            f.write(f'shell.Run "{bat}", 0, False\n')
+
+        subprocess.Popen(
+            ["wscript.exe", vbs],
+            shell=False, creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        QApplication.quit()
 
     def setup_ui(self):
         """إنشاء الواجهة الرئيسية"""
@@ -209,27 +250,35 @@ class MainWindow(QMainWindow):
 
         self._lazy_views = {}
         self._view_factories = {
-            1: ("data_entry", DataEntryView),
-            2: ("dashboard", DashboardView),
-            3: ("ratios", RatiosView),
-            4: ("dupont", DuPontView),
-            5: ("audit", AuditView),
-            6: ("reports", ReportsView),
-            7: ("settings", SettingsView),
-            8: ("chat", ChatView),
-            9: ("tax", TaxView),
-            10: ("comparative", ComparativeView),
-            11: ("cashflow", CashFlowView),
-            12: ("security", SecurityView),
-            13: ("zscore", ZScoreView),
-            14: ("forecast", ForecastingView),
-            15: ("budget", BudgetView),
-            16: ("cost_center", CostCenterView),
-            17: ("breakeven", BreakEvenView),
-            18: ("benchmarks", BenchmarkView),
-            19: ("tax_calendar", TaxCalendarView),
-            20: ("data_import", DataImportView),
-            21: ("bank_sync", BankSyncView),
+            1: ("data_entry", _lazy_view_factory("ui.views.data_entry", "DataEntryView")),
+            2: ("dashboard", _lazy_view_factory("ui.views.dashboard", "DashboardView")),
+            3: ("ratios", _lazy_view_factory("ui.views.ratios_view", "RatiosView")),
+            4: ("dupont", _lazy_view_factory("ui.views.analysis_view", "DuPontView")),
+            5: ("audit", _lazy_view_factory("ui.views.audit_view", "AuditView")),
+            6: ("reports", _lazy_view_factory("ui.views.reports_view", "ReportsView")),
+            7: ("settings", _lazy_view_factory("ui.views.settings_view", "SettingsView")),
+            8: ("chat", _lazy_view_factory("ui.views.chat_view", "ChatView")),
+            9: ("tax", _lazy_view_factory("ui.views.tax_view", "TaxView")),
+            10: ("comparative", _lazy_view_factory("ui.views.comparative_view", "ComparativeView")),
+            11: ("cashflow", _lazy_view_factory("ui.views.cashflow_view", "CashFlowView")),
+            12: ("security", _lazy_view_factory("ui.views.security_view", "SecurityView")),
+            13: ("zscore", _lazy_view_factory("ui.views.zscore_view", "ZScoreView")),
+            14: ("forecast", _lazy_view_factory("ui.views.forecasting_view", "ForecastingView")),
+            15: ("budget", _lazy_view_factory("ui.views.budget_view", "BudgetView")),
+            16: ("cost_center", _lazy_view_factory("ui.views.cost_center_view", "CostCenterView")),
+            17: ("breakeven", _lazy_view_factory("ui.views.breakeven_view", "BreakEvenView")),
+            18: ("benchmarks", _lazy_view_factory("ui.views.benchmarks_view", "BenchmarkView")),
+            19: ("tax_calendar", _lazy_view_factory("ui.views.tax_calendar_view", "TaxCalendarView")),
+            20: ("data_import", _lazy_view_factory("ui.views.data_import_view", "DataImportView")),
+            21: ("bank_sync", _lazy_view_factory("ui.views.bank_sync_view", "BankSyncView")),
+            22: ("scenarios", _lazy_view_factory("ui.views.scenarios_view", "ScenariosView")),
+            23: ("advanced_dashboard", _lazy_view_factory("ui.views.advanced_dashboard_view", "AdvancedDashboardView")),
+            24: ("ai_insights", _lazy_view_factory("ui.views.ai_insights_view", "AIInsightsView")),
+            25: ("cost_profit", _lazy_view_factory("ui.views.cost_center_profitability_view", "CostCenterProfitabilityView")),
+            26: ("currency", _lazy_view_factory("ui.views.currency_view", "CurrencyView")),
+            27: ("cloud_sync", _lazy_view_factory("ui.views.cloud_sync_view", "CloudSyncView")),
+            28: ("demo_data", _lazy_view_factory("ui.views.demo_data_view", "DemoDataView")),
+            29: ("user_testing", _lazy_view_factory("ui.views.user_testing_view", "UserTestingView")),
         }
 
         self.sidebar = QListWidget()
@@ -259,6 +308,14 @@ class MainWindow(QMainWindow):
             t("sidebar_tax_calendar"),
             t("sidebar_data_import"),
             t("sidebar_bank_sync"),
+            t("sidebar_scenarios"),
+            t("sidebar_advanced_dashboard"),
+            t("sidebar_ai_insights"),
+            t("sidebar_cost_profit"),
+            t("sidebar_currency"),
+            t("sidebar_cloud_sync"),
+            t("sidebar_demo_data"),
+            t("sidebar_user_testing"),
         ]
 
         self.sidebar.blockSignals(True)
@@ -289,7 +346,7 @@ class MainWindow(QMainWindow):
 
         self.content.addWidget(self.login_view)
 
-        for i in range(1, 22):
+        for i in range(1, 30):
             placeholder = QWidget()
             self.content.addWidget(placeholder)
 
@@ -371,22 +428,24 @@ class MainWindow(QMainWindow):
             (t("shortcut_settings"), "Ctrl+,"),
             (t("shortcut_quit"), "Ctrl+Q"),
             (t("shortcut_logout"), "Ctrl+L"),
-            (t("sidebar_data_entry"), "Ctrl+1"),
-            (t("sidebar_dashboard"), "Ctrl+2"),
-            (t("sidebar_ratios"), "Ctrl+3"),
-            (t("sidebar_dupont"), "Ctrl+4"),
-            (t("sidebar_audit"), "Ctrl+5"),
-            (t("sidebar_reports"), "Ctrl+6"),
-            (t("sidebar_settings"), "Ctrl+7"),
-            (t("sidebar_chat"), "Ctrl+8"),
-            (t("sidebar_tax"), "Ctrl+9"),
-            (t("sidebar_comparative"), "Ctrl+0"),
-            (t("sidebar_cashflow"), "Ctrl+Shift+1"),
-            (t("sidebar_security"), "Ctrl+Shift+2"),
-            (t("sidebar_zscore"), "Ctrl+Shift+3"),
+            (t("shortcut_theme"), "Ctrl+T"),
+            (t("shortcut_views_title"), "F1"),
         ]
 
         for action, key in shortcuts:
+            layout.addRow(action, QLabel(f"<b>{key}</b>"))
+
+        view_keys = [
+            "Ctrl+1", "Ctrl+2", "Ctrl+3", "Ctrl+4", "Ctrl+5",
+            "Ctrl+6", "Ctrl+7", "Ctrl+8", "Ctrl+9", "Ctrl+0",
+            "Ctrl+Shift+1", "Ctrl+Shift+2", "Ctrl+Shift+3",
+            "Ctrl+Shift+4", "Ctrl+Shift+5", "Ctrl+Shift+6",
+            "Ctrl+Shift+7", "Ctrl+Shift+8", "Ctrl+Shift+9",
+            "Ctrl+Shift+0", "Ctrl+Shift+A",
+            "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
+        ]
+        labels = getattr(self, "sidebar_items", [])
+        for action, key in zip(labels, view_keys):
             layout.addRow(action, QLabel(f"<b>{key}</b>"))
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -419,6 +478,15 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+9"), self, lambda: self.sidebar.setCurrentRow(18))
         QShortcut(QKeySequence("Ctrl+Shift+0"), self, lambda: self.sidebar.setCurrentRow(19))
         QShortcut(QKeySequence("Ctrl+Shift+A"), self, lambda: self.sidebar.setCurrentRow(20))
+        QShortcut(QKeySequence("F2"), self, lambda: self.sidebar.setCurrentRow(21))
+        QShortcut(QKeySequence("F3"), self, lambda: self.sidebar.setCurrentRow(22))
+        QShortcut(QKeySequence("F4"), self, lambda: self.sidebar.setCurrentRow(23))
+        QShortcut(QKeySequence("F5"), self, lambda: self.sidebar.setCurrentRow(24))
+        QShortcut(QKeySequence("F6"), self, lambda: self.sidebar.setCurrentRow(25))
+        QShortcut(QKeySequence("F7"), self, lambda: self.sidebar.setCurrentRow(26))
+        QShortcut(QKeySequence("F8"), self, lambda: self.sidebar.setCurrentRow(27))
+        QShortcut(QKeySequence("F9"), self, lambda: self.sidebar.setCurrentRow(28))
+        QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
 
@@ -450,6 +518,25 @@ class MainWindow(QMainWindow):
             lambda: self._get_or_create_view(1).save_to_db()
         ))
 
+        view_menu = menubar.addMenu(t("menu_view"))
+        view_keys = [
+            "Ctrl+1", "Ctrl+2", "Ctrl+3", "Ctrl+4", "Ctrl+5",
+            "Ctrl+6", "Ctrl+7", "Ctrl+8", "Ctrl+9", "Ctrl+0",
+            "Ctrl+Shift+1", "Ctrl+Shift+2", "Ctrl+Shift+3",
+            "Ctrl+Shift+4", "Ctrl+Shift+5", "Ctrl+Shift+6",
+            "Ctrl+Shift+7", "Ctrl+Shift+8", "Ctrl+Shift+9",
+            "Ctrl+Shift+0", "Ctrl+Shift+A",
+            "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
+        ]
+        for i, label in enumerate(getattr(self, "sidebar_items", [])):
+            key = view_keys[i] if i < len(view_keys) else None
+            view_menu.addAction(self._make_action(
+                label, key,
+                (lambda row: lambda: self.sidebar.setCurrentRow(row))(i)
+            ))
+        view_menu.addSeparator()
+        view_menu.addAction(self._make_action(t("view_theme"), "Ctrl+T", self._toggle_theme))
+
         settings_menu = menubar.addMenu(t("menu_settings"))
         settings_menu.addAction(self._make_action(
             t("menu_settings"), "Ctrl+,",
@@ -459,6 +546,7 @@ class MainWindow(QMainWindow):
         help_menu = menubar.addMenu(t("menu_help"))
         help_menu.addAction(self._make_action(t("menu_about"), slot=self.show_about))
         help_menu.addAction(self._make_action(t("menu_tests"), slot=self.run_tests))
+        help_menu.addAction(self._make_action(t("menu_rollback"), slot=self._perform_rollback))
 
     def create_menu_bar(self):
         """إنشاء شريط القوائم"""
@@ -469,9 +557,13 @@ class MainWindow(QMainWindow):
             return self._lazy_views[index]
         if index not in self._view_factories:
             return None
-        name, cls = self._view_factories[index]
-        view = cls()
+        name, factory = self._view_factories[index]
+        if hasattr(self, 'status_bar'):
+            self.status_bar.showMessage(t("status_loading"))
+        view = factory()
         self._lazy_views[index] = view
+        if hasattr(self, 'status_bar'):
+            self.status_bar.showMessage(t("status_ready"))
 
         if name == "data_entry":
             view.data_calculated.connect(self.on_data_calculated)
@@ -496,6 +588,27 @@ class MainWindow(QMainWindow):
         current = self.content.currentWidget()
         if current and hasattr(current, 'refresh'):
             current.refresh()
+        self._fade_in_view(current)
+
+    def _fade_in_view(self, widget):
+        """انتقال ناعم (تلاشي) عند تغيير الشاشة"""
+        if widget is None:
+            return
+        try:
+            from PyQt5.QtWidgets import QGraphicsOpacityEffect
+            from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
+            effect = QGraphicsOpacityEffect(widget)
+            widget.setGraphicsEffect(effect)
+            anim = QPropertyAnimation(effect, b"opacity")
+            anim.setDuration(180)
+            anim.setStartValue(0.0)
+            anim.setEndValue(1.0)
+            anim.setEasingCurve(QEasingCurve.OutCubic)
+            anim.finished.connect(lambda: widget.setGraphicsEffect(None))
+            self._view_anim = anim
+            anim.start()
+        except Exception:
+            pass
 
     def on_data_calculated(self):
         """يتم استدعاؤها عند حساب النسب"""
@@ -573,6 +686,13 @@ class MainWindow(QMainWindow):
             t("sidebar_tax_calendar"),
             t("sidebar_data_import"),
             t("sidebar_bank_sync"),
+            t("sidebar_scenarios"),
+            t("sidebar_advanced_dashboard"),
+            t("sidebar_ai_insights"),
+            t("sidebar_cost_profit"),
+            t("sidebar_currency"),
+            t("sidebar_cloud_sync"),
+            t("sidebar_demo_data"),
         ]
         self.sidebar.addItems(self.sidebar_items)
         current_idx = self.content.currentIndex()
@@ -634,7 +754,11 @@ class MainWindow(QMainWindow):
                 painter.end()
                 self.status_bar.showMessage(t("print_success"))
             except Exception as e:
-                QMessageBox.critical(self, t("error"), f"{e}")
+                from ui.widgets.messages import show_error
+                show_error(
+                    self, t("print_failed"),
+                    hint_key="hint_print_failed", exc=e
+                )
 
     def export_dashboard_pdf(self):
         """تصدير لوحة التحكم كـ PDF"""
@@ -669,7 +793,11 @@ class MainWindow(QMainWindow):
                 f"✅ {t('reports_success')}\n{file_path}"
             )
         except Exception as e:
-            QMessageBox.critical(self, t("error"), f"{e}")
+            from ui.widgets.messages import show_error
+            show_error(
+                self, t("export_failed"),
+                hint_key="hint_export_failed", exc=e
+            )
 
     def show_about(self):
         about_html = f"""<h2>{t('about_name')}</h2>
@@ -709,9 +837,10 @@ class MainWindow(QMainWindow):
                 (output.split('📊')[1].split('='*70)[0] if '📊' in output else output)
             )
         else:
-            QMessageBox.warning(
-                self, t("tests_title"),
-                t("tests_fail")
+            from ui.widgets.messages import show_warning
+            show_warning(
+                self, t("tests_fail"),
+                hint_key="hint_tests_failed"
             )
 
     def closeEvent(self, event):

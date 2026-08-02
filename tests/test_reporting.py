@@ -158,6 +158,51 @@ class TestReportGenerator(unittest.TestCase):
         result = self.reporter.export_to_pdf("test", "/invalid/path/report.pdf")
         self.assertFalse(result)
 
+    # ===== اختبارات generate_dupont_report =====
+
+    def test_generate_dupont_report(self):
+        """اختبار توليد تقرير DuPont"""
+        dupont = {'net_profit_margin': 7.5, 'asset_turnover': 0.4,
+                  'equity_multiplier': 1.6667, 'roe': 5.0}
+        waterfall = {'base': 7.5, 'turnover_effect': -4.5,
+                     'leverage_effect': 2.0, 'total': 5.0}
+        report = self.reporter.generate_dupont_report(dupont, waterfall)
+        self.assertIsInstance(report, str)
+        self.assertIn('DuPont', report)
+        self.assertIn('ROE', report)
+        self.assertIn('7.5', report)
+        self.assertIn('5.0', report)
+
+    def test_generate_dupont_report_with_industry(self):
+        """اختبار تقرير DuPont مع مقارنة القطاع"""
+        dupont = {'net_profit_margin': 3, 'asset_turnover': 0.4,
+                  'equity_multiplier': 1.8, 'roe': 2.16}
+        industry = {
+            'roe': {'company_value': 2.16, 'sector_average': 12,
+                    'status': 'below', 'deviation': -9.84},
+            'net_profit_margin': {'company_value': 3, 'sector_average': 5,
+                                  'status': 'below', 'deviation': -2},
+            'asset_turnover': {'company_value': 0.4, 'sector_average': 1.2,
+                               'status': 'below', 'deviation': -0.8},
+            'equity_multiplier': {'company_value': 1.8, 'sector_average': 2.0,
+                                  'status': 'below', 'deviation': -0.2},
+        }
+        report = self.reporter.generate_dupont_report(dupont, None, industry)
+        self.assertIn('القطاع', report)
+        self.assertIn('12', report)
+
+    def test_generate_dupont_report_with_recommendations(self):
+        """اختبار تقرير DuPont مع التوصيات"""
+        dupont = {'net_profit_margin': 3, 'asset_turnover': 0.4,
+                  'equity_multiplier': 1.8, 'roe': 2.16}
+        recommendations = [
+            {'component': 'roe', 'level': 'critical', 'code': 'rec_roe_low',
+             'company_value': 2.16, 'target': 10}
+        ]
+        report = self.reporter.generate_dupont_report(dupont, None, None, recommendations)
+        self.assertIn('التوصيات', report)
+        self.assertIn('العائد على حقوق الملكية', report)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

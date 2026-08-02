@@ -1,5 +1,6 @@
 """Report templates system for generating professional reports."""
 
+import copy
 import json
 import os
 from datetime import datetime
@@ -102,7 +103,7 @@ class ReportTemplates:
                     self._templates = json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load templates: {e}")
-        self._templates.update(DEFAULT_TEMPLATES)
+        self._templates.update(copy.deepcopy(DEFAULT_TEMPLATES))
 
     def _save(self):
         custom = {k: v for k, v in self._templates.items() if k not in DEFAULT_TEMPLATES}

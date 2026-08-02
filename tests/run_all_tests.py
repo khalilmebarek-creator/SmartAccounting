@@ -10,6 +10,13 @@ from io import StringIO
 # إضافة مسار المشروع
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# إعادة ضبط stdout/stderr على UTF-8 لتفادي UnicodeEncodeError على cp1252
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
 
 def run_all_tests():
     """تشغيل كل الاختبارات في المشروع"""
@@ -87,6 +94,7 @@ def verify_project_structure():
         'modules/data_import.py',
         'modules/tax.py',
         'modules/tax_config.json',
+        'modules/tax_reports.py',
         'utils/__init__.py',
         'utils/formatters.py',
         'utils/validators.py',
@@ -200,6 +208,7 @@ def verify_imports():
         'modules.reporting',
         'modules.data_import',
         'modules.tax',
+        'modules.tax_reports',
         'utils',
         'utils.formatters',
         'utils.validators',
@@ -249,15 +258,19 @@ if __name__ == '__main__':
         print("⚠️ تخطي الاختبارات بسبب أخطاء في البنية/Syntax")
         exit_code = 1
 
-    # 5. تشغيل اختبارات pytest (test_tax.py)
+    # 5. تشغيل اختبارات pytest (النظام الجبائي + الإقرارات الجبائية)
     print()
     print("=" * 70)
     print("🧪 تشغيل اختبارات النظام الجبائي (pytest)")
     print("=" * 70)
     try:
         import pytest
+        tests_dir = os.path.dirname(os.path.abspath(__file__))
         tax_result = pytest.main([
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'test_tax.py'),
+            os.path.join(tests_dir, 'test_tax.py'),
+            os.path.join(tests_dir, 'test_tax_reports.py'),
+            os.path.join(tests_dir, 'test_ai_insights.py'),
+            os.path.join(tests_dir, 'test_cost_center_profitability.py'),
             '-v', '--tb=short', '--no-header', '-W', 'ignore::DeprecationWarning'
         ])
         if tax_result == 0:

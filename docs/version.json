@@ -1,12 +1,14 @@
 {
-  "version": "3.1.4",
-  "date": "2026-07-31",
+  "version": "3.1.6",
+  "date": "2026-08-02",
   "min_version": "3.0.0",
-  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.4",
-  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.1.4/SmartAccounting-Setup-v3.1.4.exe",
+  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.1.6",
+  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.1.6/SmartAccounting-Setup-v3.1.6.exe",
   "changelog": [
-    "إصلاح مشكلة عدم فتح التطبيق بعد التحديث",
-    "إصلاح ظهور نافذة cmd عند التحديث — التحديث يعمل الآن بشكل مخفي تماماً",
-    "تحديث المثبّت إلى نسخة محسّنة وأصغر حجماً"
+    "تحسين أداء شامل: إقلاع أسرع 15× (778→49ms) + ذاكرة أقل (128→45MB) + تجمّع اتصالات قاعدة البيانات (حفظ أسرع 4.6×، قراءة 17×) + لوحة تحكم بدون إعادة رسم زائدة",
+    "تحميل كسول للمشاهد والوحدات + دفعات كتابة قاعدة البيانات (executemany)",
+    "تحليل ربحية مراكز التكلفة + محرك الرؤى الذكية AI + الامتثال الضريبي الجزائري الكامل",
+    "التصحيحات النهائية: إصلاح 13 خللاً (طباعة Landscape، رأس ملف البنك، حماية القوالب، تصدير عربي واضح، تنزيل آمن للتحديثات، استعادة النسخ الاحتياطية) + مراجعة أمان شاملة",
+    "1350 اختباراً ناجحاً + تغطية وحدات 100%"
   ]
 }

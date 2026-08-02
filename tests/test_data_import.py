@@ -6,6 +6,7 @@ import sys
 import os
 import pandas as pd
 import tempfile
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -136,6 +137,34 @@ class TestDataImporter(unittest.TestCase):
         """اختبار التصدير بدون بيانات"""
         result = self.importer.export_to_database(None, "test_table")
         self.assertFalse(result)
+
+    def test_export_to_database_connect_failure_disconnects(self):
+        """عند فشل الاتصال يجب استدعاء disconnect قبل الإرجاع."""
+        self.importer.data = pd.DataFrame([{"a": 1}])
+        db = mock.MagicMock()
+        db.connect.return_value = False
+        result = self.importer.export_to_database(db, "test_table")
+        self.assertFalse(result)
+        db.disconnect.assert_called_once()
+
+    def test_export_to_database_connect_failure_disconnect_raises(self):
+        """فشل disconnect بعد فشل الاتصال لا ينتشر للخارج."""
+        self.importer.data = pd.DataFrame([{"a": 1}])
+        db = mock.MagicMock()
+        db.connect.return_value = False
+        db.disconnect.side_effect = RuntimeError("boom")
+        result = self.importer.export_to_database(db, "test_table")
+        self.assertFalse(result)
+        db.disconnect.assert_called_once()
+
+    def test_export_to_database_rejects_reserved_table_name(self):
+        """رفض الكلمات المحجوزة في SQLite كأسماء جداول."""
+        self.importer.data = pd.DataFrame([{"a": 1}])
+        db = mock.MagicMock()
+        db.connect.return_value = True
+        result = self.importer.export_to_database(db, "select")
+        self.assertFalse(result)
+        db.cursor.execute.assert_not_called()
     
     def test_export_to_database_with_data(self):
         """اختبار التصدير ببيانات صحيحة"""
@@ -188,6 +217,9 @@ class TestDataImporter(unittest.TestCase):
             # استرجاع المسار الأصلي
             if original_path:
                 config.DATABASE_PATH = original_path
+            # إغلاق الاتصالات المُجمّعة قبل حذف الملف المؤقت
+            from database import db_connection as db_conn_module
+            db_conn_module.close_pool()
             # حذف الملف المؤقت (مع تجاهل permission errors على Windows)
             if os.path.exists(tmp_db_file.name):
                 try:

@@ -184,6 +184,10 @@ QPushButton:disabled {
     border: 1px solid rgba(255, 255, 255, 10);
 }
 
+QPushButton:focus {
+    border: 2px solid #00D2FF;
+}
+
 QPushButton#primaryBtn {
     background: qlineargradient(
         x1:0, y1:0, x2:1, y2:0,
@@ -425,6 +429,10 @@ QComboBox {
 QComboBox:hover {
     border: 1px solid rgba(0, 210, 255, 80);
     background: rgba(0, 210, 255, 12);
+}
+
+QComboBox:focus {
+    border: 2px solid #00D2FF;
 }
 
 QComboBox::drop-down {

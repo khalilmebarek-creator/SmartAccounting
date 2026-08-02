@@ -9,7 +9,9 @@ log = get_logger("db_schema")
 TABLE_NAMES = [
     "companies", "fiscal_years", "assets", "liabilities",
     "equity", "income_statement", "financial_ratios",
-    "audit_log", "notes", "tax_data", "tax_obligations"
+    "audit_log", "notes", "tax_data", "tax_obligations",
+    "scenario_results", "reference_standards", "competitor_data",
+    "dashboard_layouts"
 ]
 
 def create_tables():
@@ -188,8 +190,64 @@ def create_tables():
             )
         """)
         
-        _create_indexes(db)
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS scenario_results (
+                scenario_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                fiscal_year_id INTEGER NOT NULL,
+                scenario_type VARCHAR(20) NOT NULL,
+                revenue_change_pct DECIMAL(10,4) DEFAULT 0,
+                cost_change_pct DECIMAL(10,4) DEFAULT 0,
+                efficiency_change_pct DECIMAL(10,4) DEFAULT 0,
+                projected_revenue DECIMAL(15,2) DEFAULT 0,
+                projected_net_income DECIMAL(15,2) DEFAULT 0,
+                net_profit_margin DECIMAL(10,4) DEFAULT 0,
+                roe DECIMAL(10,4) DEFAULT 0,
+                result_json TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (fiscal_year_id) REFERENCES fiscal_years(fiscal_year_id)
+            )
+        """)
         
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS reference_standards (
+                standard_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sector_code VARCHAR(50) NOT NULL,
+                ratio_name VARCHAR(50) NOT NULL,
+                min_val DECIMAL(12,4) DEFAULT 0,
+                avg_val DECIMAL(12,4) DEFAULT 0,
+                max_val DECIMAL(12,4) DEFAULT 0,
+                ideal_min DECIMAL(12,4) DEFAULT 0,
+                ideal_max DECIMAL(12,4) DEFAULT 0,
+                best_practice DECIMAL(12,4) DEFAULT 0,
+                international DECIMAL(12,4) DEFAULT 0,
+                UNIQUE(sector_code, ratio_name)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS competitor_data (
+                competitor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sector_code VARCHAR(50) NOT NULL,
+                competitor_name VARCHAR(255) NOT NULL,
+                ratio_name VARCHAR(50) NOT NULL,
+                ratio_value DECIMAL(12,4) DEFAULT 0,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(sector_code, competitor_name, ratio_name)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS dashboard_layouts (
+                layout_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                layout_name VARCHAR(255) NOT NULL,
+                layout_json TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(layout_name)
+            )
+        """)
+        
+        _create_indexes(db)
+
         log.info("All %d tables created successfully", len(TABLE_NAMES))
         return True
         
@@ -215,6 +273,11 @@ def _create_indexes(db):
         ("idx_tax_data_fy", "tax_data", "fiscal_year_id"),
         ("idx_tax_oblig_fy", "tax_obligations", "fiscal_year_id"),
         ("idx_tax_oblig_month", "tax_obligations", "due_month"),
+        ("idx_scenario_fy", "scenario_results", "fiscal_year_id"),
+        ("idx_ref_std_sector", "reference_standards", "sector_code"),
+        ("idx_comp_sector", "competitor_data", "sector_code"),
+        ("idx_comp_name", "competitor_data", "competitor_name"),
+        ("idx_layout_name", "dashboard_layouts", "layout_name"),
         ("idx_companies_name", "companies", "company_name"),
     ]
     for idx_name, table, col in indexes:

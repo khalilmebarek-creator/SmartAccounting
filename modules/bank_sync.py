@@ -124,18 +124,20 @@ class BankSyncManager:
 
         try:
             with open(filepath, "r", encoding=encoding, errors="replace") as f:
-                reader = csv.reader(f, delimiter=delimiter)
+                rows = list(csv.reader(f, delimiter=delimiter))
 
-                header_row = None
-                for row in reader:
-                    if row and any(c.isdigit() for c in "".join(row)):
-                        header_row = row
-                        break
+                start = 0
+                for i, row in enumerate(rows):
+                    if not row or not any(cell.strip() for cell in row):
+                        continue
+                    if not any(c.isdigit() for c in "".join(row)):
+                        start = i + 1
+                    break
 
-                if not header_row:
+                if start >= len(rows):
                     return {"transactions": [], "errors": ["No data found"]}
 
-                for row in reader:
+                for row in rows[start:]:
                     if not row or not any(cell.strip() for cell in row):
                         continue
 

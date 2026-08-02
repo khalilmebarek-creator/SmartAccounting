@@ -3,7 +3,8 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView,
-    QComboBox, QMessageBox, QScrollArea, QSizePolicy, QListWidget
+    QComboBox, QMessageBox, QScrollArea, QSizePolicy, QListWidget,
+    QDialog, QLineEdit, QDoubleSpinBox, QFormLayout
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
@@ -15,7 +16,94 @@ from matplotlib.figure import Figure
 from ui.views._base import BaseView
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
-from modules.benchmarks import benchmark_analyzer
+from modules.benchmarks import benchmark_analyzer, ALGERIAN_SECTORS
+from database.db_operations import (
+    get_competitors, save_competitor, delete_competitor, get_company_ratio_history
+)
+
+
+class AddCompetitorDialog(QDialog):
+    """حوار إضافة منافس مع إدخال نسبه المالية"""
+
+    def __init__(self, defaults, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle(t("bench_comp_add"))
+        self.setMinimumWidth(460)
+        self._defaults = defaults or {}
+        self.setup_ui()
+
+    def setup_ui(self):
+        layout = QVBoxLayout()
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(10)
+
+        title = QLabel(t("bench_comp_add"))
+        title.setObjectName("headerTitle")
+        layout.addWidget(title)
+
+        name_lbl = QLabel(t("bench_comp_name"))
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText(t("bench_comp_name"))
+        layout.addWidget(name_lbl)
+        layout.addWidget(self.name_input)
+
+        self.ratio_inputs = {}
+        ratio_labels = self._ratio_labels()
+        form = QFormLayout()
+        for key in self._defaults.keys():
+            spin = QDoubleSpinBox()
+            spin.setRange(-999999, 999999)
+            spin.setDecimals(2)
+            spin.setValue(float(self._defaults[key] or 0))
+            spin.setMinimumWidth(180)
+            self.ratio_inputs[key] = spin
+            form.addRow(ratio_labels.get(key, key), spin)
+        layout.addLayout(form)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        self.cancel_btn = QPushButton(t("btn_cancel"))
+        self.cancel_btn.clicked.connect(self.reject)
+        btn_layout.addWidget(self.cancel_btn)
+        self.save_btn = QPushButton(t("bench_comp_save"))
+        self.save_btn.setObjectName("primaryBtn")
+        self.save_btn.clicked.connect(self._on_save)
+        btn_layout.addWidget(self.save_btn)
+        layout.addLayout(btn_layout)
+
+        self.setLayout(layout)
+        self.setTabOrder(self.name_input, self.save_btn)
+
+    @staticmethod
+    def _ratio_labels():
+        return {
+            "current_ratio": t("bench_r_current"),
+            "quick_ratio": t("bench_r_quick"),
+            "gross_profit_margin": t("bench_r_gross"),
+            "net_profit_margin": t("bench_r_net"),
+            "roa": t("bench_r_roa"),
+            "roe": t("bench_r_roe"),
+            "debt_to_equity": t("bench_r_de"),
+            "asset_turnover": t("bench_r_asset"),
+            "inventory_turnover": t("bench_r_inv"),
+            "receivable_turnover": t("bench_r_rec"),
+        }
+
+    def _on_save(self):
+        name = self.name_input.text().strip()
+        if not name:
+            QMessageBox.warning(self, t("warning"), t("bench_comp_name_required"))
+            return
+        self.accept()
+
+    def get_data(self):
+        ratios = {}
+        for key, spin in self.ratio_inputs.items():
+            ratios[key] = round(spin.value(), 4)
+        return {
+            "name": self.name_input.text().strip(),
+            "ratios": ratios,
+        }
 
 
 class BenchmarkView(BaseView):
@@ -130,9 +218,10 @@ class BenchmarkView(BaseView):
         self.content_layout.addWidget(self.empty_guide)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels([
             t("bench_col_ratio"), t("bench_col_company"),
+            t("bench_col_best"), t("bench_col_international"),
             t("bench_col_min"), t("bench_col_avg"), t("bench_col_max")
         ])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -141,6 +230,22 @@ class BenchmarkView(BaseView):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setMinimumHeight(300)
         self.content_layout.addWidget(self.table)
+
+        self.sw_title = QLabel(t("bench_sw_title"))
+        self.sw_title.setObjectName("sectionTitle")
+        self.content_layout.addWidget(self.sw_title)
+
+        sw_layout = QHBoxLayout()
+        sw_layout.setSpacing(15)
+        self.strengths_list = QListWidget()
+        self.strengths_list.setMinimumHeight(120)
+        self.strengths_list.setMaximumHeight(180)
+        self.weaknesses_list = QListWidget()
+        self.weaknesses_list.setMinimumHeight(120)
+        self.weaknesses_list.setMaximumHeight(180)
+        sw_layout.addWidget(self.strengths_list, 1)
+        sw_layout.addWidget(self.weaknesses_list, 1)
+        self.content_layout.addLayout(sw_layout)
 
         charts_layout = QHBoxLayout()
         charts_layout.setSpacing(15)
@@ -173,6 +278,46 @@ class BenchmarkView(BaseView):
         self.suggestions_list.setMinimumHeight(120)
         self.suggestions_list.setMaximumHeight(200)
         self.content_layout.addWidget(self.suggestions_list)
+
+        self.trend_title = QLabel(t("bench_trend_title"))
+        self.trend_title.setObjectName("sectionTitle")
+        self.content_layout.addWidget(self.trend_title)
+
+        self.trend_frame = QFrame()
+        self.trend_frame.setObjectName("card")
+        self.trend_chart_layout = QVBoxLayout(self.trend_frame)
+        self.trend_chart_layout.setContentsMargins(10, 10, 10, 10)
+        self.content_layout.addWidget(self.trend_frame)
+
+        self.comp_title = QLabel(t("bench_comp_title"))
+        self.comp_title.setObjectName("sectionTitle")
+        self.content_layout.addWidget(self.comp_title)
+
+        comp_controls = QHBoxLayout()
+        comp_controls.setSpacing(10)
+        self.comp_add_btn = QPushButton(t("bench_comp_add"))
+        self.comp_add_btn.setObjectName("primaryBtn")
+        self.comp_add_btn.clicked.connect(self._on_add_competitor)
+        comp_controls.addWidget(self.comp_add_btn)
+        self.comp_delete_btn = QPushButton(t("bench_comp_delete"))
+        self.comp_delete_btn.setObjectName("secondaryBtn")
+        self.comp_delete_btn.clicked.connect(self._on_delete_competitor)
+        comp_controls.addWidget(self.comp_delete_btn)
+        comp_controls.addStretch()
+        self.content_layout.addLayout(comp_controls)
+
+        self.comp_table = QTableWidget()
+        self.comp_table.setColumnCount(3)
+        self.comp_table.setHorizontalHeaderLabels([
+            t("bench_comp_position"), t("bench_comp_name"), t("bench_score")
+        ])
+        self.comp_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.comp_table.setAlternatingRowColors(True)
+        self.comp_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.comp_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.comp_table.setMinimumHeight(120)
+        self.comp_table.setMaximumHeight(200)
+        self.content_layout.addWidget(self.comp_table)
 
         self.content_layout.addStretch()
 
@@ -218,6 +363,9 @@ class BenchmarkView(BaseView):
             self._draw_radar(company_ratios, sector_code)
             self._draw_bar()
             self._fill_suggestions(company_ratios, sector_code)
+            self._fill_strengths_weaknesses()
+            self._draw_trend()
+            self._refresh_competitor_ranking()
 
         except Exception as e:
             from utils.app_logger import get_logger
@@ -271,20 +419,24 @@ class BenchmarkView(BaseView):
             min_val = r.get("sector_min", 0)
             avg_val = r.get("sector_avg", 0)
             max_val = r.get("sector_max", 0)
+            best_val = r.get("best_practice", 0)
+            inter_val = r.get("international", 0)
             status = r.get("status", "")
 
             company_item = QTableWidgetItem(f"{company_val:.4f}")
             if status in ("critical", "below"):
                 company_item.setForeground(QColor("#E74C3C"))
-            elif status in ("good", "excellent"):
+            elif status in ("good", "excellent", "best"):
                 company_item.setForeground(QColor("#27AE60"))
             else:
                 company_item.setForeground(QColor("#F39C12"))
             self.table.setItem(i, 1, company_item)
 
-            self.table.setItem(i, 2, QTableWidgetItem(f"{min_val:.4f}"))
-            self.table.setItem(i, 3, QTableWidgetItem(f"{avg_val:.4f}"))
-            self.table.setItem(i, 4, QTableWidgetItem(f"{max_val:.4f}"))
+            self.table.setItem(i, 2, QTableWidgetItem(f"{best_val:.4f}"))
+            self.table.setItem(i, 3, QTableWidgetItem(f"{inter_val:.4f}"))
+            self.table.setItem(i, 4, QTableWidgetItem(f"{min_val:.4f}"))
+            self.table.setItem(i, 5, QTableWidgetItem(f"{avg_val:.4f}"))
+            self.table.setItem(i, 6, QTableWidgetItem(f"{max_val:.4f}"))
 
     def _clear_chart_layout(self, layout):
         for i in range(layout.count()):
@@ -441,6 +593,185 @@ class BenchmarkView(BaseView):
                 color = severity_colors.get(s.get("severity", ""), "#7F8C8D")
                 item_widget.setForeground(QColor(color))
 
+    @staticmethod
+    def _ratio_display():
+        return {
+            "current_ratio": t("bench_r_current"),
+            "quick_ratio": t("bench_r_quick"),
+            "gross_profit_margin": t("bench_r_gross"),
+            "net_profit_margin": t("bench_r_net"),
+            "roa": t("bench_r_roa"),
+            "roe": t("bench_r_roe"),
+            "debt_to_equity": t("bench_r_de"),
+            "asset_turnover": t("bench_r_asset"),
+            "inventory_turnover": t("bench_r_inv"),
+            "receivable_turnover": t("bench_r_rec"),
+        }
+
+    def _fill_strengths_weaknesses(self):
+        self.strengths_list.clear()
+        self.weaknesses_list.clear()
+        result = self.comparison_result or {}
+        strengths = result.get("strengths", [])
+        weaknesses = result.get("weaknesses", [])
+        status_text = {
+            "best": t("bench_status_best"),
+            "excellent": t("bench_status_excellent"),
+            "good": t("bench_status_good"),
+            "above": t("bench_status_above"),
+            "below": t("bench_status_below"),
+            "critical": t("bench_status_critical"),
+        }
+        display = self._ratio_display()
+
+        if not strengths:
+            self.strengths_list.addItem(t("bench_no_strengths"))
+        for s in strengths:
+            label = display.get(s["ratio"], s["ratio"])
+            st = status_text.get(s["status"], s["status"])
+            self.strengths_list.addItem(f"  {label}  ·  {st}  ({s['score']}/100)")
+
+        if not weaknesses:
+            self.weaknesses_list.addItem(t("bench_no_weaknesses"))
+        for w in weaknesses:
+            label = display.get(w["ratio"], w["ratio"])
+            st = status_text.get(w["status"], w["status"])
+            self.weaknesses_list.addItem(f"  {label}  ·  {st}  ({w['score']}/100)")
+
+    def _draw_trend(self):
+        self._clear_chart_layout(self.trend_chart_layout)
+
+        company = state.company_name or ""
+        sector_code = self.sector_combo.currentData()
+        history = get_company_ratio_history(company) if company else []
+
+        if not history or not sector_code:
+            lbl = QLabel(t("bench_trend_no_data"))
+            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setWordWrap(True)
+            lbl.setStyleSheet("padding: 20px; color: #7F8C8D;")
+            self.trend_chart_layout.addWidget(lbl)
+            return
+
+        trend = benchmark_analyzer.get_trend_data(history, sector_code)
+        if "error" in trend:
+            return
+
+        years = trend.get("years", [])
+        scores = trend.get("scores", [])
+        if not years:
+            return
+
+        sector_avg_ratios = {
+            rname: bm.get("avg", 0)
+            for rname, bm in ALGERIAN_SECTORS.get(sector_code, {}).get("benchmarks", {}).items()
+        }
+        ref = benchmark_analyzer.compare_with_sector(sector_avg_ratios, sector_code)
+        ref_score = ref.get("overall_score", 0)
+
+        fig = Figure(figsize=(6, 3), dpi=100, facecolor='none')
+        fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.2)
+        ax = fig.add_subplot(111)
+        ax.set_facecolor('none')
+
+        ax.plot(years, scores, 'o-', linewidth=2, color='#3498DB', markersize=6,
+                label=t("bench_legend_company"))
+        ax.axhline(ref_score, linestyle='--', color='#E74C3C', linewidth=1.5,
+                   label=t("bench_trend_sector_avg"))
+
+        for x, y in zip(years, scores):
+            ax.annotate(f"{y:.0f}", (x, y), textcoords="offset points",
+                        xytext=(0, 8), ha='center', fontsize=8,
+                        color=ThemeColors.get('chart_text'))
+
+        ax.set_xticks(years)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['bottom'].set_color(ThemeColors.get('chart_grid'))
+        ax.spines['left'].set_color(ThemeColors.get('chart_grid'))
+        ax.tick_params(colors=ThemeColors.get('chart_text'), labelsize=9)
+        ax.yaxis.grid(True, color=ThemeColors.get('chart_grid'), alpha=0.3)
+        ax.legend(loc='lower right', fontsize=8)
+
+        canvas = FigureCanvas(fig)
+        canvas.setMinimumHeight(240)
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.trend_chart_layout.addWidget(canvas)
+
+    def _load_competitors(self):
+        sector_code = self.sector_combo.currentData()
+        self._competitors = get_competitors(sector_code) if sector_code else []
+
+    def _refresh_competitor_ranking(self):
+        self._load_competitors()
+        self.comp_table.setRowCount(0)
+
+        sector_code = self.sector_combo.currentData()
+        company_ratios = self._get_company_ratios()
+        if not sector_code or not company_ratios:
+            return
+
+        result = benchmark_analyzer.compare_with_competitors(
+            company_ratios, sector_code, self._competitors
+        )
+        if "error" in result:
+            return
+
+        ranking = result.get("ranking", [])
+        self.comp_table.setRowCount(len(ranking))
+        for i, item in enumerate(ranking):
+            name = t("bench_comp_company") if item.get("is_company") else item["name"]
+            self.comp_table.setItem(i, 0, QTableWidgetItem(str(item.get("position", ""))))
+            name_item = QTableWidgetItem(name)
+            score_item = QTableWidgetItem(
+                f"{item.get('overall_score', 0):.1f} · {item.get('rating_ar', '')}"
+            )
+            if item.get("is_company"):
+                name_item.setForeground(QColor("#27AE60"))
+                score_item.setForeground(QColor("#27AE60"))
+            self.comp_table.setItem(i, 1, name_item)
+            self.comp_table.setItem(i, 2, score_item)
+
+    def _on_add_competitor(self):
+        sector_code = self.sector_combo.currentData()
+        if not sector_code:
+            QMessageBox.warning(self, t("warning"), t("bench_no_sector"))
+            return
+
+        defaults = {
+            rname: bm.get("avg", 0)
+            for rname, bm in ALGERIAN_SECTORS.get(sector_code, {}).get("benchmarks", {}).items()
+        }
+        dlg = AddCompetitorDialog(defaults, self)
+        if dlg.exec_() != QDialog.Accepted:
+            return
+
+        data = dlg.get_data()
+        if save_competitor(sector_code, data["name"], data["ratios"]):
+            self._refresh_competitor_ranking()
+        else:
+            QMessageBox.critical(self, t("error"), t("bench_comp_name_required"))
+
+    def _on_delete_competitor(self):
+        row = self.comp_table.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, t("warning"), t("bench_no_results"))
+            return
+        name_item = self.comp_table.item(row, 1)
+        if not name_item or name_item.text() == t("bench_comp_company"):
+            return
+
+        sector_code = self.sector_combo.currentData()
+        if not sector_code:
+            return
+        confirm = QMessageBox.question(
+            self, t("warning"), t("bench_comp_confirm_delete")
+        )
+        if confirm != QMessageBox.Yes:
+            return
+        delete_competitor(sector_code, name_item.text())
+        self._refresh_competitor_ranking()
+
     def _generate_html_report(self):
         if not self.comparison_result:
             return ""
@@ -560,6 +891,9 @@ class BenchmarkView(BaseView):
             self.rating_value.setText("")
             self.table.setRowCount(0)
             self.suggestions_list.clear()
+            self.strengths_list.clear()
+            self.weaknesses_list.clear()
+            self.comp_table.setRowCount(0)
             self.empty_guide.show()
             self.table_title.hide()
             self.table.hide()
@@ -568,6 +902,15 @@ class BenchmarkView(BaseView):
             self.suggestions_list.hide()
             self.radar_frame.hide()
             self.bar_frame.hide()
+            self.sw_title.hide()
+            self.strengths_list.hide()
+            self.weaknesses_list.hide()
+            self.trend_title.hide()
+            self.trend_frame.hide()
+            self.comp_title.hide()
+            self.comp_add_btn.hide()
+            self.comp_delete_btn.hide()
+            self.comp_table.hide()
             return
 
         self.empty_guide.hide()
@@ -578,6 +921,15 @@ class BenchmarkView(BaseView):
         self.suggestions_list.show()
         self.radar_frame.show()
         self.bar_frame.show()
+        self.sw_title.show()
+        self.strengths_list.show()
+        self.weaknesses_list.show()
+        self.trend_title.show()
+        self.trend_frame.show()
+        self.comp_title.show()
+        self.comp_add_btn.show()
+        self.comp_delete_btn.show()
+        self.comp_table.show()
 
         self.sector_combo.blockSignals(True)
         self.sector_combo.clear()
@@ -600,10 +952,20 @@ class BenchmarkView(BaseView):
         self.score_title.setText(t("bench_score"))
         self.table_title.setText(t("bench_table_title"))
         self.suggestions_title.setText(t("bench_suggestions"))
+        self.sw_title.setText(t("bench_sw_title"))
+        self.trend_title.setText(t("bench_trend_title"))
+        self.comp_title.setText(t("bench_comp_title"))
+        self.comp_add_btn.setText(t("bench_comp_add"))
+        self.comp_delete_btn.setText(t("bench_comp_delete"))
 
         self.table.setHorizontalHeaderLabels([
             t("bench_col_ratio"), t("bench_col_company"),
+            t("bench_col_best"), t("bench_col_international"),
             t("bench_col_min"), t("bench_col_avg"), t("bench_col_max")
+        ])
+
+        self.comp_table.setHorizontalHeaderLabels([
+            t("bench_comp_position"), t("bench_comp_name"), t("bench_score")
         ])
 
         self.refresh()

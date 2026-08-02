@@ -281,14 +281,12 @@ class TaxReminderManager:
 
             elif freq == "annual":
                 m = tax.get("due_month", 4)
-                try:
+                if m in monthly:
                     monthly[m].append({
                         "name_ar": tax["name_ar"],
                         "name_en": tax["name_en"],
                         "tax_type": tax.get("tax_type", ""),
                     })
-                except ValueError:
-                    pass
 
         return monthly
 

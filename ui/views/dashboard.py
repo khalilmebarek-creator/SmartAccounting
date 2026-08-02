@@ -107,6 +107,7 @@ class DashboardView(QWidget):
 
     def __init__(self):
         super().__init__()
+        self._dash_fingerprint = None
         self.setup_ui()
         self.refresh()
 
@@ -240,9 +241,18 @@ class DashboardView(QWidget):
     def refresh(self):
         """ تحديث كل البيانات والرسوم"""
         if not state.has_data():
+            fingerprint = repr(state.__dict__)
+            if fingerprint == self._dash_fingerprint:
+                return
+            self._dash_fingerprint = fingerprint
             self.subtitle.setText(t("dashboard_no_data"))
             self._clear_all()
             return
+
+        fingerprint = repr(state.__dict__)
+        if fingerprint == self._dash_fingerprint:
+            return
+        self._dash_fingerprint = fingerprint
 
         self.subtitle.setText(
             f"{t('dash_company_label')} {state.company_name} | {t('dash_fiscal_label')} {state.fiscal_year}"

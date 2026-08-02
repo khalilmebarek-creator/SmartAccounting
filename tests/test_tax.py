@@ -198,6 +198,31 @@ def test_full_simulation():
     return True
 
 
+def test_simulation_scales_with_employee_count():
+    """اختبار أن CNAS/CNAC/IRG/VF تتضاعف مع عدد الموظفين في المحاكاة"""
+    engine = TaxEngine()
+    base = dict(
+        revenue=1000000, cogs=600000, operating_expenses=150000,
+        total_assets=1500000, total_liabilities=900000, equity=600000,
+        avg_salary=100000, activity_type="other"
+    )
+    r1 = engine.simulate(number_of_employees=1, **base)
+    r3 = engine.simulate(number_of_employees=3, **base)
+
+    cnas_per = r1["cnas_annual"]
+    cnac_per = r1["cnac_annual"]
+    irg_per = r1["irg_annual"]
+    vf_per = r1["vf_annual"]
+
+    assert r3["cnas_annual"] == 3 * cnas_per, f"CNAS: {r3['cnas_annual']} != {3 * cnas_per}"
+    assert r3["cnac_annual"] == 3 * cnac_per, f"CNAC: {r3['cnac_annual']} != {3 * cnac_per}"
+    assert r3["irg_annual"] == 3 * irg_per, f"IRG: {r3['irg_annual']} != {3 * irg_per}"
+    assert r3["vf_annual"] == 3 * vf_per, f"VF: {r3['vf_annual']} != {3 * vf_per}"
+    assert r3["total_taxes"] == r1["total_taxes"] + 2 * (cnas_per + cnac_per + irg_per + vf_per)
+    print("✅ test_simulation_scales_with_employee_count")
+    return True
+
+
 def test_obligations():
     """اختبار الالتزامات الجبائية"""
     engine = TaxEngine()
@@ -250,6 +275,7 @@ if __name__ == "__main__":
         test_versement_forfaitaire,
         test_payroll_calculation,
         test_full_simulation,
+        test_simulation_scales_with_employee_count,
         test_obligations,
         test_helpers,
     ]

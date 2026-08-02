@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.db_connection import DatabaseConnection
 from database.db_schema import create_tables
-from database.db_operations import save_analysis, get_company_analyses
+from database.db_operations import save_analysis, get_company_analyses, get_company_dupont_history
 
 
 class TestDatabaseOperations(unittest.TestCase):
@@ -46,7 +46,11 @@ class TestDatabaseOperations(unittest.TestCase):
         # استرجاع المسار الأصلي
         import config
         config.DATABASE_PATH = cls.original_path
-        
+
+        # إغلاق الاتصالات المُجمّعة قبل حذف الملف المؤقت
+        from database import db_connection as db_conn_module
+        db_conn_module.close_pool()
+
         # حذف الملف المؤقت
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
@@ -204,6 +208,83 @@ class TestDatabaseOperations(unittest.TestCase):
         self.assertEqual(len(results), 3)
         # لازم تكون مرتبة من الأحدث للأقدم
         self.assertEqual(results[0]['year'], 2024)
+
+    # ===== اختبارات get_company_dupont_history - تاريخ DuPont =====
+
+    def test_get_company_dupont_history_after_save(self):
+        """اختبار جلب تاريخ DuPont بعد حفظ عدة سنوات"""
+        test_data = {
+            'revenue': 200000, 'net_income': 15000, 'total_assets': 500000,
+            'total_liabilities': 200000, 'equity': 300000
+        }
+        ratios = {'net_profit_margin': 7.5, 'asset_turnover': 0.4, 'roe': 5.0}
+        
+        save_analysis("شركة التاريخ", 2023, test_data, ratios)
+        save_analysis("شركة التاريخ", 2024, test_data, ratios)
+        
+        history = get_company_dupont_history("شركة التاريخ")
+        self.assertEqual(len(history), 2)
+        # مرتبة تصاعدياً حسب السنة
+        self.assertEqual(history[0]['year'], 2023)
+        self.assertEqual(history[1]['year'], 2024)
+        # التحقق من المكونات
+        self.assertEqual(history[0]['net_profit_margin'], 7.5)
+        self.assertEqual(history[0]['asset_turnover'], 0.4)
+        self.assertEqual(history[0]['roe'], 5.0)
+        # EM مشتق: EM = ROE / (NPM × AT) = 5.0 / (7.5 × 0.4) = 1.6667
+        self.assertAlmostEqual(history[0]['equity_multiplier'], 1.6667, places=3)
+
+    def test_get_company_dupont_history_empty(self):
+        """اختبار جلب تاريخ DuPont لشركة غير موجودة"""
+        history = get_company_dupont_history("شركة بلا تاريخ")
+        self.assertEqual(history, [])
+
+
+class TestConnectionPool(unittest.TestCase):
+    """اختبارات تجمّع اتصالات قاعدة البيانات"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp_db = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        cls.tmp_db.close()
+        import config
+        cls.original_path = config.DATABASE_PATH
+        config.DATABASE_PATH = cls.tmp_db.name
+
+    @classmethod
+    def tearDownClass(cls):
+        import config
+        config.DATABASE_PATH = cls.original_path
+        from database import db_connection as db_conn_module
+        db_conn_module.close_pool()
+        if os.path.exists(cls.tmp_db.name):
+            os.unlink(cls.tmp_db.name)
+
+    def test_connection_is_reused_across_operations(self):
+        """يجب إعادة استخدام نفس الاتصال المُجمّع بين العمليات"""
+        c1 = DatabaseConnection()
+        c2 = DatabaseConnection()
+        self.assertTrue(c1.connect())
+        first = c1.connection
+        c1.disconnect()
+        self.assertTrue(c2.connect())
+        self.assertIs(c2.connection, first, "يجب إعادة استخدام نفس الاتصال المُجمّع")
+        c2.disconnect()
+
+    def test_close_pool_closes_connections(self):
+        """يجب إغلاق الاتصالات المُجمّعة عند close_pool ثم فتح اتصال جديد"""
+        from database import db_connection as db_conn_module
+        c = DatabaseConnection()
+        self.assertTrue(c.connect())
+        conn = c.connection
+        c.disconnect()
+        db_conn_module.close_pool()
+        self.assertEqual(db_conn_module._pool, {}, "يجب إفراغ التجمّع بعد close_pool")
+        with self.assertRaises(sqlite3.ProgrammingError):
+            conn.execute("SELECT 1")
+        self.assertTrue(c.connect())
+        self.assertIsNot(c.connection, conn)
+        c.disconnect()
 
 
 if __name__ == '__main__':

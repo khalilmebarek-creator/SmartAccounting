@@ -89,11 +89,16 @@ class AppState:
         self.tax_summary = None
         self.tax_obligations = []
 
+        self.scenarios = {}
+
         self.language = "ar"
         self.theme = "light"
         self.api_key = ""
         self.api_url = "https://api.openai.com/v1/chat/completions"
         self.model = "gpt-3.5-turbo"
+
+        self.base_currency = "DZD"
+        self.exchange_rates = {}
 
         self._load_settings()
         self.load_data()
@@ -106,14 +111,32 @@ class AppState:
             self.api_key = decrypt(data.get("api_key", ""))
             self.api_url = data.get("api_url", "https://api.openai.com/v1/chat/completions")
             self.model = data.get("model", "gpt-3.5-turbo")
+            self.base_currency = data.get("base_currency", "DZD")
+            self.exchange_rates = data.get("exchange_rates", {})
+            try:
+                from modules.currency import currency_engine
+                currency_engine.load_from_dict({
+                    "base_currency": self.base_currency,
+                    "rates": self.exchange_rates,
+                })
+            except Exception:
+                pass
 
     def save_settings(self):
+        try:
+            from modules.currency import currency_engine
+            self.base_currency = currency_engine.base_currency
+            self.exchange_rates = dict(currency_engine.rates)
+        except Exception:
+            pass
         data = {
             "language": self.language,
             "theme": self.theme,
             "api_key": encrypt(self.api_key),
             "api_url": self.api_url,
             "model": self.model,
+            "base_currency": self.base_currency,
+            "exchange_rates": self.exchange_rates,
         }
         try:
             _atomic_write(SETTINGS_FILE, data)
@@ -141,6 +164,7 @@ class AppState:
             "tax_data": self.tax_data,
             "tax_summary": self.tax_summary,
             "tax_obligations": self.tax_obligations,
+            "scenarios": self.scenarios,
         }
         try:
             _atomic_write(DATA_FILE, data)
@@ -169,6 +193,7 @@ class AppState:
             self.tax_data = data.get("tax_data", {})
             self.tax_summary = data.get("tax_summary", None)
             self.tax_obligations = data.get("tax_obligations", [])
+            self.scenarios = data.get("scenarios", {})
 
     def clear(self):
         self.company_name = ""
@@ -190,6 +215,7 @@ class AppState:
         self.tax_data = {}
         self.tax_summary = None
         self.tax_obligations = []
+        self.scenarios = {}
         if os.path.exists(DATA_FILE):
             backup = DATA_FILE + ".bak"
             try:

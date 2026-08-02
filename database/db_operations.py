@@ -262,6 +262,130 @@ def get_company_analyses(company_name):
         db.disconnect()
 
 
+def get_company_dupont_history(company_name):
+    """
+    استرجاع تاريخ مكونات DuPont لشركة معينة عبر السنوات
+
+    المخرجات:
+        قائمة dicts: {year, net_profit_margin, asset_turnover, equity_multiplier, roe}
+        equity_multiplier مشتق: EM = ROE / (NPM × AT) عندما المقام != 0
+    """
+    if not db.connect():
+        return []
+
+    try:
+        query = """
+            SELECT fy.year, fr.net_profit_margin, fr.asset_turnover, fr.roe
+            FROM companies c
+            JOIN fiscal_years fy ON c.company_id = fy.company_id
+            LEFT JOIN financial_ratios fr ON fy.fiscal_year_id = fr.fiscal_year_id
+            WHERE c.company_name = ?
+            ORDER BY fy.year ASC
+        """
+        db.cursor.execute(query, (company_name,))
+        rows = db.cursor.fetchall()
+
+        results = []
+        for row in rows:
+            year = row[0]
+            npm = row[1] or 0
+            at = row[2] or 0
+            roe = row[3] or 0
+            denominator = npm * at
+            em = round(roe / denominator, 4) if denominator != 0 else 0
+            results.append({
+                'year': year,
+                'net_profit_margin': round(npm, 4),
+                'asset_turnover': round(at, 4),
+                'equity_multiplier': em,
+                'roe': round(roe, 4),
+            })
+
+        return results
+
+    except Exception as e:
+        log.error("خطأ في استرجاع تاريخ DuPont: %s", e)
+        return []
+
+    finally:
+        db.disconnect()
+
+
+def save_scenario_results(fiscal_year_id, scenarios):
+    """حفظ نتائج السيناريوهات (مثالي/طبيعي/أسوأ) لسنة مالية"""
+    if not db.connect():
+        return False
+
+    try:
+        import json as _json
+        db.cursor.execute(
+            "DELETE FROM scenario_results WHERE fiscal_year_id = ?",
+            (fiscal_year_id,)
+        )
+        for sc_type in ("best", "base", "worst"):
+            sc = scenarios.get(sc_type)
+            if not sc:
+                continue
+            assumptions = sc.get("assumptions", {})
+            db.cursor.execute(
+                """INSERT INTO scenario_results
+                   (fiscal_year_id, scenario_type, revenue_change_pct,
+                    cost_change_pct, efficiency_change_pct, projected_revenue,
+                    projected_net_income, net_profit_margin, roe, result_json)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    fiscal_year_id,
+                    sc_type,
+                    assumptions.get("revenue_change_pct", 0),
+                    assumptions.get("cost_change_pct", 0),
+                    assumptions.get("efficiency_change_pct", 0),
+                    sc.get("revenue", 0),
+                    sc.get("net_income", 0),
+                    sc.get("net_profit_margin", 0),
+                    sc.get("roe", 0),
+                    _json.dumps(sc, ensure_ascii=False)
+                )
+            )
+        db.connection.commit()
+        log.info("Scenario results saved for fiscal year %s", fiscal_year_id)
+        return True
+    except Exception as e:
+        db.connection.rollback()
+        log.error("خطأ في حفظ نتائج السيناريوهات: %s", e)
+        return False
+    finally:
+        db.disconnect()
+
+
+def get_scenario_results(fiscal_year_id):
+    """استرجاع آخر نتائج السيناريوهات لسنة مالية"""
+    if not db.connect():
+        return {}
+
+    try:
+        import json as _json
+        db.cursor.execute(
+            """SELECT scenario_type, result_json
+               FROM scenario_results
+               WHERE fiscal_year_id = ?
+               ORDER BY scenario_id ASC""",
+            (fiscal_year_id,)
+        )
+        rows = db.cursor.fetchall()
+        results = {}
+        for row in rows:
+            try:
+                results[row[0]] = _json.loads(row[1])
+            except Exception:
+                continue
+        return results
+    except Exception as e:
+        log.error("خطأ في استرجاع نتائج السيناريوهات: %s", e)
+        return {}
+    finally:
+        db.disconnect()
+
+
 def save_tax_data(fiscal_year_id, tax_data):
     """حفظ بيانات الضرائب لسنة مالية"""
     if not db.connect():
@@ -440,7 +564,10 @@ def delete_analysis(company_name, year):
         if not row:
             return False
         fid = row[0]
-        for tbl in ["notes", "audit_log", "tax_data", "tax_obligations",
+        db.cursor.execute(
+            "DELETE FROM notes WHERE audit_log_id IN "
+            "(SELECT log_id FROM audit_log WHERE fiscal_year_id = ?)", (fid,))
+        for tbl in ["audit_log", "tax_data", "tax_obligations",
                      "income_statement", "equity", "liabilities", "assets", "financial_ratios"]:
             if tbl not in _ALLOWED_TABLES:
                 raise ValidationError(f"Invalid table name: {tbl}")
@@ -451,6 +578,302 @@ def delete_analysis(company_name, year):
     except Exception as e:
         db.connection.rollback()
         log.error("Failed to delete analysis: %s", e)
+        return False
+    finally:
+        db.disconnect()
+
+
+# ===== المعايير المرجعية (Reference Standards) =====
+
+def save_reference_standards(sector_code=None):
+    """بذر جدول المعايير المرجعية من محرك المعايير (قطاع واحد أو الكل)
+
+    المخرجات: عدد الصفوف المحفوظة
+    """
+    from modules.benchmarks import ALGERIAN_SECTORS
+    if not db.connect():
+        return 0
+    try:
+        total = 0
+        codes = [sector_code] if sector_code else list(ALGERIAN_SECTORS.keys())
+        for code in codes:
+            info = ALGERIAN_SECTORS.get(code)
+            if not info:
+                continue
+            db.cursor.execute(
+                "DELETE FROM reference_standards WHERE sector_code = ?", (code,)
+            )
+            rows = []
+            for rname, bm in info["benchmarks"].items():
+                ideal_min, ideal_max = bm["ideal"]
+                rows.append(
+                    (code, rname, bm["min"], bm["avg"], bm["max"],
+                     ideal_min, ideal_max, bm["best_practice"], bm["international"])
+                )
+            db.cursor.executemany(
+                """INSERT INTO reference_standards
+                   (sector_code, ratio_name, min_val, avg_val, max_val,
+                    ideal_min, ideal_max, best_practice, international)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                rows
+            )
+            total += len(rows)
+        db.connection.commit()
+        log.info("Reference standards seeded: %d rows", total)
+        return total
+    except Exception as e:
+        db.connection.rollback()
+        log.error("Failed to save reference standards: %s", e)
+        return 0
+    finally:
+        db.disconnect()
+
+
+def get_reference_standards(sector_code=None):
+    """استرجاع المعايير المرجعية (يُبذر تلقائياً لقطاع معروف عند الفراغ)"""
+    if not db.connect():
+        return []
+    try:
+        if sector_code:
+            db.cursor.execute(
+                """SELECT sector_code, ratio_name, min_val, avg_val, max_val,
+                          ideal_min, ideal_max, best_practice, international
+                   FROM reference_standards
+                   WHERE sector_code = ?
+                   ORDER BY ratio_name""",
+                (sector_code,)
+            )
+        else:
+            db.cursor.execute(
+                """SELECT sector_code, ratio_name, min_val, avg_val, max_val,
+                          ideal_min, ideal_max, best_practice, international
+                   FROM reference_standards
+                   ORDER BY sector_code, ratio_name"""
+            )
+        rows = db.cursor.fetchall()
+        if not rows and sector_code:
+            from modules.benchmarks import ALGERIAN_SECTORS
+            if sector_code in ALGERIAN_SECTORS:
+                db.disconnect()
+                save_reference_standards(sector_code)
+                return get_reference_standards(sector_code)
+        results = []
+        for r in rows:
+            results.append({
+                "sector_code": r[0], "ratio_name": r[1],
+                "min_val": r[2], "avg_val": r[3], "max_val": r[4],
+                "ideal_min": r[5], "ideal_max": r[6],
+                "best_practice": r[7], "international": r[8],
+            })
+        return results
+    except Exception as e:
+        log.error("Failed to load reference standards: %s", e)
+        return []
+    finally:
+        db.disconnect()
+
+
+# ===== بيانات المنافسين (Competitor Data) =====
+
+def save_competitor(sector_code, competitor_name, ratios):
+    """حفظ بيانات منافس (يستبدل بيانات المنافس الحالي كلياً)"""
+    if not db.connect():
+        return False
+    try:
+        db.cursor.execute(
+            "DELETE FROM competitor_data WHERE sector_code = ? AND competitor_name = ?",
+            (sector_code, competitor_name)
+        )
+        rows = []
+        for rname, value in (ratios or {}).items():
+            if value is None:
+                continue
+            rows.append((sector_code, competitor_name, rname, float(value)))
+        db.cursor.executemany(
+            """INSERT INTO competitor_data (sector_code, competitor_name, ratio_name, ratio_value)
+               VALUES (?, ?, ?, ?)""",
+            rows
+        )
+        db.connection.commit()
+        log.info("Competitor saved: %s (%s) - %d ratios", competitor_name, sector_code, len(ratios or {}))
+        return True
+    except Exception as e:
+        db.connection.rollback()
+        log.error("Failed to save competitor: %s", e)
+        return False
+    finally:
+        db.disconnect()
+
+
+def get_competitors(sector_code):
+    """استرجاع كل المنافسين لقطاع (name + ratios)"""
+    if not db.connect():
+        return []
+    try:
+        db.cursor.execute(
+            """SELECT competitor_name, ratio_name, ratio_value
+               FROM competitor_data
+               WHERE sector_code = ?
+               ORDER BY competitor_name, ratio_name""",
+            (sector_code,)
+        )
+        rows = db.cursor.fetchall()
+        grouped = {}
+        for name, rname, value in rows:
+            grouped.setdefault(name, {})[rname] = float(value)
+        return [
+            {"name": name, "ratios": ratios}
+            for name, ratios in grouped.items()
+        ]
+    except Exception as e:
+        log.error("Failed to load competitors: %s", e)
+        return []
+    finally:
+        db.disconnect()
+
+
+def delete_competitor(sector_code, competitor_name):
+    """حذف منافس من قطاع معين"""
+    if not db.connect():
+        return False
+    try:
+        db.cursor.execute(
+            "DELETE FROM competitor_data WHERE sector_code = ? AND competitor_name = ?",
+            (sector_code, competitor_name)
+        )
+        db.connection.commit()
+        deleted = db.cursor.rowcount
+        log.info("Competitor deleted: %s (%s) - rows=%d", competitor_name, sector_code, deleted)
+        return deleted > 0
+    except Exception as e:
+        db.connection.rollback()
+        log.error("Failed to delete competitor: %s", e)
+        return False
+    finally:
+        db.disconnect()
+
+
+# ===== سجل النسب عبر السنوات (Trend) =====
+
+def get_company_ratio_history(company_name):
+    """استرجاع تاريخ النسب المالية للشركة عبر السنوات (لتحليل الاتجاه)
+
+    المخرجات: قائمة {year, ratios} بترتيب تصاعدي
+    """
+    if not db.connect():
+        return []
+    try:
+        db.cursor.execute(
+            """SELECT fy.year, fr.current_ratio, fr.quick_ratio,
+                      fr.gross_profit_margin, fr.net_profit_margin, fr.roa,
+                      fr.roe, fr.asset_turnover, fr.debt_to_equity,
+                      fr.inventory_turnover
+               FROM companies c
+               JOIN fiscal_years fy ON c.company_id = fy.company_id
+               LEFT JOIN financial_ratios fr ON fy.fiscal_year_id = fr.fiscal_year_id
+               WHERE c.company_name = ?
+               ORDER BY fy.year ASC""",
+            (company_name,)
+        )
+        rows = db.cursor.fetchall()
+        keys = (
+            "current_ratio", "quick_ratio", "gross_profit_margin",
+            "net_profit_margin", "roa", "roe", "asset_turnover",
+            "debt_to_equity", "inventory_turnover",
+        )
+        results = []
+        for row in rows:
+            ratios = {}
+            for key, val in zip(keys, row[1:]):
+                if val is not None:
+                    ratios[key] = round(float(val), 4)
+            results.append({"year": row[0], "ratios": ratios})
+        return results
+    except Exception as e:
+        log.error("Failed to load ratio history: %s", e)
+        return []
+    finally:
+        db.disconnect()
+
+
+# ===== تخطيطات لوحة التحكم (Dashboard Layouts) =====
+
+def save_dashboard_layout(layout_name, layout_dict):
+    """حفظ/استبدال تخطيط لوحة التحكم المخصص"""
+    import json
+    if not layout_name or not isinstance(layout_dict, dict):
+        log.error("Invalid dashboard layout: name=%s", layout_name)
+        return False
+    if not db.connect():
+        return False
+    try:
+        payload = json.dumps(layout_dict, ensure_ascii=False)
+        db.cursor.execute(
+            """INSERT INTO dashboard_layouts (layout_name, layout_json)
+               VALUES (?, ?)
+               ON CONFLICT(layout_name) DO UPDATE SET
+                   layout_json = excluded.layout_json,
+                   updated_at = CURRENT_TIMESTAMP""",
+            (layout_name, payload)
+        )
+        db.connection.commit()
+        log.info("Dashboard layout saved: %s", layout_name)
+        return True
+    except Exception as e:
+        db.connection.rollback()
+        log.error("Failed to save dashboard layout: %s", e)
+        return False
+    finally:
+        db.disconnect()
+
+
+def get_dashboard_layouts():
+    """استرجاع كل تخطيطات لوحة التحكم المحفوظة"""
+    import json
+    if not db.connect():
+        return []
+    try:
+        db.cursor.execute(
+            """SELECT layout_name, layout_json, updated_at
+               FROM dashboard_layouts
+               ORDER BY layout_name ASC"""
+        )
+        rows = db.cursor.fetchall()
+        results = []
+        for name, payload, updated_at in rows:
+            try:
+                layout = json.loads(payload) if payload else {}
+            except (ValueError, TypeError):
+                layout = {}
+            results.append({
+                "name": name,
+                "layout": layout,
+                "updated_at": updated_at,
+            })
+        return results
+    except Exception as e:
+        log.error("Failed to load dashboard layouts: %s", e)
+        return []
+    finally:
+        db.disconnect()
+
+
+def delete_dashboard_layout(layout_name):
+    """حذف تخطيط لوحة تحكم محفوظ"""
+    if not db.connect():
+        return False
+    try:
+        db.cursor.execute(
+            "DELETE FROM dashboard_layouts WHERE layout_name = ?",
+            (layout_name,)
+        )
+        db.connection.commit()
+        deleted = db.cursor.rowcount
+        log.info("Dashboard layout deleted: %s - rows=%d", layout_name, deleted)
+        return deleted > 0
+    except Exception as e:
+        db.connection.rollback()
+        log.error("Failed to delete dashboard layout: %s", e)
         return False
     finally:
         db.disconnect()

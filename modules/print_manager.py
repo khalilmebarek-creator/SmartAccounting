@@ -23,6 +23,7 @@ class PrintManager:
             from PyQt5.QtWidgets import QApplication
             from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
             from PyQt5.QtWebEngineWidgets import QWebEnginePage
+            from PyQt5.QtGui import QPageLayout
             from PyQt5.QtCore import QEventLoop
 
             if not QApplication.instance():

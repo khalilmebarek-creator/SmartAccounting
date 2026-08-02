@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Swagger UI — واجهات المنصة المحاسبية الذكية</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        body { direction: rtl; font-family: 'Segoe UI', Tahoma, sans-serif; background: #0f172a; }
+        .topbar { display: none; }
+        .swagger-ui .info { margin: 20px 0; }
+        .swagger-ui .info hgroup.main { background: transparent; }
+        #api-message { color: #94a3b8; padding: 40px; text-align: center; font-size: 16px; }
+        .back-link {
+            display: inline-block; margin: 14px 20px; padding: 8px 16px;
+            background: #2563eb; color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="../index.html">← العودة إلى الموقع</a>
+    <div id="swagger-ui"></div>
+    <div id="api-message">جاري تحميل المواصفات…</div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = function () {
+            try {
+                window.ui = SwaggerUIBundle({
+                    url: "openapi.yaml",
+                    dom_id: "#swagger-ui",
+                    deepLinking: true,
+                    presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+                    layout: "BaseLayout",
+                    docExpansion: "none",
+                    defaultModelRendering: "model",
+                    persistAuthorization: false,
+                });
+                var msg = document.getElementById("api-message");
+                if (msg) msg.style.display = "none";
+            } catch (e) {
+                var msg = document.getElementById("api-message");
+                if (msg) msg.textContent = "تعذّر تحميل Swagger UI: " + e.message +
+                    " (تحقق من اتصال الإنترنت لتحميل مكتبة swagger-ui من CDN).";
+            }
+        };
+    </script>
+</body>
+</html>

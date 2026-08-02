@@ -206,6 +206,135 @@ class ReportGenerator:
         
         return report
     
+    def generate_dupont_report(self, dupont, waterfall=None, industry=None, recommendations=None):
+        """توليد تقرير تحليل DuPont (نصي — يُصدَّر لاحقاً إلى PDF)"""
+
+        _REC_TEXT = {
+            'rec_npm_low': 'تحسين هامش الربح الصافي عبر خفض التكاليف أو رفع الأسعار (الهدف: ≥ 5%)',
+            'rec_npm_ok': 'هامش الربح الصافي مقبول — العمل على تحسينه نحو 5-10%',
+            'rec_npm_strong': 'هامش الربح الصافي ممتاز — حافظ على هذا الأداء',
+            'rec_at_low': 'زيادة كفاءة استخدام الأصول لرفع معدل الدوران (الهدف: ≥ 1.0)',
+            'rec_at_ok': 'معدل دوران الأصول مقبول — مراجعة السياسات التجارية للتحسين',
+            'rec_at_strong': 'معدل دوران الأصول ممتاز — استغلال مثالي للأصول',
+            'rec_em_high': 'الرافعة المالية مرتفعة — خفّض الديون لتقليل المخاطر (الهدف: ≤ 3)',
+            'rec_em_ok': 'رافعة مالية متوازنة — هيكل تمويل سليم',
+            'rec_em_low': 'رافعة مالية منخفضة — مجال لتحسين العائد عبر تمويل مدروس',
+            'rec_roe_low': 'العائد على حقوق الملكية منخفض — راجع مكونات DuPont الثلاثة (الهدف: ≥ 10%)',
+            'rec_roe_ok': 'العائد على حقوق الملكية مقبول — نحو التحسين المستمر',
+            'rec_roe_strong': 'العائد على حقوق الملكية ممتاز — أداء متميز',
+            'rec_industry_gap': 'فجوة مقارنة بمتوسط القطاع — ارفع القيمة نحو متوسط القطاع',
+        }
+
+        report = "\n" + "═"*70
+        report += "\n📊 تقرير تحليل DuPont"
+        report += f"\nالشركة: {self.company_name}"
+        report += f"\nالسنة المالية: {self.fiscal_year}"
+        report += f"\nتاريخ التقرير: {self.generated_date}"
+        report += "\n" + "═"*70
+
+        report += "\n\n🔢 مكونات DuPont:"
+        report += "\n" + "-"*70
+        report += f"\nهامش الربح الصافي (Net Profit Margin): {dupont.get('net_profit_margin', 0)}%"
+        report += f"\nمعدل دوران الأصول (Asset Turnover): {dupont.get('asset_turnover', 0)}"
+        report += f"\nالرافعة المالية (Equity Multiplier): {dupont.get('equity_multiplier', 0)}"
+        report += f"\nالعائد على حقوق الملكية (ROE): {dupont.get('roe', 0)}%"
+
+        if waterfall:
+            report += "\n\n📐 تحليل الشلال (Waterfall):"
+            report += "\n" + "-"*70
+            report += f"\nمساهمة هامش الربح الأساسية: {waterfall.get('base', 0)}"
+            report += f"\nأثر دوران الأصول: {waterfall.get('turnover_effect', 0)}"
+            report += f"\nأثر الرافعة المالية: {waterfall.get('leverage_effect', 0)}"
+            report += f"\nالإجمالي (ROE): {waterfall.get('total', 0)}"
+
+        if industry:
+            report += "\n\n🏭 مقارنة مع القطاع:"
+            report += "\n" + "-"*70
+            report += f"\n{'المكوّن':<25} {'الشركة':<12} {'متوسط القطاع':<14} {'الحالة'}"
+            for component, cmp_data in industry.items():
+                report += f"\n{component:<25} {cmp_data['company_value']:<12} {cmp_data['sector_average']:<14} {cmp_data['status']}"
+
+        if recommendations:
+            report += "\n\n🎯 التوصيات:"
+            report += "\n" + "-"*70
+            for rec in recommendations:
+                text = _REC_TEXT.get(rec.get('code'), rec.get('code', ''))
+                if rec.get('target') is not None and rec.get('code') == 'rec_industry_gap':
+                    text += f" (المتوسط: {rec['target']})"
+                elif rec.get('target') is not None:
+                    text += f" — حالياً: {rec.get('company_value')}"
+                report += f"\n• {text}"
+
+        report += "\n\n" + "═"*70 + "\n"
+        return report
+
+    def generate_scenario_report(self, scenarios, comparison=None, sensitivity=None):
+        """توليد تقرير تحليل السيناريوهات (نصي — يُصدَّر لاحقاً إلى PDF)"""
+
+        _SCEN_LABELS = {
+            'best': '🏆 الحالة المثالية (Best Case)',
+            'base': '📊 الحالة الطبيعية (Base Case)',
+            'worst': '⚠️ أسوأ حالة (Worst Case)',
+        }
+        _OUTCOME = {
+            'profit': 'أرباح عالية',
+            'loss': 'خسائر محتملة',
+            'base': 'الأداء الحالي',
+            'decline': 'انخفاض في الأرباح',
+        }
+
+        report = "\n" + "═"*70
+        report += "\n🎭 تقرير تحليل السيناريوهات"
+        report += f"\nالشركة: {self.company_name}"
+        report += f"\nالسنة المالية: {self.fiscal_year}"
+        report += f"\nتاريخ التقرير: {self.generated_date}"
+        report += "\n" + "═"*70
+
+        for sc_type in ("best", "base", "worst"):
+            sc = scenarios.get(sc_type)
+            if not sc:
+                continue
+            report += f"\n\n{_SCEN_LABELS.get(sc_type, sc_type)}"
+            report += "\n" + "-"*70
+            assumptions = sc.get("assumptions", {})
+            report += f"\nتغيير المبيعات: {assumptions.get('revenue_change_pct', 0)*100:+.1f}%"
+            report += f"\nتغيير التكاليف: {assumptions.get('cost_change_pct', 0)*100:+.1f}%"
+            report += f"\nتغيير الكفاءة: {assumptions.get('efficiency_change_pct', 0)*100:+.1f}%"
+            report += f"\nالإيرادات: {sc.get('revenue', 0):,.2f}"
+            report += f"\nتكلفة البضاعة المباعة: {sc.get('cogs', 0):,.2f}"
+            report += f"\nالمصاريف التشغيلية: {sc.get('operating_expenses', 0):,.2f}"
+            report += f"\nصافي الربح: {sc.get('net_income', 0):,.2f}"
+            report += f"\nهامش صافي الربح: {sc.get('net_profit_margin', 0):.2f}%"
+            report += f"\nمعدل دوران الأصول: {sc.get('asset_turnover', 0):.4f}"
+            report += f"\nالعائد على الأصول (ROA): {sc.get('roa', 0):.2f}%"
+            report += f"\nالعائد على حقوق الملكية (ROE): {sc.get('roe', 0):.2f}%"
+            report += f"\nالنتيجة: {_OUTCOME.get(sc.get('outcome'), sc.get('outcome', ''))}"
+
+        if comparison:
+            report += "\n\n📊 جدول المقارنة بين السيناريوهات"
+            report += "\n" + "-"*70
+            report += f"\n{'المؤشر':<25} {'مثالي':<14} {'طبيعي':<14} {'أسوأ':<14}"
+            _METRIC_LABELS = {
+                'revenue': 'الإيرادات', 'cogs': 'تكلفة البضاعة',
+                'operating_expenses': 'المصاريف التشغيلية', 'gross_profit': 'الربح الإجمالي',
+                'net_income': 'صافي الربح', 'net_profit_margin': 'هامش صافي الربح',
+                'asset_turnover': 'دوران الأصول', 'roa': 'ROA', 'roe': 'ROE',
+            }
+            for metric, row in comparison.items():
+                label = _METRIC_LABELS.get(metric, metric)
+                report += f"\n{label:<25} {row['best']:<14} {row['base']:<14} {row['worst']:<14}"
+
+        if sensitivity:
+            report += "\n\n📈 تحليل الحساسية (تأثير تغيير المتغير)"
+            report += "\n" + "-"*70
+            report += f"\n{'نسبة التغيير':<15} {'صافي الربح':<18} {'هامش الربح':<15} {'ROE'}"
+            for row in sensitivity:
+                pct = row['pct_change'] * 100
+                report += f"\n{pct:+.2f}%{'':<11} {row['net_income']:<18,.2f} {row['net_profit_margin']:<15.2f} {row['roe']:.2f}"
+
+        report += "\n\n" + "═"*70 + "\n"
+        return report
+
     def export_report_to_file(self, report_content, filename):
         """تصدير التقرير إلى ملف"""
         try:
@@ -268,6 +397,17 @@ class ReportGenerator:
 
             font_path = self._get_arabic_font_path()
             bold_path = self._get_arabic_bold_font_path()
+
+            has_arabic = any(
+                '\u0600' <= c <= '\u06FF' or '\u0750' <= c <= '\u077F'
+                for c in report_content
+            )
+            if has_arabic and not font_path:
+                log.error(
+                    "Cannot export PDF: Arabic content found but the Amiri font is "
+                    "missing. Please restore ui/resources/fonts/Amiri-Regular.ttf."
+                )
+                return False
 
             pdf = ArabicPDF(font_path, bold_path)
             pdf.alias_nb_pages()

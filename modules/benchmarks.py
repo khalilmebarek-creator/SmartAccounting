@@ -6,6 +6,31 @@ from utils.app_logger import get_logger
 
 logger = get_logger("benchmarks")
 
+# النسب التي انخفاضها أفضل (debt_to_equity فقط)
+_LOWER_IS_BETTER = {"debt_to_equity"}
+
+
+def _derive_standards():
+    """اشتقاق best_practice و international لكل نسبة من قيم القطاع (DRY).
+
+    - best_practice: قيمة المنشأة الأعلى أداءً داخل القطاع (60% من المسافة avg→max).
+    - international: المعيار الدولي المرجعي (أعلى من max للقطاع).
+    - بالنسبة لـ debt_to_equity تُعكس الاتجاهية (الأقل أفضل).
+    """
+    for info in ALGERIAN_SECTORS.values():
+        for name, bm in info["benchmarks"].items():
+            mn, avg, mx = bm["min"], bm["avg"], bm["max"]
+            if name in _LOWER_IS_BETTER:
+                best_practice = round(avg - (avg - mn) * 0.6, 2)
+                international = round(mn * 0.85, 2)
+            else:
+                best_practice = round(avg + (mx - avg) * 0.6, 2)
+                international = round(mx * 1.2, 2)
+            bm["best_practice"] = best_practice
+            bm["international"] = international
+    return ALGERIAN_SECTORS
+
+
 ALGERIAN_SECTORS = {
     "commercial": {
         "name_ar": "القطاع التجاري",
@@ -136,6 +161,9 @@ ALGERIAN_SECTORS = {
 }
 
 
+_derive_standards()
+
+
 class BenchmarkAnalyzer:
     """محلل المعايير المرجعية لقطاعات الأعمال الجزائرية"""
 
@@ -157,13 +185,15 @@ class BenchmarkAnalyzer:
 
     def compare_with_sector(self, company_ratios: Dict[str, float],
                             sector_code: str) -> Dict:
-        """مقارنة أداء الشركة مع معايير القطاع"""
+        """مقارنة أداء الشركة مع معايير القطاع (متوسط + أفضل الممارسات + دولي)"""
         if sector_code not in self.sectors:
             return {"error": f"Sector '{sector_code}' not found"}
 
         sector = self.sectors[sector_code]
         benchmarks = sector["benchmarks"]
         comparison = {}
+        strengths = []
+        weaknesses = []
         overall_score = 0
         count = 0
 
@@ -174,54 +204,50 @@ class BenchmarkAnalyzer:
             bm = benchmarks[ratio_name]
             ideal_min, ideal_max = bm["ideal"]
             min_val, avg_val, max_val = bm["min"], bm["avg"], bm["max"]
+            best_practice = bm["best_practice"]
+            international = bm["international"]
+            lower_better = ratio_name in _LOWER_IS_BETTER
 
             if value is None:
                 continue
 
-            status = "excellent"
-            if value < min_val:
-                status = "critical"
-                score = 0
-            elif value < ideal_min:
-                status = "below"
-                score = 50
-            elif value <= ideal_max:
-                status = "good"
-                score = 90
-            elif value <= max_val:
-                status = "above"
-                score = 70
-            else:
-                status = "excellent"
-                score = 100
-
-            if ratio_name in ("debt_to_equity",):
-                if value < min_val:
-                    status = "excellent"
-                    score = 95
-                elif value <= ideal_max:
-                    status = "good"
-                    score = 90
-                elif value <= max_val:
-                    status = "above"
-                    score = 60
-                else:
-                    status = "critical"
-                    score = 20
+            status, score = self._score_ratio(value, bm, lower_better)
+            gap = (best_practice - value) if lower_better else (value - best_practice)
+            inter_gap = (international - value) if lower_better else (value - international)
 
             overall_score += score
             count += 1
 
-            comparison[ratio_name] = {
+            row = {
                 "company_value": round(value, 4),
                 "sector_min": min_val,
                 "sector_avg": avg_val,
                 "sector_max": max_val,
+                "best_practice": best_practice,
+                "international": international,
                 "ideal_range": f"{ideal_min} - {ideal_max}",
                 "status": status,
                 "score": score,
                 "deviation": round(value - avg_val, 4),
+                "best_practice_gap": round(gap, 4),
+                "international_gap": round(inter_gap, 4),
             }
+            comparison[ratio_name] = row
+
+            entry = {
+                "ratio": ratio_name,
+                "company_value": row["company_value"],
+                "status": status,
+                "score": score,
+                "sector_avg": avg_val,
+            }
+            if status in ("best", "excellent", "good", "above"):
+                strengths.append(entry)
+            else:
+                weaknesses.append(entry)
+
+        strengths.sort(key=lambda e: -e["score"])
+        weaknesses.sort(key=lambda e: e["score"])
 
         return {
             "sector": sector["name_en"],
@@ -229,7 +255,38 @@ class BenchmarkAnalyzer:
             "ratios": comparison,
             "overall_score": round(overall_score / max(count, 1), 1),
             "rating": self._get_rating(overall_score / max(count, 1)),
+            "strengths": strengths,
+            "weaknesses": weaknesses,
+            "count": count,
         }
+
+    @staticmethod
+    def _score_ratio(value: float, bm: Dict, lower_better: bool) -> Tuple[str, int]:
+        """تقييم النسبة مقابل معايير القطاع وأفضل الممارسات"""
+        ideal_min, ideal_max = bm["ideal"]
+        min_val, avg_val, max_val = bm["min"], bm["avg"], bm["max"]
+        best_practice = bm["best_practice"]
+
+        if lower_better:
+            if value <= best_practice:
+                return "best", 100
+            if value <= ideal_max:
+                return "good", 90
+            if value <= max_val:
+                return "above", 60
+            return "critical", 20
+
+        if value < min_val:
+            return "critical", 0
+        if value < ideal_min:
+            return "below", 50
+        if value <= ideal_max:
+            return "good", 90
+        if value <= best_practice:
+            return "above", 70
+        if value <= max_val:
+            return "excellent", 85
+        return "best", 100
 
     def _get_rating(self, score: float) -> Dict[str, str]:
         """تصنيف الأداء"""
@@ -380,6 +437,100 @@ class BenchmarkAnalyzer:
 
         suggestions.sort(key=lambda x: 0 if x["severity"] == "critical" else 1 if x["severity"] == "warning" else 2)
         return suggestions
+
+    def get_strengths_weaknesses(self, company_ratios: Dict[str, float],
+                                 sector_code: str) -> Dict:
+        """تحديد نقاط القوة والضعف مقابل معايير القطاع"""
+        result = self.compare_with_sector(company_ratios, sector_code)
+        if "error" in result:
+            return {"error": result["error"], "strengths": [], "weaknesses": []}
+        return {
+            "strengths": result.get("strengths", []),
+            "weaknesses": result.get("weaknesses", []),
+            "strength_count": len(result.get("strengths", [])),
+            "weakness_count": len(result.get("weaknesses", [])),
+        }
+
+    def compare_with_competitors(self, company_ratios: Dict[str, float],
+                                 sector_code: str,
+                                 competitors: Optional[List[Dict]] = None) -> Dict:
+        """ترتيب الشركة مقارنة بالمنافسين وفق درجة الأداء مقابل القطاع
+
+        competitors: قائمة dicts {name, ratios}
+        """
+        if sector_code not in self.sectors:
+            return {"error": f"Sector '{sector_code}' not found"}
+
+        participants = [{"name": "company", "ratios": company_ratios, "is_company": True}]
+        for c in (competitors or []):
+            participants.append({
+                "name": c.get("name", "?"),
+                "ratios": c.get("ratios", {}),
+                "is_company": False,
+            })
+
+        ranking = []
+        for p in participants:
+            comp = self.compare_with_sector(p["ratios"], sector_code)
+            if "error" in comp:
+                continue
+            ranking.append({
+                "name": p["name"],
+                "is_company": bool(p.get("is_company")),
+                "overall_score": comp["overall_score"],
+                "rating": comp["rating"].get("en", ""),
+                "rating_ar": comp["rating"].get("ar", ""),
+            })
+
+        ranking.sort(key=lambda x: -x["overall_score"])
+        for i, item in enumerate(ranking):
+            item["position"] = i + 1
+
+        return {"ranking": ranking, "count": len(ranking)}
+
+    def get_trend_data(self, history: List[Dict], sector_code: str) -> Dict:
+        """تحليل اتجاه الأداء عبر السنوات
+
+        history: قائمة dicts {year, ratios} (أي ترتيب — يُرتّب تصاعدياً)
+        """
+        if sector_code not in self.sectors:
+            return {"error": f"Sector '{sector_code}' not found"}
+
+        benchmarks = self.sectors[sector_code]["benchmarks"]
+        history = sorted(history, key=lambda h: h.get("year", 0))
+
+        years = []
+        scores = []
+        ratios_series: Dict[str, Dict] = {}
+
+        for h in history:
+            years.append(h.get("year"))
+            ratios = h.get("ratios", {})
+            comp = self.compare_with_sector(ratios, sector_code)
+            scores.append(comp.get("overall_score", 0))
+            for rname, bm in benchmarks.items():
+                if rname in ratios:
+                    series = ratios_series.setdefault(rname, {
+                        "years": [], "values": [], "sector_avg": bm["avg"],
+                    })
+                    series["years"].append(h.get("year"))
+                    series["values"].append(round(ratios[rname], 4))
+
+        return {
+            "years": years,
+            "scores": scores,
+            "ratios": ratios_series,
+            "sector": self.sectors[sector_code]["name_en"],
+        }
+
+    def get_international_standards(self, sector_code: str) -> Dict:
+        """المعايير الدولية المرجعية لكل نسبة في القطاع"""
+        if sector_code not in self.sectors:
+            return {}
+        return {
+            rname: bm["international"]
+            for rname, bm in self.sectors[sector_code]["benchmarks"].items()
+        }
 
 
 benchmark_analyzer = BenchmarkAnalyzer()

@@ -127,9 +127,12 @@ class ScheduledBackup:
         meta = {
             "timestamp": timestamp,
             "created": datetime.now().isoformat(),
-            "files": os.listdir(backup_path),
         }
-        with open(os.path.join(backup_path, "meta.json"), "w", encoding="utf-8") as f:
+        meta_path = os.path.join(backup_path, "meta.json")
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+        meta["files"] = sorted(os.listdir(backup_path))
+        with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2)
 
         return backup_name
@@ -188,6 +191,10 @@ class ScheduledBackup:
         users_src = os.path.join(backup_path, "users.json")
         if os.path.exists(users_src):
             shutil.copy2(users_src, USERS_FILE)
+
+        vault_src = os.path.join(backup_path, "vault.enc")
+        if os.path.exists(vault_src):
+            shutil.copy2(vault_src, VAULT_FILE)
 
         logger.info(f"Restored from backup: {backup_name}")
         return True

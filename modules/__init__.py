@@ -1,19 +1,23 @@
 # Modules Package
 # ================
 
-from .calculations import CalculationEngine
-from .validation import DataValidator
-from .analysis import FinancialAnalyzer
-from .audit import AuditEngine
-from .reporting import ReportGenerator
-from .data_import import DataImporter
-from .tax import TaxEngine
-from .forecasting import FinancialForecaster
-from .budget import BudgetPlanner
-from .cost_center import CostCenterAnalyzer
-from .breakeven import BreakEvenAnalyzer
-from .report_templates import ReportTemplates, report_templates
-from .scheduled_backup import ScheduledBackup, scheduled_backup
+_LAZY_IMPORTS = {
+    "CalculationEngine": ("modules.calculations", "CalculationEngine"),
+    "DataValidator": ("modules.validation", "DataValidator"),
+    "FinancialAnalyzer": ("modules.analysis", "FinancialAnalyzer"),
+    "AuditEngine": ("modules.audit", "AuditEngine"),
+    "ReportGenerator": ("modules.reporting", "ReportGenerator"),
+    "DataImporter": ("modules.data_import", "DataImporter"),
+    "TaxEngine": ("modules.tax", "TaxEngine"),
+    "FinancialForecaster": ("modules.forecasting", "FinancialForecaster"),
+    "BudgetPlanner": ("modules.budget", "BudgetPlanner"),
+    "CostCenterAnalyzer": ("modules.cost_center", "CostCenterAnalyzer"),
+    "BreakEvenAnalyzer": ("modules.breakeven", "BreakEvenAnalyzer"),
+    "ReportTemplates": ("modules.report_templates", "ReportTemplates"),
+    "report_templates": ("modules.report_templates", "report_templates"),
+    "ScheduledBackup": ("modules.scheduled_backup", "ScheduledBackup"),
+    "scheduled_backup": ("modules.scheduled_backup", "scheduled_backup"),
+}
 
 __all__ = [
     'CalculationEngine',
@@ -32,3 +36,15 @@ __all__ = [
     'ScheduledBackup',
     'scheduled_backup',
 ]
+
+
+def __getattr__(name):
+    """تحميل كسول لوحدات modules الثقيلة (تحسين زمن الإقلاع والذاكرة)"""
+    if name in _LAZY_IMPORTS:
+        from importlib import import_module
+        module_name, attr = _LAZY_IMPORTS[name]
+        module = import_module(module_name)
+        value = getattr(module, attr)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

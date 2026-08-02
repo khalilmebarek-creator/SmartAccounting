@@ -32,7 +32,7 @@ class TaxEngine:
             "country": "Algeria",
             "year": 2025,
             "ibs": {"rates": {"production": 0.19, "construction": 0.23, "other": 0.26}, "minimum_tax": 10000},
-            "tva": {"rates": {"standard": 0.19, "reduced": 0.09}},
+            "tva": {"rates": {"standard": 0.19, "reduced": 0.09, "intermediate": 0.06, "zero": 0.0}},
             "irg": {"brackets": [
                 {"min": 0, "max": 120000, "rate": 0.0},
                 {"min": 120001, "max": 360000, "rate": 0.20},
@@ -106,7 +106,68 @@ class TaxEngine:
             "taxable_income": taxable_income
         }
 
+    def calculate_ibs_acomptes(self, taxable_income, activity_type="other"):
+        """
+        حساب الدفعات المقدمة IBS (3 دفعات سنوية)
+        
+        Args:
+            taxable_income: صافي الدخل الخاضع للضريبة
+            activity_type: نوع النشاط (production, construction, other)
+        
+        Returns:
+            dict: {annual_tax, acompte_amount, acomptes, total_acomptes}
+        """
+        ibs = self.calculate_ibs(taxable_income, activity_type)
+        annual_tax = ibs["tax_amount"]
+        acompte_amount = round(annual_tax / 3, 2)
+
+        schedule = self.config.get("ibs", {}).get("acomptes", [])
+        acomptes = []
+        for item in schedule:
+            acomptes.append({
+                "month": item.get("month"),
+                "day": item.get("day", 20),
+                "amount": acompte_amount,
+                "label": item.get("label", "دفعة مقدمة"),
+                "label_en": item.get("label_en", "instalment")
+            })
+
+        return {
+            "annual_tax": round(annual_tax, 2),
+            "acompte_amount": acompte_amount,
+            "acomptes": acomptes,
+            "total_acomptes": round(sum(a["amount"] for a in acomptes), 2)
+        }
+
+    def calculate_ibs_balance(self, taxable_income, activity_type="other", acomptes_paid=0):
+        """
+        حساب تصفية IBS السنوية (الباقي بعد الدفعات المقدمة)
+        
+        Args:
+            taxable_income: صافي الدخل الخاضع للضريبة
+            activity_type: نوع النشاط
+            acomptes_paid: إجمالي الدفعات المقدمة المدفوعة
+        
+        Returns:
+            dict: {tax, acomptes_paid, balance_due, refund_amount, rate_used}
+        """
+        ibs = self.calculate_ibs(taxable_income, activity_type)
+        tax = ibs["tax_amount"]
+        balance = tax - acomptes_paid
+
+        return {
+            "tax": round(tax, 2),
+            "acomptes_paid": round(acomptes_paid, 2),
+            "balance_due": round(max(0, balance), 2),
+            "refund_amount": round(max(0, -balance), 2),
+            "rate_used": ibs["rate_used"]
+        }
+
     # ==================== TVA ====================
+
+    def get_tva_rates(self):
+        """الحصول على جدول نسب TVA"""
+        return self.config.get("tva", {}).get("rates", {})
 
     def calculate_tva(self, amount_excl_tax, rate_type="standard"):
         """
@@ -153,6 +214,40 @@ class TaxEngine:
             "tva_paid": round(tva_paid, 2),
             "status": "to_pay" if net > 0 else "to_receive",
             "amount": round(abs(net), 2)
+        }
+
+    def calculate_tva_refund(self, tva_collected, tva_paid, previous_credit=0):
+        """
+        حساب رصيد TVA الشهري: دفع أو ترحيل/استرجاع (G N°50)
+        
+        Args:
+            tva_collected: TVA المحصلة من المبيعات
+            tva_paid: TVA القابلة للخصم (المدفوعة للموردين)
+            previous_credit: رصيد TVA المرحّل من الشهر السابق
+        
+        Returns:
+            dict: {gross_difference, previous_credit, net_payable,
+                   remaining_credit, status}
+        """
+        gross = tva_collected - tva_paid
+
+        if gross > 0:
+            net_payable = max(0, gross - previous_credit)
+            remaining_credit = max(0, previous_credit - gross)
+            status = "payable"
+        else:
+            net_payable = 0
+            remaining_credit = previous_credit + abs(gross)
+            status = "credit"
+
+        return {
+            "tva_collected": round(tva_collected, 2),
+            "tva_paid": round(tva_paid, 2),
+            "gross_difference": round(gross, 2),
+            "previous_credit": round(previous_credit, 2),
+            "net_payable": round(net_payable, 2),
+            "remaining_credit": round(remaining_credit, 2),
+            "status": status
         }
 
     # ==================== IRG ====================
@@ -344,6 +439,53 @@ class TaxEngine:
             "monthly_cost_employer": round(total_cost_employer, 2)
         }
 
+    # ==================== DAS (الإقرار السنوي للأجور) ====================
+
+    def build_das_data(self, monthly_payroll=0, number_of_employees=0, avg_salary=0):
+        """
+        بناء بيانات الإقرار السنوي للأجور (DAS)
+        
+        Args:
+            monthly_payroll: كتلة الأجور الشهرية
+            number_of_employees: عدد الموظفين
+            avg_salary: متوسط الراتب الشهري (اختياري)
+        
+        Returns:
+            dict: تفاصيل الإقرار السنوي للأجور
+        """
+        annual_payroll = monthly_payroll * 12
+
+        if avg_salary <= 0 and number_of_employees > 0:
+            avg_salary = (monthly_payroll / number_of_employees) if monthly_payroll > 0 else 0
+
+        if avg_salary > 0:
+            cnas = self.calculate_cnas(avg_salary)
+            cnac = self.calculate_cnac(avg_salary)
+            irg = self.calculate_irg(
+                (avg_salary - cnas["employee_amount"] - cnac["employee_amount"]) * 12
+            )
+            cnas_emp_annual = cnas["employee_amount"] * 12
+            cnac_emp_annual = cnac["employee_amount"] * 12
+            irg_annual = irg["irg_amount"]
+        else:
+            cnas_emp_annual = 0
+            cnac_emp_annual = 0
+            irg_annual = 0
+
+        net_payroll = annual_payroll - cnas_emp_annual - cnac_emp_annual - irg_annual
+
+        return {
+            "number_of_employees": int(number_of_employees),
+            "monthly_payroll": round(monthly_payroll, 2),
+            "annual_payroll": round(annual_payroll, 2),
+            "cnas_employer_annual": round(cnas["employer_amount"] * 12, 2) if avg_salary > 0 else 0,
+            "cnas_employee_annual": round(cnas_emp_annual, 2),
+            "cnac_employer_annual": round(cnac["employer_amount"] * 12, 2) if avg_salary > 0 else 0,
+            "cnac_employee_annual": round(cnac_emp_annual, 2),
+            "irg_withheld_annual": round(irg_annual, 2),
+            "net_payroll_annual": round(net_payroll, 2)
+        }
+
     # ==================== TAX OBLIGATIONS ====================
 
     def get_obligations(self, month=None, activity_type="other", monthly_payroll=0, annual_turnover=0):
@@ -447,8 +589,8 @@ class TaxEngine:
             )
             vf = self.calculate_versement_forfaitaire(monthly_payroll, is_construction)
 
-            cnas_total = cnas["total"] * 12
-            cnac_total = cnac["total"] * 12
+            cnas_total = cnas["total"] * 12 * number_of_employees
+            cnac_total = cnac["total"] * 12 * number_of_employees
             irg_total = irg_annual["irg_amount"] * number_of_employees
             vf_total = vf["amount"] * 12
 

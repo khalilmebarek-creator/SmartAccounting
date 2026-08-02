@@ -122,6 +122,51 @@ QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {
     background-color: #F8FBFF;
 }
 
+QComboBox {
+    padding: 8px 12px;
+    border: 2px solid #DEE2E6;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    font-size: 10pt;
+    min-width: 140px;
+}
+
+QComboBox:hover {
+    border-color: #BDC3C7;
+}
+
+QComboBox:focus {
+    border: 2px solid #3498DB;
+    background-color: #F8FBFF;
+}
+
+QComboBox:disabled {
+    background-color: #F2F3F4;
+    color: #ABB2B9;
+    border-color: #E5E8E8;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 28px;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #2C3E50;
+    margin-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #DEE2E6;
+    selection-background-color: #3498DB;
+    selection-color: #FFFFFF;
+    padding: 5px;
+}
+
 /* ===== Buttons ===== */
 QPushButton {
     padding: 11px 24px;
@@ -148,6 +193,10 @@ QPushButton:disabled {
     background-color: #F2F3F4;
     color: #ABB2B9;
     border-color: #E5E8E8;
+}
+
+QPushButton:focus {
+    border: 2px solid #3498DB;
 }
 
 QPushButton#primaryBtn {
@@ -350,6 +399,15 @@ QInputDialog {
 /* ===== Message Box ===== */
 QMessageBox {
     background-color: #FFFFFF;
+}
+
+/* ===== Tool Tip ===== */
+QToolTip {
+    background-color: #2C3E50;
+    color: #ECF0F1;
+    border: 1px solid #3498DB;
+    border-radius: 4px;
+    padding: 5px;
 }
 
 /* ===== New Object-Name Rules (Light Theme) ===== */

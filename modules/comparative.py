@@ -98,7 +98,7 @@ class ComparativeAnalyzer:
         for item in self.key_items:
             row = f'{item:<25}'
             for year in years:
-                val = comparison['financial_data'][year][item]
+                val = comparison['financial_data'].get(year, {}).get(item, 0)
                 row += f'{val:>12,.2f}'
             lines.append(row)
         lines.append('')
@@ -127,7 +127,7 @@ class ComparativeAnalyzer:
         for ratio in self.ratio_keys:
             row = f'{ratio:<25}'
             for year in years:
-                val = comparison['ratios_by_year'][year][ratio]
+                val = comparison['ratios_by_year'].get(year, {}).get(ratio, 0)
                 row += f'{val:>12.4f}'
             lines.append(row)
         lines.append('')

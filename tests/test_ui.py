@@ -374,5 +374,43 @@ class TestDataEntryView(unittest.TestCase):
         self.assertNotEqual(self.dev.company_activity.currentIndex(), 0)
 
 
+class TestCostCenterProfitabilityView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.cost_center_profitability_view import CostCenterProfitabilityView
+        self.cpv = CostCenterProfitabilityView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.cpv)
+
+    def test_center_table_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'center_table'))
+
+    def test_center_table_has_max_rows(self):
+        self.assertEqual(self.cpv.center_table.rowCount(), self.cpv.MAX_CENTERS)
+
+    def test_method_combo_has_items(self):
+        self.assertGreater(self.cpv.method_combo.count(), 0)
+
+    def test_run_button_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'run_btn'))
+
+    def test_analysis_tab_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'analysis_table'))
+
+    def test_comparison_tab_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'comparison_table'))
+
+    def test_standards_table_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'standards_table'))
+
+    def test_recommendations_table_exists(self):
+        self.assertTrue(hasattr(self.cpv, 'rec_table'))
+
+    def test_no_data_shows_when_empty(self):
+        self.cpv.refresh()
+        self.assertFalse(self.cpv.no_data_label.isHidden())
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

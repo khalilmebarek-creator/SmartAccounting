@@ -40,6 +40,11 @@ distribution/
 nuitka_*.txt
 nuitka_*.xml
 
+# Coverage artifacts
+.coverage
+htmlcov/
+.coverage.*
+
 # Binary files
 *.exe
 *.zip

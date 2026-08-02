@@ -356,7 +356,7 @@ class UserManager:
             del self._reset_tokens[email]
             self._save()
             return False, "err_reset_expired"
-        if record["token"] != token.strip():
+        if token is None or record["token"] != token.strip():
             return False, "err_reset_invalid_token"
         ok, err = validate_password_strength(new_password)
         if not ok:

@@ -43,11 +43,13 @@
     "rates": {
       "standard": 0.19,
       "reduced": 0.09,
+      "intermediate": 0.06,
       "zero": 0.0
     },
     "rate_labels_ar": {
       "standard": "النسبة العادية (19%)",
       "reduced": "النسبة المخفضة (9%)",
+      "intermediate": "النسبة الوسطية (6%)",
       "zero": "خاضع لـ 0% (معفي)"
     },
     "reduced_rate_items": [

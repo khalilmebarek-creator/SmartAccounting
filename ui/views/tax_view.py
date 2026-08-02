@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QDoubleSpinBox, QComboBox, QGroupBox, QFrame, QScrollArea,
     QTableWidget, QTableWidgetItem, QMessageBox, QTextEdit,
-    QTabWidget, QFormLayout, QHeaderView, QSplitter
+    QTabWidget, QFormLayout, QHeaderView, QSplitter, QFileDialog
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QColor
@@ -13,6 +13,8 @@ from PyQt5.QtGui import QFont, QColor
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
 from modules.tax import TaxEngine
+from modules.tax_reports import tax_declaration_generator
+from datetime import datetime
 
 
 class TaxView(QWidget):
@@ -24,6 +26,7 @@ class TaxView(QWidget):
         super().__init__()
         self.tax_engine = TaxEngine()
         self.last_simulation = None
+        self._current_declaration = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -51,6 +54,7 @@ class TaxView(QWidget):
         self._build_simulation_tab()
         self._build_tax_calculators_tab()
         self._build_obligations_tab()
+        self._build_declarations_tab()
 
         self.setLayout(self.main_layout)
 
@@ -252,6 +256,7 @@ class TaxView(QWidget):
         self.tva_rate_combo.addItems([
             t("tax_rate_standard"),
             t("tax_rate_reduced"),
+            t("tax_rate_intermediate"),
             t("tax_rate_zero")
         ])
         tva_layout.addRow(t("tax_tva_rate_label"), self.tva_rate_combo)
@@ -436,6 +441,318 @@ class TaxView(QWidget):
         layout.addStretch()
         self.tabs.addTab(tab, t("tax_tab_obligations"))
 
+    def _build_declarations_tab(self):
+        """بناء تبويب الإقرارات الجبائية (G50/G57/DAS)"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setSpacing(12)
+
+        splitter = QSplitter(Qt.Horizontal)
+
+        left_widget = QWidget()
+        left_layout = QVBoxLayout(left_widget)
+        left_layout.setSpacing(10)
+
+        self.decl_company_group = QGroupBox(t("taxdecl_company_group"))
+        company_form = QFormLayout()
+        company_form.setSpacing(8)
+
+        self.decl_name_input = QLineEdit(state.company_name)
+        company_form.addRow(t("taxdecl_company_name"), self.decl_name_input)
+
+        self.decl_nif_input = QLineEdit(state.company_nif)
+        company_form.addRow(t("taxdecl_nif"), self.decl_nif_input)
+
+        self.decl_rc_input = QLineEdit(state.company_rc)
+        company_form.addRow(t("taxdecl_rc"), self.decl_rc_input)
+
+        self.decl_ai_input = QLineEdit()
+        company_form.addRow(t("taxdecl_ai"), self.decl_ai_input)
+
+        self.decl_address_input = QLineEdit(state.company_address)
+        company_form.addRow(t("taxdecl_address"), self.decl_address_input)
+
+        self.decl_dgi_input = QLineEdit()
+        company_form.addRow(t("taxdecl_dgi"), self.decl_dgi_input)
+
+        self.decl_company_group.setLayout(company_form)
+        self.decl_company_form = company_form
+        left_layout.addWidget(self.decl_company_group)
+
+        self.decl_period_group = QGroupBox(t("taxdecl_period_group"))
+        period_form = QFormLayout()
+        period_form.setSpacing(8)
+
+        self.decl_type_combo = QComboBox()
+        self.decl_type_combo.addItems([
+            t("taxdecl_g50"), t("taxdecl_g57"), t("taxdecl_das")
+        ])
+        self.decl_type_combo.currentIndexChanged.connect(self._on_decl_type_changed)
+        period_form.addRow(t("taxdecl_type"), self.decl_type_combo)
+
+        self.decl_month_combo = QComboBox()
+        self.decl_month_combo.addItems([
+            t("tax_month_jan"), t("tax_month_feb"), t("tax_month_mar"),
+            t("tax_month_apr"), t("tax_month_may"), t("tax_month_jun"),
+            t("tax_month_jul"), t("tax_month_aug"), t("tax_month_sep"),
+            t("tax_month_oct"), t("tax_month_nov"), t("tax_month_dec")
+        ])
+        period_form.addRow(t("taxdecl_month"), self.decl_month_combo)
+
+        self.decl_year_combo = QComboBox()
+        current_year = datetime.now().year
+        year_items = [str(y) for y in range(current_year + 1, current_year - 5, -1)]
+        self.decl_year_combo.addItems(year_items)
+        fy_text = str(state.fiscal_year)
+        if fy_text in year_items:
+            self.decl_year_combo.setCurrentText(fy_text)
+        period_form.addRow(t("taxdecl_year"), self.decl_year_combo)
+
+        self.decl_period_group.setLayout(period_form)
+        self.decl_period_form = period_form
+        left_layout.addWidget(self.decl_period_group)
+
+        self.decl_data_group = QGroupBox(t("taxdecl_data_group"))
+        data_form = QFormLayout()
+        data_form.setSpacing(8)
+
+        def _money_input():
+            spin = QDoubleSpinBox()
+            spin.setRange(0, 999999999999)
+            spin.setDecimals(0)
+            spin.setGroupSeparatorShown(True)
+            spin.setSuffix(" DZD")
+            return spin
+
+        self.decl_turnover_lbl = QLabel(t("taxdecl_turnover"))
+        self.decl_turnover_input = _money_input()
+        data_form.addRow(self.decl_turnover_lbl, self.decl_turnover_input)
+
+        self.decl_collected_lbl = QLabel(t("taxdecl_collected"))
+        self.decl_collected_input = _money_input()
+        data_form.addRow(self.decl_collected_lbl, self.decl_collected_input)
+
+        self.decl_deductible_lbl = QLabel(t("taxdecl_deductible"))
+        self.decl_deductible_input = _money_input()
+        data_form.addRow(self.decl_deductible_lbl, self.decl_deductible_input)
+
+        self.decl_credit_lbl = QLabel(t("taxdecl_previous_credit"))
+        self.decl_credit_input = _money_input()
+        data_form.addRow(self.decl_credit_lbl, self.decl_credit_input)
+
+        self.decl_taxable_lbl = QLabel(t("taxdecl_taxable"))
+        self.decl_taxable_input = _money_input()
+        data_form.addRow(self.decl_taxable_lbl, self.decl_taxable_input)
+
+        self.decl_activity_lbl = QLabel(t("taxdecl_activity"))
+        self.decl_activity_combo = QComboBox()
+        self.decl_activity_combo.addItems([
+            t("tax_activity_production"),
+            t("tax_activity_construction"),
+            t("tax_activity_other")
+        ])
+        data_form.addRow(self.decl_activity_lbl, self.decl_activity_combo)
+
+        self.decl_acomptes_lbl = QLabel(t("taxdecl_acomptes_paid"))
+        self.decl_acomptes_input = _money_input()
+        data_form.addRow(self.decl_acomptes_lbl, self.decl_acomptes_input)
+
+        self.decl_payroll_lbl = QLabel(t("taxdecl_payroll"))
+        self.decl_payroll_input = _money_input()
+        data_form.addRow(self.decl_payroll_lbl, self.decl_payroll_input)
+
+        self.decl_employees_lbl = QLabel(t("taxdecl_employees"))
+        self.decl_employees_input = QDoubleSpinBox()
+        self.decl_employees_input.setRange(0, 99999)
+        self.decl_employees_input.setDecimals(0)
+        data_form.addRow(self.decl_employees_lbl, self.decl_employees_input)
+
+        self.decl_avg_salary_lbl = QLabel(t("taxdecl_avg_salary"))
+        self.decl_avg_salary_input = _money_input()
+        data_form.addRow(self.decl_avg_salary_lbl, self.decl_avg_salary_input)
+
+        data_group = self.decl_data_group
+        data_group.setLayout(data_form)
+        left_layout.addWidget(data_group)
+
+        btn_layout = QHBoxLayout()
+        self.decl_prefill_btn = QPushButton(t("taxdecl_prefill"))
+        self.decl_prefill_btn.clicked.connect(self._prefill_declaration)
+        btn_layout.addWidget(self.decl_prefill_btn)
+        self.decl_generate_btn = QPushButton(t("taxdecl_generate"))
+        self.decl_generate_btn.setObjectName("primaryBtn")
+        self.decl_generate_btn.setMinimumHeight(40)
+        self.decl_generate_btn.clicked.connect(self._generate_declaration)
+        btn_layout.addWidget(self.decl_generate_btn)
+        left_layout.addLayout(btn_layout)
+
+        splitter.addWidget(left_widget)
+
+        right_widget = QWidget()
+        right_layout = QVBoxLayout(right_widget)
+        right_layout.setSpacing(10)
+
+        self.decl_preview_group = QGroupBox(t("taxdecl_preview_group"))
+        preview_layout = QVBoxLayout()
+        self.decl_preview = QTextEdit()
+        self.decl_preview.setReadOnly(True)
+        self.decl_preview.setObjectName("detailText")
+        self.decl_preview.setPlaceholderText(t("taxdecl_preview_empty"))
+        preview_layout.addWidget(self.decl_preview)
+        self.decl_preview_group.setLayout(preview_layout)
+        right_layout.addWidget(self.decl_preview_group)
+
+        export_layout = QHBoxLayout()
+        export_layout.addStretch()
+        self.decl_export_pdf_btn = QPushButton(t("taxdecl_export_pdf"))
+        self.decl_export_pdf_btn.clicked.connect(self._export_declaration_pdf)
+        export_layout.addWidget(self.decl_export_pdf_btn)
+        self.decl_export_excel_btn = QPushButton(t("taxdecl_export_excel"))
+        self.decl_export_excel_btn.clicked.connect(self._export_declaration_excel)
+        export_layout.addWidget(self.decl_export_excel_btn)
+        right_layout.addLayout(export_layout)
+
+        splitter.addWidget(right_widget)
+        splitter.setSizes([430, 480])
+
+        layout.addWidget(splitter)
+        self.tabs.addTab(tab, t("taxdecl_tab"))
+        self._on_decl_type_changed(0)
+
+    def _on_decl_type_changed(self, index):
+        """إظهار حقول الإدخال حسب نوع الإقرار"""
+        is_g50 = index == 0
+        is_g57 = index == 1
+        is_das = index == 2
+
+        for w in [
+            self.decl_turnover_lbl, self.decl_turnover_input,
+            self.decl_collected_lbl, self.decl_collected_input,
+            self.decl_deductible_lbl, self.decl_deductible_input,
+            self.decl_credit_lbl, self.decl_credit_input,
+        ]:
+            w.setVisible(is_g50)
+
+        for w in [
+            self.decl_taxable_lbl, self.decl_taxable_input,
+            self.decl_activity_lbl, self.decl_activity_combo,
+            self.decl_acomptes_lbl, self.decl_acomptes_input,
+        ]:
+            w.setVisible(is_g57)
+
+        for w in [
+            self.decl_payroll_lbl, self.decl_payroll_input,
+            self.decl_employees_lbl, self.decl_employees_input,
+            self.decl_avg_salary_lbl, self.decl_avg_salary_input,
+        ]:
+            w.setVisible(is_das)
+
+        self.decl_month_combo.setVisible(is_g50)
+
+    def _prefill_declaration(self):
+        """تعبئة الحقول من آخر محاكاة"""
+        if not self.last_simulation:
+            QMessageBox.warning(self, t("error"), t("tax_enter_revenue"))
+            return
+        sim = self.last_simulation
+        revenue = sim.get("revenue", 0)
+        rate = self.tax_engine.get_tva_rates().get("standard", 0.19)
+
+        self.decl_turnover_input.setValue(revenue / 12 if revenue else 0)
+        self.decl_collected_input.setValue(revenue * rate if revenue else 0)
+        self.decl_deductible_input.setValue(0)
+        self.decl_taxable_input.setValue(sim.get("taxable_income", 0))
+
+        ibs_tax = sim.get("ibs", {}).get("tax_amount", 0)
+        self.decl_acomptes_input.setValue(round(ibs_tax / 3, 2) if ibs_tax else 0)
+
+        employees = sim.get("employees", {})
+        if isinstance(employees, dict):
+            count = employees.get("count", 0)
+            avg_salary = employees.get("avg_salary", 0)
+            self.decl_employees_input.setValue(count)
+            self.decl_avg_salary_input.setValue(avg_salary)
+            self.decl_payroll_input.setValue(count * avg_salary)
+
+    def _build_declaration_data(self):
+        """بناء بيانات الإقرار من الحقول"""
+        company_info = {
+            "company_name": self.decl_name_input.text().strip(),
+            "nif": self.decl_nif_input.text().strip(),
+            "rc": self.decl_rc_input.text().strip(),
+            "ai": self.decl_ai_input.text().strip(),
+            "address": self.decl_address_input.text().strip(),
+            "dgi_center": self.decl_dgi_input.text().strip(),
+        }
+        year = int(self.decl_year_combo.currentText())
+        idx = self.decl_type_combo.currentIndex()
+
+        if idx == 0:
+            decl_type = "g50"
+            data = {
+                "header": tax_declaration_generator.build_header(company_info, year),
+                "month": self.decl_month_combo.currentIndex() + 1,
+                "year": year,
+                "monthly_turnover": self._get_float(self.decl_turnover_input),
+                "tva_collected": self._get_float(self.decl_collected_input),
+                "tva_deductible": self._get_float(self.decl_deductible_input),
+                "previous_credit": self._get_float(self.decl_credit_input),
+            }
+        elif idx == 1:
+            decl_type = "g57"
+            data = {
+                "header": tax_declaration_generator.build_header(company_info, year),
+                "taxable_income": self._get_float(self.decl_taxable_input),
+                "acomptes_paid": self._get_float(self.decl_acomptes_input),
+                "activity_type": self._get_activity_type(self.decl_activity_combo),
+            }
+        else:
+            decl_type = "das"
+            data = {
+                "header": tax_declaration_generator.build_header(company_info, year),
+                "monthly_payroll": self._get_float(self.decl_payroll_input),
+                "number_of_employees": int(self._get_float(self.decl_employees_input) or 0),
+                "avg_salary": self._get_float(self.decl_avg_salary_input),
+            }
+        return decl_type, data
+
+    def _generate_declaration(self):
+        """توليد ومعاينة الإقرار"""
+        decl_type, data = self._build_declaration_data()
+        declaration = tax_declaration_generator.generate(decl_type, data)
+        self._current_declaration = declaration
+        self.decl_preview.setPlainText(tax_declaration_generator.render_text(declaration))
+
+    def _export_declaration_pdf(self):
+        """تصدير الإقرار إلى PDF"""
+        if not self._current_declaration:
+            QMessageBox.warning(self, t("error"), t("taxdecl_no_data"))
+            return
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, t("taxdecl_export_pdf"), "declaration.pdf", "PDF Files (*.pdf)"
+        )
+        if not file_path:
+            return
+        if tax_declaration_generator.export_pdf(self._current_declaration, file_path):
+            QMessageBox.information(self, t("success"), f"✅ {t('taxdecl_success')}\n{file_path}")
+        else:
+            QMessageBox.critical(self, t("error"), t("taxdecl_success"))
+
+    def _export_declaration_excel(self):
+        """تصدير الإقرار إلى Excel"""
+        if not self._current_declaration:
+            QMessageBox.warning(self, t("error"), t("taxdecl_no_data"))
+            return
+        file_path, _ = QFileDialog.getSaveFileName(
+            self, t("taxdecl_export_excel"), "declaration.xlsx", "Excel Files (*.xlsx)"
+        )
+        if not file_path:
+            return
+        if tax_declaration_generator.export_excel(self._current_declaration, file_path):
+            QMessageBox.information(self, t("success"), f"✅ {t('taxdecl_success')}\n{file_path}")
+        else:
+            QMessageBox.critical(self, t("error"), t("taxdecl_success"))
+
     def _get_float(self, input_field):
         """استخراج قيمة عددية من حقل"""
         try:
@@ -593,13 +910,9 @@ class TaxView(QWidget):
         if amount is None:
             QMessageBox.warning(self, t("error"), t("tax_enter_all"))
             return
+        rate_types = ["standard", "reduced", "intermediate", "zero"]
         idx = self.tva_rate_combo.currentIndex()
-        if idx == 0:
-            rate_type = "standard"
-        elif idx == 1:
-            rate_type = "reduced"
-        else:
-            rate_type = "zero"
+        rate_type = rate_types[idx] if 0 <= idx < len(rate_types) else "standard"
         result = self.tax_engine.calculate_tva(amount, rate_type)
         self.tva_result_label.setText(
             f"<b>{t('tax_tva_amount')}</b> {result['tva_amount']:,.0f} DZD<br>"
@@ -751,8 +1064,95 @@ class TaxView(QWidget):
         • {t('tax_oblig_info_day')}
         """)
 
+        current_rate = self.tva_rate_combo.currentIndex()
+        self.tva_rate_combo.clear()
+        self.tva_rate_combo.addItems([
+            t("tax_rate_standard"),
+            t("tax_rate_reduced"),
+            t("tax_rate_intermediate"),
+            t("tax_rate_zero")
+        ])
+        self.tva_rate_combo.setCurrentIndex(current_rate)
+
+        self.decl_company_group.setTitle(t("taxdecl_company_group"))
+        self.decl_period_group.setTitle(t("taxdecl_period_group"))
+        self.decl_data_group.setTitle(t("taxdecl_data_group"))
+        self.decl_preview_group.setTitle(t("taxdecl_preview_group"))
+
+        company_fields = [
+            (self.decl_name_input, "taxdecl_company_name"),
+            (self.decl_nif_input, "taxdecl_nif"),
+            (self.decl_rc_input, "taxdecl_rc"),
+            (self.decl_ai_input, "taxdecl_ai"),
+            (self.decl_address_input, "taxdecl_address"),
+            (self.decl_dgi_input, "taxdecl_dgi"),
+        ]
+        for field, key in company_fields:
+            label = self.decl_company_form.labelForField(field)
+            if label:
+                label.setText(t(key))
+
+        current_type = self.decl_type_combo.currentIndex()
+        self.decl_type_combo.blockSignals(True)
+        self.decl_type_combo.clear()
+        self.decl_type_combo.addItems([
+            t("taxdecl_g50"), t("taxdecl_g57"), t("taxdecl_das")
+        ])
+        self.decl_type_combo.setCurrentIndex(current_type)
+        self.decl_type_combo.blockSignals(False)
+        label = self.decl_period_form.labelForField(self.decl_type_combo)
+        if label:
+            label.setText(t("taxdecl_type"))
+
+        current_month = self.decl_month_combo.currentIndex()
+        self.decl_month_combo.clear()
+        self.decl_month_combo.addItems([
+            t("tax_month_jan"), t("tax_month_feb"), t("tax_month_mar"),
+            t("tax_month_apr"), t("tax_month_may"), t("tax_month_jun"),
+            t("tax_month_jul"), t("tax_month_aug"), t("tax_month_sep"),
+            t("tax_month_oct"), t("tax_month_nov"), t("tax_month_dec")
+        ])
+        self.decl_month_combo.setCurrentIndex(current_month)
+        label = self.decl_period_form.labelForField(self.decl_month_combo)
+        if label:
+            label.setText(t("taxdecl_month"))
+        label = self.decl_period_form.labelForField(self.decl_year_combo)
+        if label:
+            label.setText(t("taxdecl_year"))
+
+        current_activity = self.decl_activity_combo.currentIndex()
+        self.decl_activity_combo.clear()
+        self.decl_activity_combo.addItems([
+            t("tax_activity_production"),
+            t("tax_activity_construction"),
+            t("tax_activity_other")
+        ])
+        self.decl_activity_combo.setCurrentIndex(current_activity)
+
+        data_labels = [
+            (self.decl_turnover_lbl, "taxdecl_turnover"),
+            (self.decl_collected_lbl, "taxdecl_collected"),
+            (self.decl_deductible_lbl, "taxdecl_deductible"),
+            (self.decl_credit_lbl, "taxdecl_previous_credit"),
+            (self.decl_taxable_lbl, "taxdecl_taxable"),
+            (self.decl_activity_lbl, "taxdecl_activity"),
+            (self.decl_acomptes_lbl, "taxdecl_acomptes_paid"),
+            (self.decl_payroll_lbl, "taxdecl_payroll"),
+            (self.decl_employees_lbl, "taxdecl_employees"),
+            (self.decl_avg_salary_lbl, "taxdecl_avg_salary"),
+        ]
+        for label, key in data_labels:
+            label.setText(t(key))
+
+        self.decl_prefill_btn.setText(t("taxdecl_prefill"))
+        self.decl_generate_btn.setText(t("taxdecl_generate"))
+        self.decl_export_pdf_btn.setText(t("taxdecl_export_pdf"))
+        self.decl_export_excel_btn.setText(t("taxdecl_export_excel"))
+        self.decl_preview.setPlaceholderText(t("taxdecl_preview_empty"))
+
         current_tab = self.tabs.currentIndex()
         self.tabs.setTabText(0, t("tax_tab_simulation"))
         self.tabs.setTabText(1, t("tax_tab_calculators"))
         self.tabs.setTabText(2, t("tax_tab_obligations"))
+        self.tabs.setTabText(3, t("taxdecl_tab"))
         self.tabs.setCurrentIndex(current_tab)

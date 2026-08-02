@@ -17,12 +17,33 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 ## قواعد الرفع
 - بعد كل تعديل كود، تحديث الموقع (docs/) مطلوب
 - بعد كل تعديل، تحديث PROJECT_MAP.md مطلوب
-- الإصدار الحالي: v3.1.4
+- الإصدار الحالي: v3.1.6
 
-## الحالة الحالية (2026-07-31)
+## الحالة الحالية (2026-08-01)
+- التوثيق الشامل (جلسة v3.1.8): API_REFERENCE.md أعيدت بصيغة UTF-8 + docs/api/openapi.yaml (OpenAPI 3.0 — 325 عملية، تُعرض في docs/api/index.html) + USER_GUIDE.md (29 شاشة/ممارسات/FAQ) + tutorials/ (4 سكربتات فيديو AI) + KNOWLEDGE_BASE.md (فهرس)
 - 20 نسبة مالية في RatiosView + z_score في منفصل
 - 3 حقول إدخال جديدة: cash, operating_expenses, average_payables
-- 37 اختبارات كلها ناجحة
+- شاشة DuPont متقدمة: شلال/خط/مؤشر ROE + مقارنة قطاعية + توصيات + تصدير PDF
+- شاشة تحليل السيناريوهات: مثالي/طبيعي/أسوأ + حساسية Tornado + خط/شريط/مساحة + PDF + حفظ JSON/DB
+- ميزة المعايير المرجعية المتقدمة: أفضل الممارسات + معيار دولي + نقاط قوة/ضعف + اتجاه عبر السنوات + مقارنة منافسين (جدولا reference_standards + competitor_data)
+- لوحة التحكم المتقدمة: 6 بطاقات KPI بحالة لونية + 4 رسوم (إيرادات شهرية/ربعية + مصروفات + ربحية + رادار) + تنبيهات (شذوذ/أداء/معايير/إجراءات) + تخصيص كامل + حفظ تخطيطات DB (جدول dashboard_layouts) + تصدير PDF/Excel
+- ميزة الامتثال الضريبي الجزائري: نسبة TVA 6% (intermediate) + ترحيل رصيد TVA + دفعات IBS المقدمة (أشهر 3,6,11) + تصفية IBS + بيانات DAS + قوالب إقرارات G50/G57/DAS مع تصدير PDF/Excel (modules/tax_reports.py + تبويب إقرارات في tax_view.py)
+- محرك الرؤى الذكية AI (شاشة 24): تنبؤ 3-6 أشهر (خطي/متوسط متحرك/تجانس أسي + فترات ثقة 95%) + كشف شذوذ (z-score للأرباح + IQR للمعاملات) + أنماط (اتجاه/موسمية/دورات/مؤشرات مخاطر) + توصيات ذكية + تنبيهات (خطر/تحذير/فرصة/إجراء) + تصدير PDF/Excel (modules/ai_insights.py + ui/views/ai_insights_view.py — pandas/numpy فقط بدون sklearn)
+- تحليل ربحية مراكز التكلفة (شاشة 25): مراكز (قسم/مشروع/فرع/خط إنتاج) + توزيع مباشر/غير مباشر (إيرادات/عدد موظفين/مساحة/متساوٍ) + تحليل ربحية + مقارنات (سابقة/ميزانية/معايير) + اتجاه متعدد الفترات + تقارير/توصيات + تصدير PDF/Excel (modules/cost_center_profitability.py + ui/views/cost_center_profitability_view.py)
+- تحسين أداء شامل (v3.1.6): تحميل كسول للمشاهد (main_window.py) + PEP 562 للوحدات (modules/__init__.py) + تجمّع اتصالات DB (db_connection.py + close_pool) + دفعات executemany (db_operations.py) + لوحة تحكم بلا إعادة رسم (dashboard.py) — إقلاع 778→49ms، RSS 128→45MB، حفظ DB 4.6×، قراءة 17× (التفاصيل: docs/PERFORMANCE_REPORT.md)
+- تعدد العملات (شاشة 26): 7 عملات افتراضية + أسعار صرف + تحويل + تقرير متعدد العملات + تصدير CSV (modules/currency.py + ui/views/currency_view.py + حالة في app_state.py)
+- المزامنة السحابية والنسخ الاحتياطي (شاشة 27): وجهات مزامنة (Dropbox/OneDrive/Drive) + snapshot مع checksum + تشفير اختياري بكلمة مرور (AES-GCM) + نسخ احتياطي تلقائي مع تدوير + استرجاع/سحب + سجل عمليات DB (modules/cloud_sync.py + ui/views/cloud_sync_view.py — جدول cloud_sync_state)
+- الشركات التجريبية (شاشة 28): 4 شركات (تجارية/خدمات/إنتاج/استيراد-تصدير) ببيانات مالية وضريبية متسقة + مولّد معاملات شهرية (12 شهراً بأوزان موسمية) + تحميل شركة للتطبيق + تقارير مُعدّة مسبقاً (ميزانية/دخل/نسب) + تصدير بيانات CSV + قوالب استيراد CSV متوافقة مع DataImporter (modules/demo_data.py + modules/demo_templates.py + ui/views/demo_data_view.py)
+- تحسينات UI/UX (شاشات 28): اختصارات كاملة (Ctrl+1..0، Ctrl+Shift+1..0، Ctrl+Shift+A، F2..F8 للشاشات 21-28، Ctrl+T للثيم، F1 للاختصارات) + قائمة "عرض" ديناميكية بكل الشاشات 28 + نافذة اختصارات كاملة + انتقالات تلاشي عند تغيير الشاشة + مؤشر تحميل في شريط الحالة + رسائل خطأ موحّدة مع إجراء مقترح مترجم (ui/widgets/messages.py + ربط أخطاء الطباعة/التصدير/الاختبارات) + تحسينات إتاحة/تباين بالثيمات الثلاثة (focus/disabled/ComboBox/ToolTip + تباين نص داكن)
+- شاشة اختبار المستخدمين (شاشة 29): 4 مجموعات مستخدمين × 5 سيناريوهات + ملاحظات/مقترحات/أعطال بتصنيفات/أولويات/حالات + درجة رضا بقيود + تحليل مفصّل + تقارير (تعقيبات/قائمة أعطال/طلبات تحسين/ملخص) + بيانات تجريبية + تصدير/استيراد JSON + CSV/Excel/PDF + حفظ/تحميل DB (modules/user_testing.py + ui/views/user_testing_view.py — قنوات DB عبر get_connection)
+- 1350 اختباراً كلها ناجحة عبر `python -m pytest tests -q` (1127 عبر `python -m unittest discover -s tests`)
+- تغطية الوحدات: **100%** عبر `python -m coverage run --source=modules --omit="modules/__init__.py" -m pytest tests -q` (5768 سطراً، 0 مفقود — كانت 73% ثم 99%)
+- التغطية الشاملة: 20 ملف اختبار جديد (test_edge_errors, test_cashflow, test_comparative, test_backup, test_bank_print, test_breakeven_costcenter, test_reporting_modules, test_email_currency, test_importers, test_excel_export, test_reporting_extra, test_user_manager, test_update_checker_extra, test_cloud_sync_extra, test_tax_reminders_extra, test_tax_reports_extra, test_small_gaps) — الميزات الست (DuPont/Scenarios/Benchmarks/AI/Tax/Anomaly) + cashflow + comparative عند 100% + قائمة أخطاء مفصّلة في PROJECT_MAP.md
+- اختبار التكامل (جلسة v3.1.7): 3 ملفات جديدة — test_integration_workflow.py (9: رحلات مستخدم كاملة + إدارة حالة + اتساق تدفق البيانات) + test_integration_database.py (18: سلامة/معاملات/تزامن/نسخ-استرجاع) + test_integration_performance.py (10: 1000+ معاملة + مستخدمون متزامنون + بيانات كبيرة + إجهاد ذاكرة) — كشفت 3 أخطاء منتج أُصلحت (working_capital لا يُخزَّن في analysis.py، delete_analysis يفشل مع notes في db_operations.py، backup.py يفقد بيانات WAL) + تقرير docs/INTEGRATION_REPORT.md
+- شاشة اختبار المستخدمين (جلسة v3.1.8): test_user_testing.py (66: جلسات/ملاحظات/رضا/تقارير/JSON/DB/أعطال تصدير) — user_testing.py وصل 100% + إصلاح تصدير PDF عند غياب خط عربي (cp1252 fallback)
+- جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
+- إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
+- i18n: 1626 مفتاحاً × 3 لغات (AR/EN/FR)
 - Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (133 MB)
 - Inno Setup: installer_output/SmartAccounting-Setup-v3.1.4.exe (63.2 MB)
 - ZIP: installer_output/SmartAccounting-v3.1.4-win64.zip (41.4 MB)

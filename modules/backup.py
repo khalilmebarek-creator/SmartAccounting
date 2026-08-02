@@ -28,7 +28,16 @@ class BackupManager:
         try:
             os.makedirs(os.path.dirname(backup_path) or '.', exist_ok=True)
             if os.path.exists(self.db_path):
-                shutil.copy2(self.db_path, backup_path)
+                # استخدام SQLite Online Backup API للحصول على لقطة متسقة حتى في وضع WAL
+                source = sqlite3.connect(self.db_path)
+                try:
+                    target = sqlite3.connect(backup_path)
+                    try:
+                        source.backup(target)
+                    finally:
+                        target.close()
+                finally:
+                    source.close()
             else:
                 conn = sqlite3.connect(backup_path)
                 conn.close()
@@ -71,13 +80,33 @@ class BackupManager:
         except Exception as e:
             logger.warning(f"Backup rotation failed: {e}")
 
+    def _is_valid_sqlite(self, path: str) -> bool:
+        """تحقق من أن الملف قاعدة SQLite صالحة (رأس سليم + قابل للقراءة)."""
+        try:
+            with open(path, "rb") as f:
+                if f.read(16) != b"SQLite format 3\x00":
+                    return False
+            conn = sqlite3.connect(path)
+            try:
+                conn.execute("SELECT name FROM sqlite_master LIMIT 1").fetchone()
+            finally:
+                conn.close()
+            return True
+        except Exception:
+            return False
+
     def restore(self, backup_path):
         try:
             if not os.path.exists(backup_path):
                 return (False, f"Backup file not found: {backup_path}")
+            if not self._is_valid_sqlite(backup_path):
+                return (False, "Backup file is not a valid SQLite database")
             ok, backup_file = self.auto_backup("pre_restore")
             if ok:
                 logger.info(f"Pre-restore backup created: {backup_file}")
+            # إغلاق الاتصالات المُجمّعة قبل استبدال الملف (تجنب الأقفال والوهوات القديمة)
+            from database.db_connection import close_pool
+            close_pool()
             os.makedirs(os.path.dirname(self.db_path) or '.', exist_ok=True)
             shutil.copy2(backup_path, self.db_path)
             return (True, "Database restored successfully")
@@ -111,12 +140,14 @@ class BackupManager:
             tables = cursor.fetchall()
             count = 0
             for table in tables:
-                table_name = _sanitize_name(table[0])
+                table_name = table[0]
                 cursor.execute(f"SELECT * FROM [{table_name}]")
                 columns = [desc[0] for desc in cursor.description]
                 rows = cursor.fetchall()
                 data = [dict(zip(columns, row)) for row in rows]
-                json_file = os.path.join(directory, f"{table_name}.json")
+                json_file = os.path.join(
+                    directory, f"{_sanitize_name(table_name)}.json"
+                )
                 with open(json_file, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2, default=str)
                 count += 1

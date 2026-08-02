@@ -1,4 +1,4 @@
-/* ===== Dark Mode Stylesheet ===== */
+﻿/* ===== Dark Mode Stylesheet ===== */
 
 /* === Global === */
 QWidget {
@@ -27,7 +27,7 @@ QMainWindow {
     padding: 14px 20px;
     margin: 4px 8px;
     border-radius: 8px;
-    color: #B0B0B0;
+    color: #C8C8C8;
     border: 1px solid transparent;
 }
 
@@ -69,7 +69,7 @@ QLabel#headerTitle {
 
 QLabel#headerSubtitle {
     font-size: 10pt;
-    color: #888888;
+    color: #9A9A9A;
     padding: 2px 0;
 }
 
@@ -84,7 +84,7 @@ QLabel#sectionTitle {
 
 QLabel#cardTitle {
     font-size: 9pt;
-    color: #888888;
+    color: #9A9A9A;
 }
 
 QLabel#cardValue {
@@ -148,7 +148,7 @@ QPushButton#dangerBtn:hover {
 
 QPushButton#secondaryBtn {
     background-color: #2A2A4A;
-    color: #B0B0B0;
+    color: #C8C8C8;
     border: 1px solid #3A3A6A;
     padding: 12px 28px;
     border-radius: 8px;
@@ -179,7 +179,7 @@ QPushButton#pdfBtn:hover {
 
 QPushButton {
     background-color: #2A2A4A;
-    color: #B0B0B0;
+    color: #C8C8C8;
     border: 1px solid #3A3A6A;
     padding: 8px 16px;
     border-radius: 6px;
@@ -188,6 +188,16 @@ QPushButton {
 QPushButton:hover {
     background-color: #3A3A6A;
     border: 1px solid #5A5A8A;
+}
+
+QPushButton:disabled {
+    background-color: #1F1F3A;
+    color: #55557A;
+    border: 1px solid #26264A;
+}
+
+QPushButton:focus {
+    border: 2px solid #00D2FF;
 }
 
 /* === Input Fields === */
@@ -306,6 +316,17 @@ QComboBox:hover {
     border: 2px solid #00D2FF;
 }
 
+QComboBox:focus {
+    border: 2px solid #00D2FF;
+    background-color: #1A1A40;
+}
+
+QComboBox:disabled {
+    background-color: #1F1F3A;
+    color: #55557A;
+    border: 1px solid #26264A;
+}
+
 QComboBox::drop-down {
     border: none;
     width: 30px;
@@ -398,7 +419,7 @@ QMenuBar {
 QMenuBar::item {
     padding: 6px 12px;
     border-radius: 4px;
-    color: #B0B0B0;
+    color: #C8C8C8;
 }
 
 QMenuBar::item:selected {
@@ -434,7 +455,7 @@ QTabWidget::pane {
 
 QTabBar::tab {
     background-color: #0F0F23;
-    color: #888888;
+    color: #9A9A9A;
     padding: 10px 20px;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
@@ -455,7 +476,7 @@ QTabBar::tab:hover {
 /* === Status Bar === */
 QStatusBar {
     background-color: #0F0F23;
-    color: #888888;
+    color: #9A9A9A;
     border-top: 1px solid #2A2A4A;
     font-size: 9pt;
 }
@@ -508,7 +529,7 @@ QFrame#separator {
 }
 
 QLabel#subtitleLabel {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 11pt;
 }
 
@@ -519,7 +540,7 @@ QLabel#resultLabel {
 }
 
 QLabel#detailText {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 9pt;
 }
 
@@ -549,17 +570,17 @@ QFrame#roeCard {
 }
 
 QLabel#cardSubtitle {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 9pt;
 }
 
 QLabel#cardDesc {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 10pt;
 }
 
 QLabel#placeholderLabel {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 11pt;
     padding: 40px;
 }
@@ -616,7 +637,7 @@ QLabel#issueDescLabel {
 }
 
 QLabel#issueDetailLabel {
-    color: #888888;
+    color: #9A9A9A;
     font-size: 9pt;
 }
 
@@ -635,7 +656,7 @@ QLabel#statValue[statusColor="error"] {
 }
 
 QLabel#statValue[statusColor="neutral"] {
-    color: #888888;
+    color: #9A9A9A;
 }
 
 /* ===== Alert Banner ===== */
