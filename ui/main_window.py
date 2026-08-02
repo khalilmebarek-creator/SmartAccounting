@@ -249,6 +249,7 @@ class MainWindow(QMainWindow):
         main_layout.setSpacing(0)
 
         self._lazy_views = {}
+        self._view_anims = {}
         self._view_factories = {
             1: ("data_entry", _lazy_view_factory("ui.views.data_entry", "DataEntryView")),
             2: ("dashboard", _lazy_view_factory("ui.views.dashboard", "DashboardView")),
@@ -613,12 +614,21 @@ class MainWindow(QMainWindow):
         self._fade_in_view(current)
 
     def _fade_in_view(self, widget):
-        """انتقال ناعم (تلاشي) عند تغيير الشاشة"""
+        """انتقال ناعم (تلاشي) عند تغيير الشاشة — بضمانة أمان ضد بقاء الشاشة سوداء"""
         if widget is None:
             return
         try:
             from PyQt5.QtWidgets import QGraphicsOpacityEffect
-            from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
+            from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QTimer
+
+            # إيقاف أي تلاشٍ سابق على نفس الشاشة حتى لا يُتلفف أثناء طيرانه
+            # ويبقى التأثير عالقاً عند شفافية منخفضة (شاشة سوداء)
+            prev = self._view_anims.pop(id(widget), None)
+            if prev is not None:
+                prev.stop()
+                prev.deleteLater()
+            widget.setGraphicsEffect(None)
+
             effect = QGraphicsOpacityEffect(widget)
             widget.setGraphicsEffect(effect)
             anim = QPropertyAnimation(effect, b"opacity")
@@ -626,8 +636,19 @@ class MainWindow(QMainWindow):
             anim.setStartValue(0.0)
             anim.setEndValue(1.0)
             anim.setEasingCurve(QEasingCurve.OutCubic)
-            anim.finished.connect(lambda: widget.setGraphicsEffect(None))
-            self._view_anim = anim
+
+            def _remove():
+                # أزل مرجع الأنيميشن وتأثيره فقط إذا ما زال هذا الأنيميشن هو الحالي
+                if self._view_anims.get(id(widget)) is anim:
+                    self._view_anims.pop(id(widget), None)
+                if widget.graphicsEffect() is effect:
+                    widget.setGraphicsEffect(None)
+
+            anim.finished.connect(_remove)
+            # ضمانة إضافية: حتى لو لم يُبعث finished (جهاز بطيء)، أزل التأثير
+            # بعد انتهاء مدة الأنيميشن لضمان عدم بقاء الشاشة سوداء أبداً
+            QTimer.singleShot(300, _remove)
+            self._view_anims[id(widget)] = anim
             anim.start()
         except Exception:
             pass

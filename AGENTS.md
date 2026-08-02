@@ -17,13 +17,14 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 ## قواعد الرفع
 - بعد كل تعديل كود، تحديث الموقع (docs/) مطلوب
 - بعد كل تعديل، تحديث PROJECT_MAP.md مطلوب
-- الإصدار الحالي: v3.1.7
+- الإصدار الحالي: v3.1.6
 
 ## الحالة الحالية (2026-08-02)
-- **المرحلة الثانية — 6 شاشات محاسبية جديدة (شاشات 30-35):** محركات ledger.py + partners.py + invoicing.py + inventory.py + payroll.py + budgeting.py (ميزان مراجعة/تقادم الديون/TVA/متوسط تكلفة/CNAS+IRG/مقارنة الميزانية) + واجهات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view + ربط في main_window (factories 30-35 + sidebar 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة)
-- **1656 اختباراً كلها ناجحة عبر `python -m pytest tests -q`** (269 محرك جديد: test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35 + 37 واجهة جديدة في test_ui.py = 110)
+- **إصلاح الشاشة السوداء عند التنقل (جلسة v3.1.6):** `_fade_in_view` في main_window.py كان يخزّن الأنيميشن في مرجع واحد `self._view_anim` فيُتلفف الأنيميشن السابق أثناء طيرانه فيبقى QGraphicsOpacityEffect عند شفافية ~0 دون إطلاق `finished` → شاشة سوداء دائمة على الأجهزة البطيئة؛ الإصلاح — حاوية `self._view_anims` + إيقاف الأنيميشن السابق + `QTimer.singleShot(300)` كضمانة تُزيل التأثير دائماً + حماية من finished متأخر (5 اختبارات واجهة جديدة: TestFadeInSafety)
+- **1661 اختباراً كلها ناجحة عبر `python -m pytest tests -q`** (269 محرك جديد: test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35 + 42 واجهة في test_ui.py = 115)
 - تغطية الوحدات: **100%** عبر `python -m coverage run --source=modules --omit="modules/__init__.py" -m pytest tests -q`
-- التوثيق الشامل (جلسة v3.1.8): API_REFERENCE.md أعيدت بصيغة UTF-8 + docs/api/openapi.yaml (OpenAPI 3.0 — 325 عملية، تُعرض في docs/api/index.html) + USER_GUIDE.md (29 شاشة/ممارسات/FAQ) + tutorials/ (4 سكربتات فيديو AI) + KNOWLEDGE_BASE.md (فهرس)
+- **المرحلة الثانية — 6 شاشات محاسبية جديدة (شاشات 30-35):** محركات ledger.py + partners.py + invoicing.py + inventory.py + payroll.py + budgeting.py (ميزان مراجعة/تقادم الديون/TVA/متوسط تكلفة/CNAS+IRG/مقارنة الميزانية) + واجهات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view + ربط في main_window (factories 30-35 + sidebar 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة)
+- التوثيق الشامل (جلسة v3.1.6): API_REFERENCE.md أعيدت بصيغة UTF-8 + docs/api/openapi.yaml (OpenAPI 3.0 — 325 عملية، تُعرض في docs/api/index.html) + USER_GUIDE.md (29 شاشة/ممارسات/FAQ) + tutorials/ (4 سكربتات فيديو AI) + KNOWLEDGE_BASE.md (فهرس)
 - 20 نسبة مالية في RatiosView + z_score في منفصل
 - 3 حقول إدخال جديدة: cash, operating_expenses, average_payables
 - شاشة DuPont متقدمة: شلال/خط/مؤشر ROE + مقارنة قطاعية + توصيات + تصدير PDF
@@ -42,16 +43,16 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - 1350 اختباراً كلها ناجحة عبر `python -m pytest tests -q` (1127 عبر `python -m unittest discover -s tests`)
 - تغطية الوحدات: **100%** عبر `python -m coverage run --source=modules --omit="modules/__init__.py" -m pytest tests -q` (5768 سطراً، 0 مفقود — كانت 73% ثم 99%)
 - التغطية الشاملة: 20 ملف اختبار جديد (test_edge_errors, test_cashflow, test_comparative, test_backup, test_bank_print, test_breakeven_costcenter, test_reporting_modules, test_email_currency, test_importers, test_excel_export, test_reporting_extra, test_user_manager, test_update_checker_extra, test_cloud_sync_extra, test_tax_reminders_extra, test_tax_reports_extra, test_small_gaps) — الميزات الست (DuPont/Scenarios/Benchmarks/AI/Tax/Anomaly) + cashflow + comparative عند 100% + قائمة أخطاء مفصّلة في PROJECT_MAP.md
-- اختبار التكامل (جلسة v3.1.7): 3 ملفات جديدة — test_integration_workflow.py (9: رحلات مستخدم كاملة + إدارة حالة + اتساق تدفق البيانات) + test_integration_database.py (18: سلامة/معاملات/تزامن/نسخ-استرجاع) + test_integration_performance.py (10: 1000+ معاملة + مستخدمون متزامنون + بيانات كبيرة + إجهاد ذاكرة) — كشفت 3 أخطاء منتج أُصلحت (working_capital لا يُخزَّن في analysis.py، delete_analysis يفشل مع notes في db_operations.py، backup.py يفقد بيانات WAL) + تقرير docs/INTEGRATION_REPORT.md
-- شاشة اختبار المستخدمين (جلسة v3.1.8): test_user_testing.py (66: جلسات/ملاحظات/رضا/تقارير/JSON/DB/أعطال تصدير) — user_testing.py وصل 100% + إصلاح تصدير PDF عند غياب خط عربي (cp1252 fallback)
+- اختبار التكامل (جلسة v3.1.6): 3 ملفات جديدة — test_integration_workflow.py (9: رحلات مستخدم كاملة + إدارة حالة + اتساق تدفق البيانات) + test_integration_database.py (18: سلامة/معاملات/تزامن/نسخ-استرجاع) + test_integration_performance.py (10: 1000+ معاملة + مستخدمون متزامنون + بيانات كبيرة + إجهاد ذاكرة) — كشفت 3 أخطاء منتج أُصلحت (working_capital لا يُخزَّن في analysis.py، delete_analysis يفشل مع notes في db_operations.py، backup.py يفقد بيانات WAL) + تقرير docs/INTEGRATION_REPORT.md
+- شاشة اختبار المستخدمين (جلسة v3.1.6): test_user_testing.py (66: جلسات/ملاحظات/رضا/تقارير/JSON/DB/أعطال تصدير) — user_testing.py وصل 100% + إصلاح تصدير PDF عند غياب خط عربي (cp1252 fallback)
 - جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
 - إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
 - i18n: 1874 مفتاحاً × 3 لغات (AR/EN/FR) — مجموعات متطابقة (أُزيل مفتاح partners_col_type2 الميت)
 - Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (78.3 MB)
-- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.7.exe (49.2 MB)
-- ZIP: installer_output/SmartAccounting-v3.1.7-win64.zip (79.1 MB)
-- رُفع assets إلى GitHub release v3.1.7
-- auto-update: يشير version.json إلى v3.1.7 (تاريخ 2026-08-02)
-- الموقع docs/ (GitHub Pages) رُفّع: badge v3.1.7 + روابط تحميل v3.1.7 + 35 شاشة/1656 اختبار/43 وحدة + 6 بطاقات وحدات جديدة + سجل v3.1.7
+- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.6.exe (51.5 MB)
+- ZIP: installer_output/SmartAccounting-v3.1.6-win64.zip (82.9 MB)
+- رُفع assets إلى GitHub release v3.1.6
+- auto-update: يشير version.json إلى v3.1.6 (تاريخ 2026-08-02)
+- الموقع docs/ (GitHub Pages) رُفّع: badge v3.1.6 + روابط تحميل v3.1.6 + 29 شاشة/1350 اختبار/30 وحدة + سجل v3.1.6
 - التحديث عبر wscript/VBS مخفي تماماً (بدون نافذة cmd)
 - ملاحظة: Smart App Control على جهاز التطوير يحجب exe غير موقّع حديث البناء (لم يُحل بعد)

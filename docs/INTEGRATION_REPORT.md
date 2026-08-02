@@ -1,4 +1,4 @@
-# Integration Report — اختبار التكامل والأداء والاستقرار (v3.1.7)
+# Integration Report — اختبار التكامل والأداء والاستقرار (v3.1.6)
 
 > التاريخ: 2026-08-01 | البيئة: Windows 11، Python 3.13.14، PyQt5، SQLite (WAL + FK)
 > الهدف: اختبار تكامل الميزات (Workflow / Database / Performance) + توثيق أداء فعلي + Stability Report.

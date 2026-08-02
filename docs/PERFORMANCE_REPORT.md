@@ -82,7 +82,7 @@ Dashboard refresh() x3:       0.0 / 0.0 / 0.0 ms   (كان ~340)
 - **421 unittest** (كانت 419 — +2 لاختبارات `TestConnectionPool` في `tests/test_database.py`).
 - **139 pytest** (لم تتغيّر).
 - **المجموع: 560 اختباراً كلها ناجحة** عبر `python tests/run_all_tests.py`.
-- **تحديث لاحق (v3.1.8):** أصبح المجموع **1350 اختباراً** عبر `python -m pytest tests -q` مع تغطية وحدات **100%** — انظر PROJECT_MAP.md / AGENTS.md.
+- **تحديث لاحق (v3.1.6):** أصبح المجموع **1350 اختباراً** عبر `python -m pytest tests -q` مع تغطية وحدات **100%** — انظر PROJECT_MAP.md / AGENTS.md.
 - تحديثات tearDown (قبل `os.unlink`): `test_database.py`، `test_advanced_dashboard.py`، `test_reference_standards.py`، `test_scenarios.py`، `test_data_import.py` تستدعي `close_pool()`.
 - ملاحظة: عند التشغيل عبر كونسول cp1252 قد تظهر أخطاء `UnicodeEncodeError` في `test_data_import` (رموز تعبيرية) — استخدم `PYTHONIOENCODING=utf-8`.
 

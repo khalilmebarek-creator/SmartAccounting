@@ -1,5 +1,5 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-02 | الإصدار: v3.1.7
+> آخر تحديث: 2026-08-02 | الإصدار: v3.1.6
 
 ---
 
@@ -274,7 +274,7 @@ Accounting_Platform/
     └── test_tax_reminders_extra.py    # tax_reminders (تواريخ/تقويم)
     └── test_tax_reports_extra.py      # tax_reports G50/G57/DAS PDF
     └── test_small_gaps.py             # budget + validation + advanced_dashboard + cost_center_profitability
-    └── test_user_testing.py           # user_testing (جلسات/ملاحظات/رضا/تقارير/تصدير/DB) — جلسة v3.1.8
+    └── test_user_testing.py           # user_testing (جلسات/ملاحظات/رضا/تقارير/تصدير/DB) — جلسة v3.1.6
     ├── test_ledger.py                 # ledger (قيود/دفتر/ميزان مراجعة/DB) — جلسة المرحلة الثانية
     ├── test_partners.py               # partners (شركاء/معاملات/تقادم/DB)
     ├── test_invoicing.py              # invoicing (فواتير/عناصر/TVA/حالات/DB)
@@ -290,7 +290,7 @@ Accounting_Platform/
 
 ---
 
-## TEST SUMMARY (v3.1.7)
+## TEST SUMMARY (v3.1.6)
 
 | الملف | العدد | الحالة |
 |-------|-------|--------|
@@ -333,7 +333,7 @@ Accounting_Platform/
 | test_tax_reminders_extra.py | ✅ | 32 |
 | test_tax_reports.py | ✅ | 22 |
 | test_tax_reports_extra.py | ✅ | 14 |
-| test_ui.py | ✅ | 110 |
+| test_ui.py | ✅ | 115 |
 | test_update_checker.py | ✅ | 15 |
 | test_update_checker_extra.py | ✅ | 28 |
 | test_user_manager.py | ✅ | 73 |
@@ -349,7 +349,7 @@ Accounting_Platform/
 | test_integration_workflow.py | ✅ | 9 |
 | test_integration_database.py | ✅ | 18 |
 | test_integration_performance.py | ✅ | 10 |
-| **المجموع** | **✅ 1656** | |
+| **المجموع** | **✅ 1661** | |
 
 > التوزيع: 1127 اختباراً عبر `python -m unittest discover -s tests` + كلها (1350) عبر `python -m pytest tests -q`
 > (بعض ملفات التغطية الجديدة تستخدم دوالاً/mock لا يلتقطها unittest في Python 3.13، لذا المرجع الرسمي هو pytest)
@@ -421,6 +421,7 @@ Accounting_Platform/
 | 54 | 2026-08-01 | التوثيق الشامل (Goal: API + User + Video + Knowledge base): إعادة توليد docs/API_REFERENCE.md بصيغة UTF-8 صحيحة (37 وحدة/325 عملية + معاملات + أخطاء + أمثلة مُتحقق منها) + docs/api/openapi.yaml (OpenAPI 3.0 لـ Swagger UI — 325 عملية) + docs/api/index.html (عارض Swagger عبر موقع docs/) + docs/USER_GUIDE.md (29 شاشة + ميزات جديدة + أفضل ممارسات + Troubleshooting + FAQ) + docs/tutorials/ (4 سكربتات فيديو جاهزة لأدوات AI: جولة الميزات/سير عمل التحليل/توليد التقارير/نصائح وخدع) + docs/KNOWLEDGE_BASE.md (فهرس موحّد + FAQ) + روابط جديدة في footer الموقع | ✅ مستندات (لا اختبارات جديدة) |
 | 55 | 2026-08-01 | **التصحيحات النهائية + مراجعة الأمان (Goal: صفر أخطاء حرجة + جاهزية للعرض)**: إصلاح 13 خللاً موثّقاً سابقاً — print_manager (استيراد QPageLayout لفرع Landscape) + bank_sync (رأس الملف: كشف بلا أرقام بدل ابتلاع أول صف بيانات) + report_templates (deepcopy لـ DEFAULT_TEMPLATES عند التحميل) + reporting (رسالة واضحة عند غياب Amiri وتصدير عربي) + update_checker (try/finally + تنظيف الملف الجزئي + تصفير last_error بعد نجاح fallback) + user_manager (token=None → err_reset_invalid_token) + scheduled_backup (استعادة vault.enc + meta.json ضمن files) + backup (SQL بالاسم الحقيقي للتصدير + تحقق `_is_valid_sqlite` قبل الاستعادة) + data_import (disconnect عند فشل connect + رفض الكلمات المحجوزة SQLite) + currency (حذف سطر no-op) + tax_reminders (إزالة فرع except ميت) + i18n (window_title v2.5.0 → v3.1.6 ×3 لغات) + مراجعة أمان (PBKDF2 100k + salt لكل مستخدم + تخزين مشفّر SMTP/API + روابط HTTPS فقط — كلها سليمة) + **تغطية وحدات 100%** (إغلاق آخر الفجوات الدفاعية) | ✅ **1350** اختبار + تغطية وحدات **100%** |
 | 56 | 2026-08-02 | **المرحلة الثانية — 6 شاشات محاسبية جديدة (Goal: واجهات للميزات المحاسبية الخمسة)**: محرك ledger.py (قيود يومية + دفتر أستاذ + ميزان مراجعة + CSV + DB) + partners.py (عملاء/موردون + معاملات + أرصدة + تقادم الديون + DB) + invoicing.py (فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB) + inventory.py (عناصر + حركات + متوسط تكلفة + تنبيهات + DB) + payroll.py (موظفون + CNAS/IRG/حساسية + كشوفات + CSV + DB) + budgeting.py (بنود + مقارنة بالفعلي + انحراف + CSV + DB) + شاشات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view (شاشات 30-35) + ربط في main_window (factories 30-35 + sidebar_items 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة) + i18n 1874 (ledger_/partners_/invoicing_/inventory_/payroll_/budgeting_* + sidebar) + 37 اختبار واجهة جديد في test_ui.py (110) + 269 اختبار محركات (test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35) + تعارض QMessageBox في الاختبارات حُلّ عبر unittest.mock (0xC0000005) | ✅ **1656** اختبار + تغطية وحدات **100%** |
+| 57 | 2026-08-02 | **إصلاح الشاشة السوداء عند التنقل (Goal: لا تبقى أي شاشة عالقة عند شفافية صفر)**: الخلل — `_fade_in_view` في main_window.py يخزّن الأنيميشن في `self._view_anim` (مرجع واحد) فيُتلفف الأنيميشن السابق أثناء طيرانه فيبقى QGraphicsOpacityEffect عند شفافية ~0 مع عدم إطلاق `finished` → الشاشة سوداء دائمة على الأجهزة البطيئة؛ الإصلاح — حاوية `self._view_anims` (بمفتاح id(widget)) توقف/تحذف الأنيميشن السابق قبل بدء جديد + `QTimer.singleShot(300)` كضمانة تُزيل التأثير حتى لو لم يُبعث `finished` + دالة `_remove` تتحقق أن التأثير/المرجع ما زال لنفس الأنيميشن (حماية من finished متأخر يزيل تأثير الشاشة الجديدة) + 5 اختبارات واجهة جديدة في test_ui.py (115) (TestFadeInSafety: تبديل سريع/لا أنيميشنات متبقية/تنقل واحد/None/فشل setOpacity) | ✅ **1661** اختبار + تغطية وحدات **100%** |
 
 
 
