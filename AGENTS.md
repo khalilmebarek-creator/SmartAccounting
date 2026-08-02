@@ -44,10 +44,10 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
 - إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
 - i18n: 1626 مفتاحاً × 3 لغات (AR/EN/FR)
-- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (133 MB)
-- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.4.exe (63.2 MB)
-- ZIP: installer_output/SmartAccounting-v3.1.4-win64.zip (41.4 MB)
-- رُفع assets إلى GitHub release v3.1.4
-- auto-update: يشير version.json إلى v3.1.4 (تاريخ 2026-07-31)
+- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (82 MB)
+- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.6.exe (49.2 MB)
+- ZIP: installer_output/SmartAccounting-v3.1.6-win64.zip (79.1 MB)
+- رُفع assets إلى GitHub release v3.1.6
+- auto-update: يشير version.json إلى v3.1.6 (تاريخ 2026-08-02)
 - التحديث عبر wscript/VBS مخفي تماماً (بدون نافذة cmd)
 - ملاحظة: Smart App Control على جهاز التطوير يحجب exe غير موقّع حديث البناء (لم يُحل بعد)
