@@ -11,7 +11,11 @@ TABLE_NAMES = [
     "equity", "income_statement", "financial_ratios",
     "audit_log", "notes", "tax_data", "tax_obligations",
     "scenario_results", "reference_standards", "competitor_data",
-    "dashboard_layouts"
+    "dashboard_layouts",
+    "ledger_entries", "partners", "partner_transactions",
+    "invoices", "invoice_items",
+    "inventory_items", "inventory_movements",
+    "employees", "payroll_runs", "budget_items"
 ]
 
 def create_tables():
@@ -246,6 +250,156 @@ def create_tables():
             )
         """)
         
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS ledger_entries (
+                entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_date DATE NOT NULL,
+                account_code VARCHAR(50) NOT NULL,
+                account_name VARCHAR(255),
+                description TEXT,
+                debit DECIMAL(15,2) DEFAULT 0,
+                credit DECIMAL(15,2) DEFAULT 0,
+                reference VARCHAR(100),
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS partners (
+                partner_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                partner_type VARCHAR(20) NOT NULL,
+                partner_name VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                email VARCHAR(255),
+                address TEXT,
+                tax_id VARCHAR(100),
+                notes TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS partner_transactions (
+                transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                partner_id INTEGER NOT NULL,
+                transaction_date DATE NOT NULL,
+                transaction_type VARCHAR(20) NOT NULL,
+                amount DECIMAL(15,2) DEFAULT 0,
+                reference VARCHAR(100),
+                notes TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (partner_id) REFERENCES partners(partner_id)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS invoices (
+                invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_number VARCHAR(50) NOT NULL,
+                invoice_type VARCHAR(20) NOT NULL,
+                partner_id INTEGER NOT NULL,
+                invoice_date DATE NOT NULL,
+                due_date DATE,
+                subtotal DECIMAL(15,2) DEFAULT 0,
+                tva_rate DECIMAL(5,4) DEFAULT 0,
+                tva_amount DECIMAL(15,2) DEFAULT 0,
+                total DECIMAL(15,2) DEFAULT 0,
+                status VARCHAR(20) DEFAULT 'draft',
+                notes TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(invoice_number)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS invoice_items (
+                item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_id INTEGER NOT NULL,
+                description VARCHAR(255) NOT NULL,
+                quantity DECIMAL(15,2) DEFAULT 1,
+                unit_price DECIMAL(15,2) DEFAULT 0,
+                amount DECIMAL(15,2) DEFAULT 0,
+                FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS inventory_items (
+                item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sku VARCHAR(100) UNIQUE,
+                item_name VARCHAR(255) NOT NULL,
+                category VARCHAR(100),
+                unit VARCHAR(50),
+                quantity DECIMAL(15,3) DEFAULT 0,
+                avg_cost DECIMAL(15,2) DEFAULT 0,
+                sale_price DECIMAL(15,2) DEFAULT 0,
+                min_quantity DECIMAL(15,3) DEFAULT 0,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS inventory_movements (
+                movement_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                item_id INTEGER NOT NULL,
+                movement_date DATE NOT NULL,
+                movement_type VARCHAR(20) NOT NULL,
+                quantity DECIMAL(15,3) DEFAULT 0,
+                unit_cost DECIMAL(15,2) DEFAULT 0,
+                reference VARCHAR(100),
+                notes TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (item_id) REFERENCES inventory_items(item_id)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS employees (
+                employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                employee_name VARCHAR(255) NOT NULL,
+                position VARCHAR(255),
+                department VARCHAR(100),
+                base_salary DECIMAL(15,2) DEFAULT 0,
+                hire_date DATE,
+                status VARCHAR(20) DEFAULT 'active',
+                notes TEXT,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS payroll_runs (
+                run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                employee_id INTEGER NOT NULL,
+                pay_month INTEGER NOT NULL,
+                pay_year INTEGER NOT NULL,
+                base_salary DECIMAL(15,2) DEFAULT 0,
+                cnas_employee DECIMAL(15,2) DEFAULT 0,
+                unemployment_insurance DECIMAL(15,2) DEFAULT 0,
+                taxable_salary DECIMAL(15,2) DEFAULT 0,
+                irg DECIMAL(15,2) DEFAULT 0,
+                net_salary DECIMAL(15,2) DEFAULT 0,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(employee_id, pay_month, pay_year),
+                FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+            )
+        """)
+        
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS budget_items (
+                budget_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                budget_year INTEGER NOT NULL,
+                category VARCHAR(50) DEFAULT 'expense',
+                item_name VARCHAR(255) NOT NULL,
+                planned_amount DECIMAL(15,2) DEFAULT 0,
+                created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(budget_year, item_name)
+            )
+        """)
+        
         _create_indexes(db)
 
         log.info("All %d tables created successfully", len(TABLE_NAMES))
@@ -279,6 +433,20 @@ def _create_indexes(db):
         ("idx_comp_name", "competitor_data", "competitor_name"),
         ("idx_layout_name", "dashboard_layouts", "layout_name"),
         ("idx_companies_name", "companies", "company_name"),
+        ("idx_ledger_date", "ledger_entries", "entry_date"),
+        ("idx_ledger_account", "ledger_entries", "account_code"),
+        ("idx_partners_type", "partners", "partner_type"),
+        ("idx_pt_partner", "partner_transactions", "partner_id"),
+        ("idx_invoices_partner", "invoices", "partner_id"),
+        ("idx_invoices_date", "invoices", "invoice_date"),
+        ("idx_ii_invoice", "invoice_items", "invoice_id"),
+        ("idx_inv_category", "inventory_items", "category"),
+        ("idx_inv_min", "inventory_items", "min_quantity"),
+        ("idx_im_item", "inventory_movements", "item_id"),
+        ("idx_emp_status", "employees", "status"),
+        ("idx_pr_emp", "payroll_runs", "employee_id"),
+        ("idx_pr_month", "payroll_runs", "pay_year"),
+        ("idx_budget_year", "budget_items", "budget_year"),
     ]
     for idx_name, table, col in indexes:
         db.execute(

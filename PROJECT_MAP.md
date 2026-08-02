@@ -1,5 +1,5 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-01 | الإصدار: v3.1.6
+> آخر تحديث: 2026-08-02 | الإصدار: v3.1.7
 
 ---
 
@@ -32,6 +32,12 @@
 24. تعدد العملات (عملات + أسعار صرف + محول + تقرير متعدد العملات) → CurrencyView
 25. المزامنة السحابية والنسخ الاحتياطي (وجهات + نسخ تلقائي + استرجاع مشفّر + سجل) → CloudSyncView
 26. الشركات التجريبية (تجارية/خدمات/إنتاج/استيراد-تصدير) + معاملات شهرية + تقارير مُعدّة + قوالب CSV → DemoDataView
+27. دفتر الأستاذ العام (قيود يومية + دفتر أستاذ + ميزان مراجعة) → LedgerView
+28. العملاء والموردون (شركاء + معاملات + أرصدة + تقادم الديون) → PartnersView
+29. الفواتير (بيع/شراء + عناصر + TVA + حالات) → InvoicingView
+30. المخزون (عناصر + حركات + أسهم + تنبيهات) → InventoryView
+31. الرواتب الجزائرية (موظفون + CNAS/IRG + كشوفات) → PayrollView
+32. الميزانية (بنود + مقارنة بالفعلي + انحراف) → BudgetingView
 ```
 
 ---
@@ -61,6 +67,12 @@
 | reporting | modules/reporting.py (PDF عربي + Excel + HTML + DuPont Report + Scenario Report) | ✅ |
 | data_import | modules/data_import.py (Excel/CSV) | ✅ |
 | user_manager | modules/user_manager.py (4 أدوار، 16 صلاحية، 2FA) | ✅ |
+| ledger | modules/ledger.py (قيود + دفتر أستاذ + ميزان مراجعة + CSV + DB) | ✅ |
+| partners | modules/partners.py (عملاء/موردون + معاملات + أرصدة + تقادم + DB) | ✅ |
+| invoicing | modules/invoicing.py (فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB) | ✅ |
+| inventory | modules/inventory.py (عناصر + حركات + متوسط تكلفة + تنبيهات + DB) | ✅ |
+| payroll | modules/payroll.py (موظفون + CNAS/IRG + كشوفات + CSV + DB) | ✅ |
+| budgeting | modules/budgeting.py (بنود + مقارنة بالفعلي + انحراف + CSV + DB) | ✅ |
 
 ### ✅ UI (100% — مكتمل)
 | المكون | الملفات | الحالة |
@@ -76,6 +88,12 @@
 | CurrencyView | ui/views/currency_view.py (إعدادات العملات + أسعار الصرف + محول + تقرير متعدد العملات + تصدير CSV) | ✅ |
 | CloudSyncView | ui/views/cloud_sync_view.py (وجهات + نسخ احتياطي/استرجاع + سحب + إعدادات تلقائية + كلمة مرور + سجل + CSV) | ✅ |
 | DemoDataView | ui/views/demo_data_view.py (اختيار شركة تجريبية + مؤشرات + جدول معاملات شهرية + تقرير مُعد + تصدير CSV + قوالب) | ✅ |
+| LedgerView | ui/views/ledger_view.py (قيود + تصفية + ميزان مراجعة + CSV + DB) | ✅ |
+| PartnersView | ui/views/partners_view.py (شركاء + معاملات + تقادم + CSV + DB) | ✅ |
+| InvoicingView | ui/views/invoicing_view.py (إنشاء فاتورة + عناصر + حالات + CSV + DB) | ✅ |
+| InventoryView | ui/views/inventory_view.py (عناصر + حركات + تنبيهات + CSV + DB) | ✅ |
+| PayrollView | ui/views/payroll_view.py (موظفون + تشغيل رواتب + كشوفات + CSV + DB) | ✅ |
+| BudgetingView | ui/views/budgeting_view.py (بنود + مقارنة بالفعلي + CSV + DB) | ✅ |
 | RatiosView | ui/views/ratios_view.py (20 cards + Z-Score) | ✅ |
 | BenchmarksView | ui/views/benchmarks_view.py (radar/bar charts, قوة/ضعف + اتجاه + ترتيب منافسين + auto-update) | ✅ |
 | TaxCalendarView | ui/views/tax_calendar_view.py (year selector + monthly overview) | ✅ |
@@ -146,10 +164,16 @@ Accounting_Platform/
 │   ├── demo_data.py                # legacy demo + 4 demo companies + monthly transactions
 │   ├── user_manager.py              # Auth + roles + 2FA + reset
 │   ├── excel_export.py
-│   └── print_manager.py
+│   ├── print_manager.py
+│   ├── ledger.py                  # دفتر الأستاذ: قيود + دفتر + ميزان مراجعة + CSV + DB
+│   ├── partners.py                # عملاء/موردون + معاملات + أرصدة + تقادم + DB
+│   ├── invoicing.py               # فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB
+│   ├── inventory.py               # عناصر + حركات + متوسط تكلفة + تنبيهات + DB
+│   ├── payroll.py                 # موظفون + CNAS/IRG + كشوفات + CSV + DB
+│   └── budgeting.py               # بنود + مقارنة بالفعلي + انحراف + CSV + DB
 │
 ├── ui/
-│   ├── main_window.py               # 28 views + قوائم/اختصارات/انتقالات/ثيم
+│   ├── main_window.py               # 35 views + قوائم/اختصارات/انتقالات/ثيم
 │   ├── app_state.py                 # State + settings
 │   ├── run_ui.py                    # GUI entry
 │   ├── resources/
@@ -184,6 +208,12 @@ Accounting_Platform/
 │       ├── security_view.py / user_management_view.py
 │       ├── chat_view.py
 │       ├── settings_view.py
+│       ├── ledger_view.py             # دفتر الأستاذ: قيود + تصفية + ميزان مراجعة + CSV
+│       ├── partners_view.py           # عملاء/موردون + معاملات + تقادم + CSV
+│       ├── invoicing_view.py          # فواتير بيع/شراء + عناصر + حالات + CSV
+│       ├── inventory_view.py          # عناصر + حركات + تنبيهات + CSV
+│       ├── payroll_view.py            # موظفون + تشغيل رواتب + كشوفات + CSV
+│       ├── budgeting_view.py          # بنود + مقارنة بالفعلي + CSV
 │       └── (scenarios, forecasting, breakeven, export)
 │
 ├── utils/
@@ -245,6 +275,12 @@ Accounting_Platform/
     └── test_tax_reports_extra.py      # tax_reports G50/G57/DAS PDF
     └── test_small_gaps.py             # budget + validation + advanced_dashboard + cost_center_profitability
     └── test_user_testing.py           # user_testing (جلسات/ملاحظات/رضا/تقارير/تصدير/DB) — جلسة v3.1.8
+    ├── test_ledger.py                 # ledger (قيود/دفتر/ميزان مراجعة/DB) — جلسة المرحلة الثانية
+    ├── test_partners.py               # partners (شركاء/معاملات/تقادم/DB)
+    ├── test_invoicing.py              # invoicing (فواتير/عناصر/TVA/حالات/DB)
+    ├── test_inventory.py              # inventory (عناصر/حركات/تقييم/DB)
+    ├── test_payroll.py                # payroll (موظفون/IRG/كشوفات/DB)
+    └── test_budgeting.py              # budgeting (بنود/مقارنة/انحراف/DB)
 ```
 ```
     ├── test_integration_workflow.py   # سير العمل: رحلات مستخدم كاملة + حالة + تدفق بيانات
@@ -254,7 +290,7 @@ Accounting_Platform/
 
 ---
 
-## TEST SUMMARY (v3.1.8)
+## TEST SUMMARY (v3.1.7)
 
 | الملف | العدد | الحالة |
 |-------|-------|--------|
@@ -297,17 +333,23 @@ Accounting_Platform/
 | test_tax_reminders_extra.py | ✅ | 32 |
 | test_tax_reports.py | ✅ | 22 |
 | test_tax_reports_extra.py | ✅ | 14 |
-| test_ui.py | ✅ | 73 |
+| test_ui.py | ✅ | 110 |
 | test_update_checker.py | ✅ | 15 |
 | test_update_checker_extra.py | ✅ | 28 |
 | test_user_manager.py | ✅ | 73 |
 | test_user_testing.py | ✅ | 66 |
 | test_validation.py | ✅ | 13 |
 | test_validators.py | ✅ | 23 |
+| test_ledger.py | ✅ | 36 |
+| test_partners.py | ✅ | 50 |
+| test_invoicing.py | ✅ | 46 |
+| test_inventory.py | ✅ | 47 |
+| test_payroll.py | ✅ | 55 |
+| test_budgeting.py | ✅ | 35 |
 | test_integration_workflow.py | ✅ | 9 |
 | test_integration_database.py | ✅ | 18 |
 | test_integration_performance.py | ✅ | 10 |
-| **المجموع** | **✅ 1350** | |
+| **المجموع** | **✅ 1656** | |
 
 > التوزيع: 1127 اختباراً عبر `python -m unittest discover -s tests` + كلها (1350) عبر `python -m pytest tests -q`
 > (بعض ملفات التغطية الجديدة تستخدم دوالاً/mock لا يلتقطها unittest في Python 3.13، لذا المرجع الرسمي هو pytest)
@@ -331,7 +373,10 @@ Accounting_Platform/
 | Ctrl+Shift+1..9, Ctrl+Shift+0 | الشاشات 11-20 |
 | Ctrl+Shift+A | شاشة 21 (مزامنة البنك) |
 | F2..F8 | الشاشات 22-28 |
-| قائمة "عرض" | تنقّل بالماوس بين كل الشاشات 28 + الثيم |
+| F9 | شاشة 29 (اختبار المستخدمين) |
+| F10, F11, F12 | الشاشات 30-32 (دفتر الأستاذ / العملاء والموردون / الفواتير) |
+| Ctrl+Shift+B, Ctrl+Shift+C, Ctrl+Shift+D | الشاشات 33-35 (المخزون / الرواتب / الميزانية) |
+| قائمة "عرض" | تنقّل بالماوس بين كل الشاشات 35 + الثيم |
 
 ---
 
@@ -375,6 +420,7 @@ Accounting_Platform/
 | 53 | 2026-08-01 | شاشة اختبار المستخدمين (29) — Goal: اختبار المستخدمين الحقيقيين: محرك user_testing.py (4 مجموعات مستخدمين × 5 سيناريوهات + ملاحظات/مقترحات/أعطال بتصنيفات/أولويات/حالات + درجة رضا بقيود وتحليل مفصّل + تقارير تعقيبات/أعطال/تحسينات/ملخص + بيانات تجريبية + تصدير/استيراد JSON + CSV/Excel/PDF + حفظ/تحميل DB عبر get_connection) + شاشة user_testing_view.py + ربط شاشة 29 في main_window (سايدبار + F9 + view_keys) + i18n 1626 (user_testing.py, user_testing_view.py, main_window.py) + إعادة هيكلة satisfaction_level بلا فرع ميت + إصلاح تصدير PDF عند غياب خط عربي (cp1252 fallback) | ✅ **1332** اختبار + تغطية وحدات **99%** (user_testing.py 100%) |
 | 54 | 2026-08-01 | التوثيق الشامل (Goal: API + User + Video + Knowledge base): إعادة توليد docs/API_REFERENCE.md بصيغة UTF-8 صحيحة (37 وحدة/325 عملية + معاملات + أخطاء + أمثلة مُتحقق منها) + docs/api/openapi.yaml (OpenAPI 3.0 لـ Swagger UI — 325 عملية) + docs/api/index.html (عارض Swagger عبر موقع docs/) + docs/USER_GUIDE.md (29 شاشة + ميزات جديدة + أفضل ممارسات + Troubleshooting + FAQ) + docs/tutorials/ (4 سكربتات فيديو جاهزة لأدوات AI: جولة الميزات/سير عمل التحليل/توليد التقارير/نصائح وخدع) + docs/KNOWLEDGE_BASE.md (فهرس موحّد + FAQ) + روابط جديدة في footer الموقع | ✅ مستندات (لا اختبارات جديدة) |
 | 55 | 2026-08-01 | **التصحيحات النهائية + مراجعة الأمان (Goal: صفر أخطاء حرجة + جاهزية للعرض)**: إصلاح 13 خللاً موثّقاً سابقاً — print_manager (استيراد QPageLayout لفرع Landscape) + bank_sync (رأس الملف: كشف بلا أرقام بدل ابتلاع أول صف بيانات) + report_templates (deepcopy لـ DEFAULT_TEMPLATES عند التحميل) + reporting (رسالة واضحة عند غياب Amiri وتصدير عربي) + update_checker (try/finally + تنظيف الملف الجزئي + تصفير last_error بعد نجاح fallback) + user_manager (token=None → err_reset_invalid_token) + scheduled_backup (استعادة vault.enc + meta.json ضمن files) + backup (SQL بالاسم الحقيقي للتصدير + تحقق `_is_valid_sqlite` قبل الاستعادة) + data_import (disconnect عند فشل connect + رفض الكلمات المحجوزة SQLite) + currency (حذف سطر no-op) + tax_reminders (إزالة فرع except ميت) + i18n (window_title v2.5.0 → v3.1.6 ×3 لغات) + مراجعة أمان (PBKDF2 100k + salt لكل مستخدم + تخزين مشفّر SMTP/API + روابط HTTPS فقط — كلها سليمة) + **تغطية وحدات 100%** (إغلاق آخر الفجوات الدفاعية) | ✅ **1350** اختبار + تغطية وحدات **100%** |
+| 56 | 2026-08-02 | **المرحلة الثانية — 6 شاشات محاسبية جديدة (Goal: واجهات للميزات المحاسبية الخمسة)**: محرك ledger.py (قيود يومية + دفتر أستاذ + ميزان مراجعة + CSV + DB) + partners.py (عملاء/موردون + معاملات + أرصدة + تقادم الديون + DB) + invoicing.py (فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB) + inventory.py (عناصر + حركات + متوسط تكلفة + تنبيهات + DB) + payroll.py (موظفون + CNAS/IRG/حساسية + كشوفات + CSV + DB) + budgeting.py (بنود + مقارنة بالفعلي + انحراف + CSV + DB) + شاشات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view (شاشات 30-35) + ربط في main_window (factories 30-35 + sidebar_items 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة) + i18n 1874 (ledger_/partners_/invoicing_/inventory_/payroll_/budgeting_* + sidebar) + 37 اختبار واجهة جديد في test_ui.py (110) + 269 اختبار محركات (test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35) + تعارض QMessageBox في الاختبارات حُلّ عبر unittest.mock (0xC0000005) | ✅ **1656** اختبار + تغطية وحدات **100%** |
 
 
 

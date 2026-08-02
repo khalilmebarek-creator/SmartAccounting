@@ -279,6 +279,12 @@ class MainWindow(QMainWindow):
             27: ("cloud_sync", _lazy_view_factory("ui.views.cloud_sync_view", "CloudSyncView")),
             28: ("demo_data", _lazy_view_factory("ui.views.demo_data_view", "DemoDataView")),
             29: ("user_testing", _lazy_view_factory("ui.views.user_testing_view", "UserTestingView")),
+            30: ("ledger", _lazy_view_factory("ui.views.ledger_view", "LedgerView")),
+            31: ("partners", _lazy_view_factory("ui.views.partners_view", "PartnersView")),
+            32: ("invoicing", _lazy_view_factory("ui.views.invoicing_view", "InvoicingView")),
+            33: ("inventory", _lazy_view_factory("ui.views.inventory_view", "InventoryView")),
+            34: ("payroll", _lazy_view_factory("ui.views.payroll_view", "PayrollView")),
+            35: ("budgeting", _lazy_view_factory("ui.views.budgeting_view", "BudgetingView")),
         }
 
         self.sidebar = QListWidget()
@@ -316,6 +322,12 @@ class MainWindow(QMainWindow):
             t("sidebar_cloud_sync"),
             t("sidebar_demo_data"),
             t("sidebar_user_testing"),
+            t("sidebar_ledger"),
+            t("sidebar_partners"),
+            t("sidebar_invoicing"),
+            t("sidebar_inventory"),
+            t("sidebar_payroll"),
+            t("sidebar_budgeting"),
         ]
 
         self.sidebar.blockSignals(True)
@@ -346,7 +358,7 @@ class MainWindow(QMainWindow):
 
         self.content.addWidget(self.login_view)
 
-        for i in range(1, 30):
+        for i in range(1, 36):
             placeholder = QWidget()
             self.content.addWidget(placeholder)
 
@@ -443,6 +455,8 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+7", "Ctrl+Shift+8", "Ctrl+Shift+9",
             "Ctrl+Shift+0", "Ctrl+Shift+A",
             "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
+            "F10", "F11", "F12",
+            "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
         ]
         labels = getattr(self, "sidebar_items", [])
         for action, key in zip(labels, view_keys):
@@ -486,6 +500,12 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("F7"), self, lambda: self.sidebar.setCurrentRow(26))
         QShortcut(QKeySequence("F8"), self, lambda: self.sidebar.setCurrentRow(27))
         QShortcut(QKeySequence("F9"), self, lambda: self.sidebar.setCurrentRow(28))
+        QShortcut(QKeySequence("F10"), self, lambda: self.sidebar.setCurrentRow(29))
+        QShortcut(QKeySequence("F11"), self, lambda: self.sidebar.setCurrentRow(30))
+        QShortcut(QKeySequence("F12"), self, lambda: self.sidebar.setCurrentRow(31))
+        QShortcut(QKeySequence("Ctrl+Shift+B"), self, lambda: self.sidebar.setCurrentRow(32))
+        QShortcut(QKeySequence("Ctrl+Shift+C"), self, lambda: self.sidebar.setCurrentRow(33))
+        QShortcut(QKeySequence("Ctrl+Shift+D"), self, lambda: self.sidebar.setCurrentRow(34))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -527,6 +547,8 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+7", "Ctrl+Shift+8", "Ctrl+Shift+9",
             "Ctrl+Shift+0", "Ctrl+Shift+A",
             "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
+            "F10", "F11", "F12",
+            "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
         ]
         for i, label in enumerate(getattr(self, "sidebar_items", [])):
             key = view_keys[i] if i < len(view_keys) else None
@@ -693,6 +715,13 @@ class MainWindow(QMainWindow):
             t("sidebar_currency"),
             t("sidebar_cloud_sync"),
             t("sidebar_demo_data"),
+            t("sidebar_user_testing"),
+            t("sidebar_ledger"),
+            t("sidebar_partners"),
+            t("sidebar_invoicing"),
+            t("sidebar_inventory"),
+            t("sidebar_payroll"),
+            t("sidebar_budgeting"),
         ]
         self.sidebar.addItems(self.sidebar_items)
         current_idx = self.content.currentIndex()

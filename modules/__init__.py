@@ -17,6 +17,20 @@ _LAZY_IMPORTS = {
     "report_templates": ("modules.report_templates", "report_templates"),
     "ScheduledBackup": ("modules.scheduled_backup", "ScheduledBackup"),
     "scheduled_backup": ("modules.scheduled_backup", "scheduled_backup"),
+    "LedgerBook": ("modules.ledger", "LedgerBook"),
+    "ledger_book": ("modules.ledger", "ledger_book"),
+    "PartnerManager": ("modules.partners", "PartnerManager"),
+    "partner_manager": ("modules.partners", "partner_manager"),
+    "InvoiceManager": ("modules.invoicing", "InvoiceManager"),
+    "invoice_manager": ("modules.invoicing", "invoice_manager"),
+    "InventoryManager": ("modules.inventory", "InventoryManager"),
+    "inventory_manager": ("modules.inventory", "inventory_manager"),
+    "PayrollEngine": ("modules.payroll", "PayrollEngine"),
+    "payroll_engine": ("modules.payroll", "payroll_engine"),
+    "compute_irg": ("modules.payroll", "compute_irg"),
+    "compute_salary": ("modules.payroll", "compute_salary"),
+    "BudgetManager": ("modules.budgeting", "BudgetManager"),
+    "budget_manager": ("modules.budgeting", "budget_manager"),
 }
 
 __all__ = [
@@ -35,6 +49,20 @@ __all__ = [
     'report_templates',
     'ScheduledBackup',
     'scheduled_backup',
+    'LedgerBook',
+    'ledger_book',
+    'PartnerManager',
+    'partner_manager',
+    'InvoiceManager',
+    'invoice_manager',
+    'InventoryManager',
+    'inventory_manager',
+    'PayrollEngine',
+    'payroll_engine',
+    'compute_irg',
+    'compute_salary',
+    'BudgetManager',
+    'budget_manager',
 ]
 
 

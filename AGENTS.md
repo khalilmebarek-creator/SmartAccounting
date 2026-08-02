@@ -17,9 +17,12 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 ## قواعد الرفع
 - بعد كل تعديل كود، تحديث الموقع (docs/) مطلوب
 - بعد كل تعديل، تحديث PROJECT_MAP.md مطلوب
-- الإصدار الحالي: v3.1.6
+- الإصدار الحالي: v3.1.7
 
-## الحالة الحالية (2026-08-01)
+## الحالة الحالية (2026-08-02)
+- **المرحلة الثانية — 6 شاشات محاسبية جديدة (شاشات 30-35):** محركات ledger.py + partners.py + invoicing.py + inventory.py + payroll.py + budgeting.py (ميزان مراجعة/تقادم الديون/TVA/متوسط تكلفة/CNAS+IRG/مقارنة الميزانية) + واجهات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view + ربط في main_window (factories 30-35 + sidebar 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة)
+- **1656 اختباراً كلها ناجحة عبر `python -m pytest tests -q`** (269 محرك جديد: test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35 + 37 واجهة جديدة في test_ui.py = 110)
+- تغطية الوحدات: **100%** عبر `python -m coverage run --source=modules --omit="modules/__init__.py" -m pytest tests -q`
 - التوثيق الشامل (جلسة v3.1.8): API_REFERENCE.md أعيدت بصيغة UTF-8 + docs/api/openapi.yaml (OpenAPI 3.0 — 325 عملية، تُعرض في docs/api/index.html) + USER_GUIDE.md (29 شاشة/ممارسات/FAQ) + tutorials/ (4 سكربتات فيديو AI) + KNOWLEDGE_BASE.md (فهرس)
 - 20 نسبة مالية في RatiosView + z_score في منفصل
 - 3 حقول إدخال جديدة: cash, operating_expenses, average_payables
@@ -43,7 +46,7 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - شاشة اختبار المستخدمين (جلسة v3.1.8): test_user_testing.py (66: جلسات/ملاحظات/رضا/تقارير/JSON/DB/أعطال تصدير) — user_testing.py وصل 100% + إصلاح تصدير PDF عند غياب خط عربي (cp1252 fallback)
 - جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
 - إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
-- i18n: 1626 مفتاحاً × 3 لغات (AR/EN/FR)
+- i18n: 1874 مفتاحاً × 3 لغات (AR/EN/FR) — مجموعات متطابقة (أُزيل مفتاح partners_col_type2 الميت)
 - Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (82 MB)
 - Inno Setup: installer_output/SmartAccounting-Setup-v3.1.6.exe (49.2 MB)
 - ZIP: installer_output/SmartAccounting-v3.1.6-win64.zip (79.1 MB)

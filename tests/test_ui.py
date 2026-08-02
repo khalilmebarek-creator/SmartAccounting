@@ -412,5 +412,198 @@ class TestCostCenterProfitabilityView(unittest.TestCase):
         self.assertFalse(self.cpv.no_data_label.isHidden())
 
 
+class TestLedgerView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.ledger_view import LedgerView
+        self.view = LedgerView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_stat_cards_exist(self):
+        self.assertTrue(hasattr(self.view, 'stat_entries'))
+        self.assertTrue(hasattr(self.view, 'stat_debit'))
+        self.assertTrue(hasattr(self.view, 'stat_credit'))
+
+    def test_entries_table_exists(self):
+        self.assertEqual(self.view.entries_table.columnCount(), 7)
+
+    def test_add_entry_updates_table(self):
+        self.view.account_edit.setText("600000")
+        self.view.debit_spin.setValue(100.0)
+        self.view._add_entry()
+        self.assertEqual(self.view.entries_table.rowCount(), 1)
+        self.assertEqual(self.view.stat_debit.text(), "100.00")
+
+    def test_trial_balance_table_exists(self):
+        self.assertEqual(self.view.tb_table.columnCount(), 4)
+
+    def test_refresh_clears_filter(self):
+        self.view.account_edit.setText("600000")
+        self.view.refresh()
+        self.assertGreaterEqual(self.view.entries_table.rowCount(), 0)
+
+
+class TestPartnersView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.partners_view import PartnersView
+        self.view = PartnersView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_type_combo_has_items(self):
+        self.assertGreaterEqual(self.view.type_combo.count(), 2)
+
+    def test_add_partner_updates_table(self):
+        self.view.name_edit.setText("Test Partner")
+        self.view._add_partner()
+        self.assertEqual(self.view.partners_table.rowCount(), 1)
+
+    def test_partners_table_columns(self):
+        self.assertEqual(self.view.partners_table.columnCount(), 6)
+
+    def test_aging_table_exists(self):
+        self.assertEqual(self.view.aging_table.columnCount(), 5)
+
+    def test_add_transaction_requires_selection(self):
+        self.view.refresh()
+        self.assertIsNone(self.view._selected_partner_id())
+
+
+class TestInvoicingView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.invoicing_view import InvoicingView
+        self.view = InvoicingView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_type_combo_has_items(self):
+        self.assertGreaterEqual(self.view.type_combo.count(), 2)
+
+    def test_add_pending_item(self):
+        self.view.item_desc.setText("Service")
+        self.view.item_qty.setValue(2.0)
+        self.view.item_price.setValue(50.0)
+        self.view._add_pending_item()
+        self.assertEqual(len(self.view._pending_items), 1)
+        self.assertEqual(self.view.pending_table.rowCount(), 1)
+
+    def test_create_invoice_requires_partner(self):
+        from unittest import mock
+        self.view.item_desc.setText("Service")
+        self.view._add_pending_item()
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view._create_invoice()
+        self.assertEqual(self.view.invoices_table.rowCount(), 0)
+
+    def test_invoices_table_columns(self):
+        self.assertEqual(self.view.invoices_table.columnCount(), 7)
+
+    def test_status_combo_exists(self):
+        self.assertGreaterEqual(self.view.status_combo.count(), 6)
+
+
+class TestInventoryView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.inventory_view import InventoryView
+        self.view = InventoryView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_add_item_updates_table(self):
+        self.view.name_edit.setText("Widget")
+        self.view.qty_spin.setValue(10.0)
+        self.view._add_item()
+        self.assertEqual(self.view.items_table.rowCount(), 1)
+
+    def test_items_table_columns(self):
+        self.assertEqual(self.view.items_table.columnCount(), 7)
+
+    def test_movement_table_columns(self):
+        self.assertEqual(self.view.mov_table.columnCount(), 5)
+
+    def test_low_stock_combo_exists(self):
+        self.assertGreaterEqual(self.view.low_only_check.count(), 2)
+
+    def test_add_movement_requires_selection(self):
+        self.view.refresh()
+        self.assertIsNone(self.view._selected_item_id())
+
+
+class TestPayrollView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.payroll_view import PayrollView
+        self.view = PayrollView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_add_employee_updates_table(self):
+        self.view.name_edit.setText("Ali")
+        self.view.salary_spin.setValue(50000.0)
+        self.view._add_employee()
+        self.assertEqual(self.view.employees_table.rowCount(), 1)
+
+    def test_employees_table_columns(self):
+        self.assertEqual(self.view.employees_table.columnCount(), 5)
+
+    def test_run_payroll_with_no_employees(self):
+        from unittest import mock
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view._run_payroll()
+        self.assertEqual(self.view.payslips_table.rowCount(), 0)
+
+    def test_payslips_table_columns(self):
+        self.assertEqual(self.view.payslips_table.columnCount(), 6)
+
+    def test_month_year_spins(self):
+        self.assertEqual(self.view.month_spin.value(), 8)
+        self.assertEqual(self.view.year_spin.value(), 2026)
+
+
+class TestBudgetingView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.budgeting_view import BudgetingView
+        self.view = BudgetingView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_add_item_updates_table(self):
+        self.view.name_edit.setText("Salaries")
+        self.view.amount_spin.setValue(1000.0)
+        self.view._add_item()
+        self.assertEqual(self.view.items_table.rowCount(), 1)
+
+    def test_items_table_columns(self):
+        self.assertEqual(self.view.items_table.columnCount(), 4)
+
+    def test_compare_table_columns(self):
+        self.assertEqual(self.view.compare_table.columnCount(), 5)
+
+    def test_compare_without_actuals(self):
+        from unittest import mock
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view._compare()
+        self.assertEqual(self.view.compare_table.rowCount(), 0)
+
+    def test_parse_actuals(self):
+        self.view.actual_input.setPlainText("Salaries,1000\nRent,500")
+        actuals = self.view._parse_actuals()
+        self.assertEqual(actuals, {"Salaries": 1000.0, "Rent": 500.0})
+
+    def test_category_combo_has_items(self):
+        self.assertGreaterEqual(self.view.category_combo.count(), 3)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
