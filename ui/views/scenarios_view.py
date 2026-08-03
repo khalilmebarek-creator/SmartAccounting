@@ -107,6 +107,23 @@ class ScenariosView(QWidget):
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(15)
 
+        self._build_header(content_layout)
+        self._build_assumptions(content_layout)
+        self._build_run_button(content_layout)
+        self._build_results(content_layout)
+        self._build_comparison(content_layout)
+        self._build_charts(content_layout)
+        self._build_sensitivity(content_layout)
+        self._build_actions(content_layout)
+
+        content_layout.addStretch()
+        content.setLayout(content_layout)
+        scroll.setWidget(content)
+        main_layout.addWidget(scroll)
+        self.setLayout(main_layout)
+    def _build_header(self, content_layout):
+        """العنوان والعنوان الفرعي"""
+
         # ===== العنوان =====
         self.title = QLabel(t("scn_title"))
         self.title.setObjectName("headerTitle")
@@ -115,6 +132,9 @@ class ScenariosView(QWidget):
         self.subtitle = QLabel(t("scn_subtitle"))
         self.subtitle.setObjectName("headerSubtitle")
         content_layout.addWidget(self.subtitle)
+
+    def _build_assumptions(self, content_layout):
+        """افتراضات السيناريوهات"""
 
         # ===== الافتراضات =====
         self.assumptions_title = QLabel(t("scn_assumptions"))
@@ -190,12 +210,18 @@ class ScenariosView(QWidget):
 
         content_layout.addLayout(assumptions_grid)
 
+    def _build_run_button(self, content_layout):
+        """زر تشغيل المحاكاة"""
+
         # ===== زر التشغيل =====
         self.run_btn = QPushButton(t("scn_run"))
         self.run_btn.setObjectName("primaryBtn")
         self.run_btn.setMinimumHeight(42)
         self.run_btn.clicked.connect(self.run_simulation)
         content_layout.addWidget(self.run_btn)
+
+    def _build_results(self, content_layout):
+        """بطاقات النتائج"""
 
         # ===== النتائج =====
         self.results_title = QLabel(t("scn_results"))
@@ -212,6 +238,9 @@ class ScenariosView(QWidget):
         results_grid.addWidget(self.worst_card, 0, 2)
         content_layout.addLayout(results_grid)
 
+    def _build_comparison(self, content_layout):
+        """جدول المقارنة"""
+
         # ===== جدول المقارنة =====
         self.comparison_title = QLabel(t("scn_comparison"))
         self.comparison_title.setObjectName("sectionTitle")
@@ -227,6 +256,9 @@ class ScenariosView(QWidget):
         self.comparison_table.setEditTriggers(QTableWidget.NoEditTriggers)
         content_layout.addWidget(self.comparison_table)
 
+    def _build_charts(self, content_layout):
+        """الرسوم البيانية"""
+
         # ===== الرسوم البيانية =====
         self.charts_title = QLabel(t("scn_charts"))
         self.charts_title.setObjectName("sectionTitle")
@@ -241,6 +273,9 @@ class ScenariosView(QWidget):
         self.chart_area = ScenarioChart(t("scn_chart_area"))
         charts_grid.addWidget(self.chart_area, 1, 0)
         content_layout.addLayout(charts_grid)
+
+    def _build_sensitivity(self, content_layout):
+        """تحليل الحساسية"""
 
         # ===== تحليل الحساسية =====
         self.sensitivity_title = QLabel(t("scn_sensitivity"))
@@ -292,6 +327,9 @@ class ScenariosView(QWidget):
         sensitivity_grid.addWidget(steps_frame, 0, 1)
         content_layout.addLayout(sensitivity_grid)
 
+    def _build_actions(self, content_layout):
+        """أزرار الحفظ والتصدير"""
+
         # ===== أزرار الحفظ/التحميل/التصدير =====
         action_row = QHBoxLayout()
         action_row.setSpacing(10)
@@ -311,12 +349,6 @@ class ScenariosView(QWidget):
         self.export_btn.clicked.connect(self.export_pdf)
         action_row.addWidget(self.export_btn)
         content_layout.addLayout(action_row)
-
-        content_layout.addStretch()
-        content.setLayout(content_layout)
-        scroll.setWidget(content)
-        main_layout.addWidget(scroll)
-        self.setLayout(main_layout)
 
     def _make_result_card(self, title, accent):
         """كارت نتيجة سيناريو: صافي الربح + المؤشرات"""
