@@ -67,6 +67,8 @@ login_session.json
 .vault_salt
 nuitka-crash-report.xml
 *.db
+*.db-shm
+*.db-wal
 data/
 logs/
 backups/
