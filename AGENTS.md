@@ -20,6 +20,7 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - الإصدار الحالي: v3.1.7
 
 ## الحالة الحالية (2026-08-03)
+- **جلسة إصلاح «الشاشات الفارغة» في المثبّتات (2026-08-03):** مستخدم أبلغ شاشات فارغة في النسخة المثبّتة — **الجذر**: التحميل الكسول يستورد المشاهد ديناميكياً (`_lazy_view_factory` main_window.py:29 + PEP 562 في modules/__init__.py) وNuitka لا يضمّن الاستيرادات الديناميكية → `ui/views/*` وكل محرّكات modules كانت **غائبة من الـ exe** (سجل المثبّت: دخول ناجح ثم صمت، لا سطر main_window — يبقى الـ placeholder فارغاً)؛ **الإصلاح**: `--include-package=ui.views,ui.resources,modules` في build_nuitka.py + build_nuitka.bat يستدعي build_nuitka.py (كان أمراً قديماً مكرراً) + إعادة بناء Nuitka (**143MB** بدل 82MB) + Inno Setup (**66.9MB**) + ZIP محمول (**109MB**) — التحقق الفعلي: دخول عبر UI Automation على exe محدّث → `Lazy-loaded view: data_entry` + dashboard/tax/audit/reports/chat/cost_center + مشاهد الـ ZIP بدون أخطاء + مصانع المشاهد الـ35 تنجح
 - **جلسة مراجعة مواد الدفاع (2026-08-03):** `docs/generate_report.py` — v3.1.6→v3.1.7 (غلاف/ملخص/جلسات v3.1.3→v3.1.7) + 1350→**1786** اختبار (6 مواضع) + قسم **13.12 UAT الشامل (v3.1.7)** + تحديث أحجام المثبّتات (Setup 51.6MB/ZIP 82.9MB) + إعادة توليد التقرير: DOCX (52832B) عبر generate_report.py + PDF (257204B) عبر docx2pdf/Word COM — التحقق: v3.1.7 ×4 و1786 ×6 في DOCX
 - **جلسة رفع الإصدار v3.1.7 (2026-08-03):** config.py + i18n window_title ×3 + installer.iss + build_nuitka.py → 3.1.7 + docs/version.json (changelog v3.1.7 + URLs) + docs/index.html (badge/softwareVersion/روابط/سجل v3.1.7) + docs/script.js (hero_badge + upd_date8 + upd_new31 ×3 لغات) + KNOWLEDGE_BASE.md/USER_GUIDE.md/openapi.yaml + AGENTS.md + إعادة بناء Nuitka (82MB) + Inno Setup (51.6MB) + ZIP محمول (83MB) + GitHub release v3.1.7 بأحدث assets + auto-update يشير إلى v3.1.7
 - **جلسة UAT شامل (2026-08-02):** `tests/test_uat.py` الجديد (9 اختبارات) — رحلة مستخدم حقيقية عبر MainWindow (تسجيل دخول + تجوّل الشاشات الـ35 + إدخال بيانات وحساب + تبديل 3 لغات + save_to_db + تسجيل خروج) **كشفت بغّاً حقيقياً**: `bank_sync_view.py:238` و`data_import_view.py:260` يستدعيان `self._clear_layout()` في retranslate دون وجودها → AttributeError (سقوط التطبيق عند تبديل اللغة مع المشهد محمّلاً)؛ الإصلاح — `_clear_layout()` + `_clear_nested()` في `ui/views/_base.py` (BaseView) + 5 اختبارات انحدار (test_ui_views.py 114) → `_base.py` عند 100%
@@ -55,9 +56,9 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
 - إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
 - i18n: 1924 مفتاحاً × 3 لغات (AR/EN/FR) — مجموعات متطابقة (أُزيل مفتاح partners_col_type2 الميت)
-- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (82 MB)
-- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.7.exe (51.6 MB)
-- ZIP: installer_output/SmartAccounting-v3.1.7-win64.zip (82.9 MB)
+- Nuitka standalone: dist_nuitka/run_ui.dist/SmartAccounting.exe (143 MB — يتضمن ui.views + modules)
+- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.7.exe (66.9 MB)
+- ZIP: installer_output/SmartAccounting-v3.1.7-win64.zip (109 MB)
 - رُفع assets إلى GitHub release v3.1.7
 - auto-update: يشير version.json إلى v3.1.7 (تاريخ 2026-08-03)
 - الموقع docs/ (GitHub Pages) رُفّع: badge v3.1.7 + روابط تحميل v3.1.7 + 35 شاشة/1786 اختبار/37 وحدة + سجل v3.1.7
