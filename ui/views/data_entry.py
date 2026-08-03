@@ -82,6 +82,40 @@ class DataEntryView(QWidget):
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
 
+        self._build_header(main_layout)
+        self._build_company_group(main_layout)
+        self._build_balance_group(main_layout)
+        self._build_income_group(main_layout)
+        self._build_actions_bar(main_layout)
+
+        self._set_spin_tooltips()
+
+
+        self.validation_label = QLabel()
+        self.validation_label.setObjectName("cardSubtitle")
+        self.validation_label.setWordWrap(True)
+        main_layout.addWidget(self.validation_label)
+
+        main_layout.addStretch()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.NoFrame)
+        inner = QWidget()
+        inner.setLayout(main_layout)
+        scroll.setWidget(inner)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(scroll)
+
+        self.overlay = LoadingOverlay(self)
+
+        self._setup_tab_order()
+        self._connect_validation_signals()
+    def _build_header(self, main_layout):
+        """عنوان الصفحة"""
+
         # العنوان
         self.title = QLabel(t("data_entry_title"))
         self.title.setObjectName("headerTitle")
@@ -90,6 +124,9 @@ class DataEntryView(QWidget):
         self.subtitle = QLabel(t("data_entry_subtitle"))
         self.subtitle.setObjectName("headerSubtitle")
         main_layout.addWidget(self.subtitle)
+
+    def _build_company_group(self, main_layout):
+        """معلومات الشركة"""
 
         # ===== معلومات الشركة =====
         self.company_group = QGroupBox(t("de_company_info"))
@@ -202,6 +239,9 @@ class DataEntryView(QWidget):
         self.company_group.setLayout(company_layout)
         main_layout.addWidget(self.company_group)
 
+    def _build_balance_group(self, main_layout):
+        """بيانات الميزانية"""
+
         # ===== بيانات الميزانية =====
         self.balance_group = QGroupBox(t("de_balance_sheet"))
         balance_layout = QGridLayout()
@@ -269,6 +309,9 @@ class DataEntryView(QWidget):
 
         self.balance_group.setLayout(balance_layout)
         main_layout.addWidget(self.balance_group)
+
+    def _build_income_group(self, main_layout):
+        """قائمة الدخل"""
 
         # ===== قائمة الدخل =====
         self.income_group = QGroupBox(t("de_income_statement"))
@@ -343,7 +386,8 @@ class DataEntryView(QWidget):
         self.income_group.setLayout(income_layout)
         main_layout.addWidget(self.income_group)
 
-        self._set_spin_tooltips()
+    def _build_actions_bar(self, main_layout):
+        """أزرار الإجراءات"""
 
         # ===== أزرار الإجراءات =====
         buttons_layout = QHBoxLayout()
@@ -404,29 +448,6 @@ class DataEntryView(QWidget):
         buttons_layout.addStretch()
 
         main_layout.addLayout(buttons_layout)
-
-        self.validation_label = QLabel()
-        self.validation_label.setObjectName("cardSubtitle")
-        self.validation_label.setWordWrap(True)
-        main_layout.addWidget(self.validation_label)
-
-        main_layout.addStretch()
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.NoFrame)
-        inner = QWidget()
-        inner.setLayout(main_layout)
-        scroll.setWidget(inner)
-
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(scroll)
-
-        self.overlay = LoadingOverlay(self)
-
-        self._setup_tab_order()
-        self._connect_validation_signals()
 
     def _setup_tab_order(self):
         fields = [
