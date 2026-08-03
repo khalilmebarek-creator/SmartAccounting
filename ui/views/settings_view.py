@@ -41,6 +41,27 @@ class SettingsView(QWidget):
         self.main_layout.setContentsMargins(40, 30, 40, 30)
         self.main_layout.setSpacing(30)
 
+        self._build_header()
+        self._build_lang_group()
+        self._build_theme_group()
+        self._build_ai_group()
+        self._build_separator()
+        self._build_email_group()
+        self._build_backup_group()
+        self._build_separator2()
+        self._build_reset_group()
+        self._build_demo_group()
+        self._build_save_bar()
+
+
+        container.setLayout(self.main_layout)
+        scroll.setWidget(container)
+        outer.addWidget(scroll)
+        self.setLayout(outer)
+
+    def _build_header(self):
+        """العنوان"""
+
         self.title_label = QLabel(t("settings_title"))
         self.title_label.setObjectName("headerTitle")
         self.main_layout.addWidget(self.title_label)
@@ -48,6 +69,9 @@ class SettingsView(QWidget):
         self.subtitle_label = QLabel(t("settings_subtitle"))
         self.subtitle_label.setObjectName("headerSubtitle")
         self.main_layout.addWidget(self.subtitle_label)
+
+    def _build_lang_group(self):
+        """إعدادات اللغة"""
 
         # === Language Group ===
         self.lang_group = QGroupBox(t("settings_language"))
@@ -69,6 +93,9 @@ class SettingsView(QWidget):
         self.lang_group.setLayout(lang_layout)
         self.main_layout.addWidget(self.lang_group)
 
+    def _build_theme_group(self):
+        """إعدادات الثيم"""
+
         # === Theme Group ===
         self.theme_group = QGroupBox(t("settings_theme"))
         theme_layout = QHBoxLayout()
@@ -87,6 +114,9 @@ class SettingsView(QWidget):
 
         self.theme_group.setLayout(theme_layout)
         self.main_layout.addWidget(self.theme_group)
+
+    def _build_ai_group(self):
+        """إعدادات الذكاء الاصطناعي"""
 
         # === AI Settings Group ===
         self.ai_group = QGroupBox(t("settings_ai"))
@@ -150,11 +180,17 @@ class SettingsView(QWidget):
         self.ai_group.setLayout(ai_layout)
         self.main_layout.addWidget(self.ai_group)
 
+    def _build_separator(self):
+        """الفاصل الأول"""
+
         # === Separator ===
         self.separator = QFrame()
         self.separator.setFrameShape(QFrame.HLine)
         self.separator.setObjectName("separator")
         self.main_layout.addWidget(self.separator)
+
+    def _build_email_group(self):
+        """إعدادات البريد"""
 
         # === Email Configuration ===
         self.email_group = QGroupBox(t("settings_email_config"))
@@ -191,6 +227,9 @@ class SettingsView(QWidget):
 
         self.email_group.setLayout(email_layout)
         self.main_layout.addWidget(self.email_group)
+
+    def _build_backup_group(self):
+        """النسخ الاحتياطي"""
 
         # === Backup Group ===
         self.backup_group = QGroupBox(t("backup_title"))
@@ -234,11 +273,17 @@ class SettingsView(QWidget):
         self.backup_group.setLayout(backup_layout)
         self.main_layout.addWidget(self.backup_group)
 
+    def _build_separator2(self):
+        """الفاصل الثاني"""
+
         # === Separator 2 ===
         self.separator2 = QFrame()
         self.separator2.setFrameShape(QFrame.HLine)
         self.separator2.setObjectName("separator")
         self.main_layout.addWidget(self.separator2)
+
+    def _build_reset_group(self):
+        """إعادة تعيين البيانات"""
 
         # === Reset All Data ===
         self.reset_group = QGroupBox(t("settings_reset_all"))
@@ -256,6 +301,9 @@ class SettingsView(QWidget):
         self.reset_group.setLayout(reset_layout)
         self.main_layout.addWidget(self.reset_group)
 
+    def _build_demo_group(self):
+        """البيانات التجريبية"""
+
         # === Demo Data ===
         self.demo_group = QGroupBox(t("settings_load_demo"))
         demo_layout = QHBoxLayout()
@@ -271,6 +319,9 @@ class SettingsView(QWidget):
         self.demo_group.setLayout(demo_layout)
         self.main_layout.addWidget(self.demo_group)
 
+    def _build_save_bar(self):
+        """زر الحفظ"""
+
         # === Save Button ===
         save_layout = QHBoxLayout()
         save_layout.setContentsMargins(0, 10, 0, 0)
@@ -284,12 +335,7 @@ class SettingsView(QWidget):
         save_layout.addWidget(self.save_btn)
 
         self.main_layout.addLayout(save_layout)
-        self.main_layout.addStretch()
 
-        container.setLayout(self.main_layout)
-        scroll.setWidget(container)
-        outer.addWidget(scroll)
-        self.setLayout(outer)
 
     def load_current_settings(self):
         """تحميل الإعدادات الحالية"""
