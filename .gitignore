@@ -40,6 +40,9 @@ distribution/
 nuitka_*.txt
 nuitka_*.xml
 
+# Build junk (retired root-level logs)
+artifacts/
+
 # Coverage artifacts
 .coverage
 htmlcov/
