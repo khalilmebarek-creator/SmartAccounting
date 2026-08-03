@@ -92,6 +92,26 @@ class DuPontView(QWidget):
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setSpacing(15)
 
+        self._build_header(content_layout)
+        self._build_equation(content_layout)
+        self._build_components(content_layout)
+        self._build_charts(content_layout)
+        self._build_interpretation(content_layout)
+        self._build_industry(content_layout)
+        self._build_recommendations(content_layout)
+        self._build_working_capital(content_layout)
+        self._build_export(content_layout)
+
+        content_layout.addStretch()
+        content.setLayout(content_layout)
+        scroll.setWidget(content)
+        main_layout.addWidget(scroll)
+        self.setLayout(main_layout)
+
+        self._fill_sector_combo()
+    def _build_header(self, content_layout):
+        """العنوان"""
+
         # العنوان
         self.title = QLabel(t("analysis_title"))
         self.title.setObjectName("headerTitle")
@@ -100,6 +120,9 @@ class DuPontView(QWidget):
         self.subtitle = QLabel(t("analysis_subtitle"))
         self.subtitle.setObjectName("headerSubtitle")
         content_layout.addWidget(self.subtitle)
+
+    def _build_equation(self, content_layout):
+        """معادلة DuPont"""
 
         # ===== المعادلة =====
         equation_frame = QFrame()
@@ -121,6 +144,9 @@ class DuPontView(QWidget):
         equation_layout.addWidget(self.equation_label)
 
         content_layout.addWidget(equation_frame)
+
+    def _build_components(self, content_layout):
+        """مكونات DuPont"""
 
         # ===== المكونات =====
         self.components_title = QLabel(t("ana_components"))
@@ -169,6 +195,9 @@ class DuPontView(QWidget):
 
         content_layout.addLayout(components_grid)
 
+    def _build_charts(self, content_layout):
+        """الرسوم البيانية"""
+
         # ===== الرسوم البيانية =====
         self.charts_title = QLabel(t("ana_charts_title"))
         self.charts_title.setObjectName("sectionTitle")
@@ -188,6 +217,9 @@ class DuPontView(QWidget):
 
         content_layout.addLayout(charts_grid)
 
+    def _build_interpretation(self, content_layout):
+        """التفسير"""
+
         # ===== التفسير =====
         self.interpretation_title = QLabel(t("ana_interpretation"))
         self.interpretation_title.setObjectName("sectionTitle")
@@ -204,6 +236,9 @@ class DuPontView(QWidget):
         interp_layout.addWidget(self.interp_label)
 
         content_layout.addWidget(self.interpretation_frame)
+
+    def _build_industry(self, content_layout):
+        """مقارنة القطاع"""
 
         # ===== مقارنة القطاع =====
         self.industry_title = QLabel(t("ana_industry_title"))
@@ -231,6 +266,9 @@ class DuPontView(QWidget):
         self.industry_summary.setStyleSheet("font-size: 11pt;")
         content_layout.addWidget(self.industry_summary)
 
+    def _build_recommendations(self, content_layout):
+        """التوصيات"""
+
         # ===== التوصيات =====
         self.rec_title = QLabel(t("ana_recommendations"))
         self.rec_title.setObjectName("sectionTitle")
@@ -241,6 +279,9 @@ class DuPontView(QWidget):
         self.rec_layout = QVBoxLayout(self.rec_frame)
         self.rec_layout.setSpacing(8)
         content_layout.addWidget(self.rec_frame)
+
+    def _build_working_capital(self, content_layout):
+        """رأس المال العامل"""
 
         # ===== رأس المال العامل =====
         self.wc_title = QLabel(t("ana_wc_title"))
@@ -276,6 +317,9 @@ class DuPontView(QWidget):
 
         content_layout.addLayout(wc_grid)
 
+    def _build_export(self, content_layout):
+        """زر التصدير"""
+
         # ===== زر التصدير =====
         export_row = QHBoxLayout()
         export_row.addStretch()
@@ -285,12 +329,6 @@ class DuPontView(QWidget):
         self.export_btn.clicked.connect(self.export_pdf)
         export_row.addWidget(self.export_btn)
         content_layout.addLayout(export_row)
-
-        content_layout.addStretch()
-        content.setLayout(content_layout)
-        scroll.setWidget(content)
-        main_layout.addWidget(scroll)
-        self.setLayout(main_layout)
 
         self._fill_sector_combo()
 
