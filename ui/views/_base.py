@@ -7,6 +7,18 @@ from PyQt5.QtGui import QFont
 from ui.resources.i18n import t
 
 
+def _clear_nested(layout):
+    """تفرّغ layout بعمق (عناصرها و layouts الفرعية) دون تكرار لا نهائي."""
+    while layout.count():
+        item = layout.takeAt(0)
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+        child = item.layout()
+        if child is not None:
+            _clear_nested(child)
+
+
 class BaseView(QWidget):
     """Base class for all views — provides common layout and helper methods."""
 
@@ -71,3 +83,15 @@ class BaseView(QWidget):
 
         frame.setLayout(layout)
         return frame
+
+    def _clear_layout(self):
+        """أزل كل العناصر من _main_layout لإعادة بنائها (تُستخدم عند retranslate)."""
+        layout = self._main_layout
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            child = item.layout()
+            if child is not None:
+                _clear_nested(child)

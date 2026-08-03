@@ -43,6 +43,14 @@ _STATUS_TEXT_KEYS = {
 _ACTIVITY_SECTOR_MAP = ["commercial", "industrial", "construction", "services"]
 
 _THEME_COLORS = ["#2196F3", "#27AE60", "#8E44AD", "#E67E22", "#E74C3C", "#16A085"]
+_THEME_COLOR_KEYS = {
+    "#2196F3": "color_blue",
+    "#27AE60": "color_green",
+    "#8E44AD": "color_purple",
+    "#E67E22": "color_orange",
+    "#E74C3C": "color_red",
+    "#16A085": "color_teal",
+}
 
 _KPI_LABEL_KEYS = {
     "revenue": "advd_kpi_revenue",
@@ -322,7 +330,7 @@ class AdvancedDashboardView(BaseView):
         self.color_combo = QComboBox()
         self.color_combo.setMinimumWidth(140)
         for c in _THEME_COLORS:
-            self.color_combo.addItem(c, c)
+            self.color_combo.addItem(t(_THEME_COLOR_KEYS.get(c, c)), c)
         self.color_combo.currentIndexChanged.connect(self._on_color_changed)
         theme_row.addWidget(self.color_combo)
         theme_row.addStretch()

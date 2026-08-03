@@ -834,6 +834,9 @@ class MainWindow(QMainWindow):
                     self._get_or_create_view(2).chart_dupont,
                     self._get_or_create_view(2).chart_balance,
                     self._get_or_create_view(2).chart_expenses,
+                    self._get_or_create_view(2).chart_radar,
+                    self._get_or_create_view(2).chart_zscore,
+                    self._get_or_create_view(2).chart_liquidity,
                 ]:
                     fig = chart_widget.figure
                     pdf.savefig(fig, dpi=150, bbox_inches='tight')

@@ -281,7 +281,7 @@ class PartnersView(BaseView):
         self.stat_payable.setText(f"{total_payable:,.2f}")
         self.stat_net.setText(f"{total_receivable - total_payable:,.2f}")
 
-        aging = self._engine.aging("2026-08-01") or []
+        aging = self._engine.aging(QDate.currentDate().toString("yyyy-MM-dd")) or []
         self.aging_table.setRowCount(len(aging))
         for row, bucket in enumerate(aging):
             self.aging_table.setItem(row, 0, QTableWidgetItem(_plain(bucket.get("name") or "")))

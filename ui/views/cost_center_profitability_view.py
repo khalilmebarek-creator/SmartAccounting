@@ -120,6 +120,8 @@ class CostCenterProfitabilityView(BaseView):
         self.center_table.setRowCount(self.MAX_CENTERS)
         self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.center_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.center_table.verticalHeader().setDefaultSectionSize(46)
+        self.center_table.setMinimumHeight(46 * self.MAX_CENTERS + 40)
 
         self._center_data = []
         for i in range(self.MAX_CENTERS):

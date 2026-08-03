@@ -221,6 +221,8 @@ class CloudSyncView(BaseView):
         ])
         self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.history_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.history_table.verticalHeader().setDefaultSectionSize(44)
+        self.history_table.setMinimumHeight(200)
         hist_card.layout().addWidget(self.history_table)
         self._main_layout.addWidget(hist_card)
 

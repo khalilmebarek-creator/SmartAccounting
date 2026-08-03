@@ -113,7 +113,7 @@
 | Style Dark | ui/resources/style_dark.qss | ✅ |
 | Style Modern | ui/resources/style_modern.qss | ✅ |
 | Messages | ui/widgets/messages.py (رسائل خطأ/تحذير موحّدة + إجراء مقترح مترجم) | ✅ |
-| i18n | ui/resources/i18n.py (AR + EN + FR, 1530 keys) | ✅ |
+| i18n | ui/resources/i18n.py (AR + EN + FR, 1924 keys) | ✅ |
 
 ### ✅ UTILS (100% — مكتمل)
 | المكوّن | الملفات | الحالة |
@@ -287,6 +287,9 @@ Accounting_Platform/
     ├── test_integration_database.py   # سلامة/معاملات/تزامن/نسخ-استرجاع
     └── test_integration_performance.py# أداء تحت الحمل + إجهاد ذاكرة (جلسة التكامل)
 ```
+```
+    └── test_uat.py                    # UAT كمستخدم حقيقي: تسجيل دخول + تجول 35 شاشة + لغة + حفظ (جلسة v3.1.6)
+```
 
 ---
 
@@ -349,10 +352,11 @@ Accounting_Platform/
 | test_integration_workflow.py | ✅ | 9 |
 | test_integration_database.py | ✅ | 18 |
 | test_integration_performance.py | ✅ | 10 |
-| **المجموع** | **✅ 1661** | |
+| test_ui_views.py | ✅ | 114 |
+| test_uat.py | ✅ | 9 |
+| **المجموع** | **✅ 1786** | |
 
-> التوزيع: 1127 اختباراً عبر `python -m unittest discover -s tests` + كلها (1350) عبر `python -m pytest tests -q`
-> (بعض ملفات التغطية الجديدة تستخدم دوالاً/mock لا يلتقطها unittest في Python 3.13، لذا المرجع الرسمي هو pytest)
+> التوزيع: 1546 اختباراً غير واجهة + 115 في test_ui.py + 114 في test_ui_views.py + 9 في test_uat.py (test_bank_print ضمن المجموعة غير الواجهة) — المرجع الرسمي: `python -m pytest tests -q`
 
 ---
 
@@ -422,6 +426,10 @@ Accounting_Platform/
 | 55 | 2026-08-01 | **التصحيحات النهائية + مراجعة الأمان (Goal: صفر أخطاء حرجة + جاهزية للعرض)**: إصلاح 13 خللاً موثّقاً سابقاً — print_manager (استيراد QPageLayout لفرع Landscape) + bank_sync (رأس الملف: كشف بلا أرقام بدل ابتلاع أول صف بيانات) + report_templates (deepcopy لـ DEFAULT_TEMPLATES عند التحميل) + reporting (رسالة واضحة عند غياب Amiri وتصدير عربي) + update_checker (try/finally + تنظيف الملف الجزئي + تصفير last_error بعد نجاح fallback) + user_manager (token=None → err_reset_invalid_token) + scheduled_backup (استعادة vault.enc + meta.json ضمن files) + backup (SQL بالاسم الحقيقي للتصدير + تحقق `_is_valid_sqlite` قبل الاستعادة) + data_import (disconnect عند فشل connect + رفض الكلمات المحجوزة SQLite) + currency (حذف سطر no-op) + tax_reminders (إزالة فرع except ميت) + i18n (window_title v2.5.0 → v3.1.6 ×3 لغات) + مراجعة أمان (PBKDF2 100k + salt لكل مستخدم + تخزين مشفّر SMTP/API + روابط HTTPS فقط — كلها سليمة) + **تغطية وحدات 100%** (إغلاق آخر الفجوات الدفاعية) | ✅ **1350** اختبار + تغطية وحدات **100%** |
 | 56 | 2026-08-02 | **المرحلة الثانية — 6 شاشات محاسبية جديدة (Goal: واجهات للميزات المحاسبية الخمسة)**: محرك ledger.py (قيود يومية + دفتر أستاذ + ميزان مراجعة + CSV + DB) + partners.py (عملاء/موردون + معاملات + أرصدة + تقادم الديون + DB) + invoicing.py (فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB) + inventory.py (عناصر + حركات + متوسط تكلفة + تنبيهات + DB) + payroll.py (موظفون + CNAS/IRG/حساسية + كشوفات + CSV + DB) + budgeting.py (بنود + مقارنة بالفعلي + انحراف + CSV + DB) + شاشات ledger_view/partners_view/invoicing_view/inventory_view/payroll_view/budgeting_view (شاشات 30-35) + ربط في main_window (factories 30-35 + sidebar_items 35 + اختصارات F10/F11/F12 + Ctrl+Shift+B/C/D) + إصلاح apply_language (sidebar_user_testing المفقودة كانت تحذف شاشة 29 عند تغيير اللغة) + i18n 1874 (ledger_/partners_/invoicing_/inventory_/payroll_/budgeting_* + sidebar) + 37 اختبار واجهة جديد في test_ui.py (110) + 269 اختبار محركات (test_ledger 36 + test_partners 50 + test_invoicing 46 + test_inventory 47 + test_payroll 55 + test_budgeting 35) + تعارض QMessageBox في الاختبارات حُلّ عبر unittest.mock (0xC0000005) | ✅ **1656** اختبار + تغطية وحدات **100%** |
 | 57 | 2026-08-02 | **إصلاح الشاشة السوداء عند التنقل (Goal: لا تبقى أي شاشة عالقة عند شفافية صفر)**: الخلل — `_fade_in_view` في main_window.py يخزّن الأنيميشن في `self._view_anim` (مرجع واحد) فيُتلفف الأنيميشن السابق أثناء طيرانه فيبقى QGraphicsOpacityEffect عند شفافية ~0 مع عدم إطلاق `finished` → الشاشة سوداء دائمة على الأجهزة البطيئة؛ الإصلاح — حاوية `self._view_anims` (بمفتاح id(widget)) توقف/تحذف الأنيميشن السابق قبل بدء جديد + `QTimer.singleShot(300)` كضمانة تُزيل التأثير حتى لو لم يُبعث `finished` + دالة `_remove` تتحقق أن التأثير/المرجع ما زال لنفس الأنيميشن (حماية من finished متأخر يزيل تأثير الشاشة الجديدة) + 5 اختبارات واجهة جديدة في test_ui.py (115) (TestFadeInSafety: تبديل سريع/لا أنيميشنات متبقية/تنقل واحد/None/فشل setOpacity) | ✅ **1661** اختبار + تغطية وحدات **100%** |
+| 58 | 2026-08-02 | **تغطية الواجهات + إصلاحات i18n (Goal: كل الشاشات الـ35 مختبرة + صفر مفاتيح ترجمة ناقصة)**: `tests/test_ui_views.py` الجديد (111 اختباراً، 25 فئة) يغطي الشاشات الـ24 غير المغطاة سابقاً (dashboard/ratios/audit/reports/settings/chat/tax/comparative/cashflow/security/zscore/forecasting/budget/cost_center/breakeven/data_import/bank_sync/scenarios/advanced_dashboard/ai_insights/currency/cloud_sync/demo_data/user_testing/analysis) + **إصلاح بغّ حقيقي** `bank_sync_view.py:229,231` (استدعاء `ThemeColors.get()` بوسيطين — الدالة تقبل وسيطاً واحداً → TypeError عند رسم جدول المعاملات؛ أصبح بوسيط واحد) + **إصلاح تسرّب حالة** في test_ui_views.py (`test_calculate_cash_flow` + `test_add_year_requires_data` كانا يعدّلان `state.financial_data` دون استعادة → كسر `test_financial_spins_start_zero` في test_ui.py عند التشغيل المتسلسل — أصبحا try/finally) + **إضافة 44 مفتاح i18n مفقوداً** (chat_offline_* للمساعد المحلي: advice tips/labels/benchmark/dupont/receivables… + breakeven_chart_title + cloud_action/destination/status + cost_profit_prev_profit + login_reg_display) عبر اللغات الثلاث — كان المساعد المحلي بالعربية يعرض أسماء مفاتيح خام | ✅ **1772** اختبار + تغطية وحدات **100%** |
+| 59 | 2026-08-02 | **تحسينات UI حسب ملاحظات المستخدم (Goal: مقروئية وسهولة استخدام الشاشات المبلّغ عنها)**: 5 شاشات — لوحة التحكم المتقدمة (`advanced_dashboard_view.py`: اللون المميز في `color_combo` يُعرض باسمه المُترجم عبر مفاتيح `color_*` الجديدة بدل رمز `#2196F3` — mapping `_THEME_COLOR_KEYS`) + ربحية المراكز (`cost_center_profitability_view.py`: صفوف جدول مراكز التكلفة `verticalHeader().setDefaultSectionSize(46)` + `setMinimumHeight`) + المزامنة السحابية (`cloud_sync_view.py`: سجل العمليات صفوف 44px + حد أدنى) + الشركات التجريبية (`demo_data_view.py`: جدول المعاملات الشهرية صفوف 42px + حد أدنى) + اختبار المستخدمين (`user_testing_view.py`: حقول الجلسة/الملاحظة 36px + خانة التعليق `setMinimumHeight(110)` بدل `setMaximumHeight(70)` + جدول الملاحظات صفوف 48px مع `setWordWrap(True)` + حد أدنى) + **إصلاح عزل اختبارات** في test_ui.py (`TestDataEntryView.setUp` يستدعي `state.clear()` — كان تشغيل التطبيق وحفظ بيانات إلى accounting_data.json يكسر اختبارات «يبدأ فارغاً»: test_company_name_starts_empty + test_save_button_starts_disabled) + i18n 1924 (+6 مفاتيح color_* ×3 لغات) | ✅ **1772** اختبار + تغطية وحدات **100%** |
+| 60 | 2026-08-02 | **معالجة Smart App Control (Goal: حل حجب الـ exe غير الموقّع على Windows 11)**: سكربت `tools/allow_smart_app_control.ps1` جديد — يفحص حالة SAC من السجل (`HKLM:\...\CI\Policy\VerifiedAndReputablePolicyState` → Off/Enforcement/Warning) + يعرض تعليمات الإيقاف بالعربية + يضيف استثناءات Defender للمثبّت (`installer_output\*.exe`) وبنية Nuitka (`dist_nuitka`) مع فحص صلاحيات Administrator + يفحص حالة توقيع الـ exe (`Get-AuthenticodeSignature` → NotSigned) — التحقق على جهاز التطوير: SAC مفعّل **Enforcement** + exe **NotSigned** (تأكيد السبب الجذري)؛ **إصلاح ترميز**: السكربت يحتاج UTF-8 **BOM** لأن PowerShell 5.1 يقرأ cp1252 فيفشل ParserError مع العربية (نُفّذ `Set-Content -Encoding UTF8`) + تحديث التوثيق لإرشاد المستخدمين للسكربت أو إيقاف SAC: USER_GUIDE.md (جدول السطر 1 + سطر الملاحظة بدل «لم يُحل بعد»)، docs/index.html `dl_note_sac`، docs/script.js بالثلاث لغات | ✅ **1772** اختبار + تغطية وحدات **100%** |
+| 61 | 2026-08-02 | **UAT شامل كمستخدمين (Goal: تجربة التطبيق من وجهة المستخدم النهائي قبل الرفع)**: `tests/test_uat.py` الجديد (9 اختبارات) — رحلة مستخدم حقيقية عبر `MainWindow`: تسجيل الدخول (تعبئة login_email/login_password + mock لـ needs_password_change عبر PasswordChangeDialog) + تجوّل الشاشات الـ35 عبر `change_view` (factories 1-35 + sidebar) + إدخال بيانات تجريبية وحساب النسب + تبديل اللغات الثلاث + `save_to_db` + تسجيل الخروج + بدء التطبيق عند شاشة الدخول؛ **كشف وإصلاح بغّ حقيقي**: `bank_sync_view.py:238` و`data_import_view.py:260` يستدعيان `self._clear_layout()` في `retranslate` دون وجود الأسلوب → AttributeError عند تبديل اللغة بينما المشهد محمّل (سقوط التطبيق) — أُضيف `_clear_layout()` + `_clear_nested()` (تفرّغ layout بعمق مع deleteLater) إلى `ui/views/_base.py` (BaseView) + 5 اختبارات انحدار في test_ui_views.py (114: إعادة بناء DataImportView/BankSyncView بعد retranslate + تجريد layouts متداخلة + فراغ + إعادة بناء BaseView) → `_base.py` عند **100%** | ✅ **1786** اختبار + تغطية وحدات **100%** |
 
 
 

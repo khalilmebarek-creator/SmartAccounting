@@ -109,7 +109,7 @@
 
 | المشكلة | السبب المحتمل | الحل |
 |---------|---------------|------|
-| رسالة "An Application Control policy has blocked this file" عند فتح التطبيق | Smart App Control في Windows 11 يحجب الـ exe غير الموقّع | Windows Security ← App & browser control ← Smart App Control ← Off |
+| رسالة "An Application Control policy has blocked this file" عند فتح التطبيق | Smart App Control في Windows 11 يحجب الـ exe غير الموقّع | شغّل `tools\allow_smart_app_control.ps1` كمسؤول (يفحص الحالة + يضيف استثناء Defender)، أو: Windows Security ← App & browser control ← Smart App Control ← Off |
 | نافذة cmd تومض أثناء التحديث | التحديث عبر wscript/VBS (قديم) | حمّل آخر إصدار — التحديث الجديد مخفي تماماً |
 | التطبيق لا يفتح بعد تحديث | نسخة قديمة بتوابع ناقصة (matplotlib) | أعد التشغيل أو استرجاع النسخة المحفوظة |
 | أرقام لا تظهر بشكل صحيح في الطرفية | ترميز cp1252 | ضع `$env:PYTHONIOENCODING="utf-8"` قبل التشغيل |
@@ -118,7 +118,7 @@
 | البيانات لا تُحفظ | قاعدة البيانات مقفلة من عملية أخرى | أغلق التطبيقات الأخرى ثم أعد المحاولة |
 | صعوبة في اختصارات F2-F9 | الشاشات 21-29 تُفتح من السايدبار أيضاً | استخدم السايدبار أو Ctrl+Shift+A للشركات التجريبية |
 
-> الأخطاء المعروفة غير المصلحة: **Smart App Control** يحجب الـ exe غير الموقّع حديث البناء على جهاز التطوير (لم يُحل بعد).
+> ملاحظة Smart App Control: يحجب Windows 11 الـ exe غير الموقّع رقمياً على بعض الأجهزة. الحل العملي للمستخدمين — `tools\allow_smart_app_control.ps1` كمسؤول (يفحص الحالة ويضيف استثناء Defender)، أو إيقاف الميزة من أمان Windows. التطبيق يدعم Windows 10 و11.
 
 ---
 

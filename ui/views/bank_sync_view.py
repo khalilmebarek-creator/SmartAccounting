@@ -226,9 +226,9 @@ class BankSyncView(BaseView):
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 if key == "credit" and val > 0:
-                    item.setForeground(QColor(ThemeColors.get("success", "#27AE60")))
+                    item.setForeground(QColor(ThemeColors.get("success")))
                 elif key == "debit" and val > 0:
-                    item.setForeground(QColor(ThemeColors.get("error", "#E74C3C")))
+                    item.setForeground(QColor(ThemeColors.get("error")))
                 self.tx_table.setItem(i, j, item)
 
     def refresh(self):

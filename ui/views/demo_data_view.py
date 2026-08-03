@@ -74,6 +74,8 @@ class DemoDataView(BaseView):
         self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tx_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.tx_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tx_table.verticalHeader().setDefaultSectionSize(42)
+        self.tx_table.setMinimumHeight(42 * 13 + 40)
         tx_card.layout().addWidget(self.tx_table)
         self._main_layout.addWidget(tx_card)
 

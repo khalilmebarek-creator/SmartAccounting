@@ -15,33 +15,37 @@ MAX_LOG_SIZE = 5 * 1024 * 1024  # 5 MB
 BACKUP_COUNT = 3
 
 
+_fmt = logging.Formatter(
+    "%(asctime)s | %(name)-20s | %(levelname)-7s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+
+def _make_file_handler(path: str, level: int) -> RotatingFileHandler:
+    handler = RotatingFileHandler(path, encoding="utf-8",
+                                  maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
+    handler.setLevel(level)
+    handler.setFormatter(_fmt)
+    return handler
+
+
+# Handlers مشتركة على مستوى الوحدة: كل loggers يشاركون نفس المقبض على الملف
+# حتى لا يفشل التدوير عند 5MB (كان كل logger ينشئ handler خاصاً على نفس الملف
+# فيتعذر إعادة تسمية app.log لأن مقبضاً آخر ما زال مفتوحاً — Windows PermissionError)
+_FILE_HANDLER = _make_file_handler(LOG_FILE, logging.DEBUG)
+_ERROR_HANDLER = _make_file_handler(ERROR_FILE, logging.WARNING)
+_CONSOLE_HANDLER = logging.StreamHandler()
+_CONSOLE_HANDLER.setLevel(logging.WARNING)
+_CONSOLE_HANDLER.setFormatter(_fmt)
+
+
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     if not logger.handlers:
         logger.setLevel(logging.DEBUG)
-
-        fmt = logging.Formatter(
-            "%(asctime)s | %(name)-20s | %(levelname)-7s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        )
-
-        fh = RotatingFileHandler(LOG_FILE, encoding="utf-8",
-                                 maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
-        fh.setLevel(logging.DEBUG)
-        fh.setFormatter(fmt)
-        logger.addHandler(fh)
-
-        eh = RotatingFileHandler(ERROR_FILE, encoding="utf-8",
-                                 maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
-        eh.setLevel(logging.WARNING)
-        eh.setFormatter(fmt)
-        logger.addHandler(eh)
-
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.WARNING)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-
+        logger.addHandler(_FILE_HANDLER)
+        logger.addHandler(_ERROR_HANDLER)
+        logger.addHandler(_CONSOLE_HANDLER)
     return logger
 
 

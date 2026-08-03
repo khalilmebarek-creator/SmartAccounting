@@ -301,6 +301,8 @@ class TestTaxCalendarView(unittest.TestCase):
 class TestDataEntryView(unittest.TestCase):
 
     def setUp(self):
+        from ui.app_state import state
+        state.clear()
         from ui.views.data_entry import DataEntryView
         self.dev = DataEntryView()
 
