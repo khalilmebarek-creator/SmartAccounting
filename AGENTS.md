@@ -17,9 +17,10 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 ## قواعد الرفع
 - بعد كل تعديل كود، تحديث الموقع (docs/) مطلوب
 - بعد كل تعديل، تحديث PROJECT_MAP.md مطلوب
-- الإصدار الحالي: v3.1.6
+- الإصدار الحالي: v3.1.7
 
-## الحالة الحالية (2026-08-02)
+## الحالة الحالية (2026-08-03)
+- **جلسة رفع الإصدار v3.1.7 (2026-08-03):** config.py + i18n window_title ×3 + installer.iss + build_nuitka.py → 3.1.7 + docs/version.json (changelog v3.1.7 + URLs) + docs/index.html (badge/softwareVersion/روابط/سجل v3.1.7) + docs/script.js (hero_badge + upd_date8 + upd_new31 ×3 لغات) + KNOWLEDGE_BASE.md/USER_GUIDE.md/openapi.yaml + AGENTS.md + إعادة بناء Nuitka (82MB) + Inno Setup (51.6MB) + ZIP محمول (83MB) + GitHub release v3.1.7 بأحدث assets + auto-update يشير إلى v3.1.7
 - **جلسة UAT شامل (2026-08-02):** `tests/test_uat.py` الجديد (9 اختبارات) — رحلة مستخدم حقيقية عبر MainWindow (تسجيل دخول + تجوّل الشاشات الـ35 + إدخال بيانات وحساب + تبديل 3 لغات + save_to_db + تسجيل خروج) **كشفت بغّاً حقيقياً**: `bank_sync_view.py:238` و`data_import_view.py:260` يستدعيان `self._clear_layout()` في retranslate دون وجودها → AttributeError (سقوط التطبيق عند تبديل اللغة مع المشهد محمّلاً)؛ الإصلاح — `_clear_layout()` + `_clear_nested()` في `ui/views/_base.py` (BaseView) + 5 اختبارات انحدار (test_ui_views.py 114) → `_base.py` عند 100%
 - **1786 اختباراً كلها ناجحة عبر `python -m pytest tests -q`** (1546 غير واجهة + 115 test_ui.py + 114 test_ui_views.py + 9 test_uat.py — test_bank_print ضمن المجموعة غير الواجهة)
 - **جلسة معالجة Smart App Control (2026-08-02):** سكربت `tools/allow_smart_app_control.ps1` جديد — يفحص حالة SAC من السجل (`HKLM:\...\CI\Policy\VerifiedAndReputablePolicyState`) ويعرض تعليمات الإيقاف بالعربية + يضيف استثناءات Defender للمثبّت (installer_output) وبنية Nuitka (dist_nuitka) + يفحص حالة توقيع الـ exe (Get-AuthenticodeSignature) — التحقق على جهاز التطوير: SAC مفعّل Enforcement + exe غير موقّع (NotSigned)؛ السكربت يحتاج UTF-8 BOM لأنه PowerShell 5.1 يقرأ cp1252 فيفشل مع العربية + تحديث التوثيق (USER_GUIDE.md جدول + سطر الملاحظة، docs/index.html dl_note_sac، docs/script.js بالثلاث لغات) لإرشاد المستخدمين للسكربت أو إيقاف SAC
@@ -53,11 +54,11 @@ Staff Software Engineer. التعديلات تكون جراحية دقيقة د�
 - جلسة التصحيحات النهائية (2026-08-01): إصلاح 13 خللاً (print_manager/landscape، bank_sync رأس الملف، report_templates deepcopy، reporting Amiri، update_checker download+fallback، user_manager token=None، scheduled_backup vault.enc+meta، backup SQL/تحقق sqlite، data_import disconnect+محجوزات، currency no-op، tax_reminders فرع ميت، i18n v3.1.6) + مراجعة أمان (PBKDF2 100k/salt، تخزين مشفّر SMTP/API، HTTPS فقط — كلها سليمة) → **تغطية 100%**
 - إصلاح واحد ضمن جلسة التغطية: `modules/comparative.py generate_report` كان يرمي KeyError مع بيانات ناقصة → `.get(item/ratio, 0)`
 - i18n: 1924 مفتاحاً × 3 لغات (AR/EN/FR) — مجموعات متطابقة (أُزيل مفتاح partners_col_type2 الميت)
-- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (78.3 MB)
-- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.6.exe (51.5 MB)
-- ZIP: installer_output/SmartAccounting-v3.1.6-win64.zip (82.9 MB)
-- رُفع assets إلى GitHub release v3.1.6
-- auto-update: يشير version.json إلى v3.1.6 (تاريخ 2026-08-02)
-- الموقع docs/ (GitHub Pages) رُفّع: badge v3.1.6 + روابط تحميل v3.1.6 + 29 شاشة/1350 اختبار/30 وحدة + سجل v3.1.6
+- Nuitka onefile: dist_nuitka/run_ui.dist/SmartAccounting.exe (82 MB)
+- Inno Setup: installer_output/SmartAccounting-Setup-v3.1.7.exe (51.6 MB)
+- ZIP: installer_output/SmartAccounting-v3.1.7-win64.zip (82.9 MB)
+- رُفع assets إلى GitHub release v3.1.7
+- auto-update: يشير version.json إلى v3.1.7 (تاريخ 2026-08-03)
+- الموقع docs/ (GitHub Pages) رُفّع: badge v3.1.7 + روابط تحميل v3.1.7 + 35 شاشة/1786 اختبار/37 وحدة + سجل v3.1.7
 - التحديث عبر wscript/VBS مخفي تماماً (بدون نافذة cmd)
 - ملاحظة: Smart App Control على جهاز التطوير يحجب exe غير موقّع حديث البناء — **الحل:** سكربت `tools/allow_smart_app_control.ps1` (يفحص حالة SAC + يضيف استثناء Defender) + توثيق في USER_GUIDE.md وموقع docs/ بالثلاث لغات (إيقاف SAC يدوياً اختياري أحادي الاتجاه)

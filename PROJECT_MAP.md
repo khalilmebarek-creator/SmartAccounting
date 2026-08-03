@@ -1,5 +1,5 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-02 | الإصدار: v3.1.6
+> آخر تحديث: 2026-08-03 | الإصدار: v3.1.7
 
 ---
 
@@ -293,7 +293,7 @@ Accounting_Platform/
 
 ---
 
-## TEST SUMMARY (v3.1.6)
+## TEST SUMMARY (v3.1.7)
 
 | الملف | العدد | الحالة |
 |-------|-------|--------|
@@ -430,6 +430,7 @@ Accounting_Platform/
 | 59 | 2026-08-02 | **تحسينات UI حسب ملاحظات المستخدم (Goal: مقروئية وسهولة استخدام الشاشات المبلّغ عنها)**: 5 شاشات — لوحة التحكم المتقدمة (`advanced_dashboard_view.py`: اللون المميز في `color_combo` يُعرض باسمه المُترجم عبر مفاتيح `color_*` الجديدة بدل رمز `#2196F3` — mapping `_THEME_COLOR_KEYS`) + ربحية المراكز (`cost_center_profitability_view.py`: صفوف جدول مراكز التكلفة `verticalHeader().setDefaultSectionSize(46)` + `setMinimumHeight`) + المزامنة السحابية (`cloud_sync_view.py`: سجل العمليات صفوف 44px + حد أدنى) + الشركات التجريبية (`demo_data_view.py`: جدول المعاملات الشهرية صفوف 42px + حد أدنى) + اختبار المستخدمين (`user_testing_view.py`: حقول الجلسة/الملاحظة 36px + خانة التعليق `setMinimumHeight(110)` بدل `setMaximumHeight(70)` + جدول الملاحظات صفوف 48px مع `setWordWrap(True)` + حد أدنى) + **إصلاح عزل اختبارات** في test_ui.py (`TestDataEntryView.setUp` يستدعي `state.clear()` — كان تشغيل التطبيق وحفظ بيانات إلى accounting_data.json يكسر اختبارات «يبدأ فارغاً»: test_company_name_starts_empty + test_save_button_starts_disabled) + i18n 1924 (+6 مفاتيح color_* ×3 لغات) | ✅ **1772** اختبار + تغطية وحدات **100%** |
 | 60 | 2026-08-02 | **معالجة Smart App Control (Goal: حل حجب الـ exe غير الموقّع على Windows 11)**: سكربت `tools/allow_smart_app_control.ps1` جديد — يفحص حالة SAC من السجل (`HKLM:\...\CI\Policy\VerifiedAndReputablePolicyState` → Off/Enforcement/Warning) + يعرض تعليمات الإيقاف بالعربية + يضيف استثناءات Defender للمثبّت (`installer_output\*.exe`) وبنية Nuitka (`dist_nuitka`) مع فحص صلاحيات Administrator + يفحص حالة توقيع الـ exe (`Get-AuthenticodeSignature` → NotSigned) — التحقق على جهاز التطوير: SAC مفعّل **Enforcement** + exe **NotSigned** (تأكيد السبب الجذري)؛ **إصلاح ترميز**: السكربت يحتاج UTF-8 **BOM** لأن PowerShell 5.1 يقرأ cp1252 فيفشل ParserError مع العربية (نُفّذ `Set-Content -Encoding UTF8`) + تحديث التوثيق لإرشاد المستخدمين للسكربت أو إيقاف SAC: USER_GUIDE.md (جدول السطر 1 + سطر الملاحظة بدل «لم يُحل بعد»)، docs/index.html `dl_note_sac`، docs/script.js بالثلاث لغات | ✅ **1772** اختبار + تغطية وحدات **100%** |
 | 61 | 2026-08-02 | **UAT شامل كمستخدمين (Goal: تجربة التطبيق من وجهة المستخدم النهائي قبل الرفع)**: `tests/test_uat.py` الجديد (9 اختبارات) — رحلة مستخدم حقيقية عبر `MainWindow`: تسجيل الدخول (تعبئة login_email/login_password + mock لـ needs_password_change عبر PasswordChangeDialog) + تجوّل الشاشات الـ35 عبر `change_view` (factories 1-35 + sidebar) + إدخال بيانات تجريبية وحساب النسب + تبديل اللغات الثلاث + `save_to_db` + تسجيل الخروج + بدء التطبيق عند شاشة الدخول؛ **كشف وإصلاح بغّ حقيقي**: `bank_sync_view.py:238` و`data_import_view.py:260` يستدعيان `self._clear_layout()` في `retranslate` دون وجود الأسلوب → AttributeError عند تبديل اللغة بينما المشهد محمّل (سقوط التطبيق) — أُضيف `_clear_layout()` + `_clear_nested()` (تفرّغ layout بعمق مع deleteLater) إلى `ui/views/_base.py` (BaseView) + 5 اختبارات انحدار في test_ui_views.py (114: إعادة بناء DataImportView/BankSyncView بعد retranslate + تجريد layouts متداخلة + فراغ + إعادة بناء BaseView) → `_base.py` عند **100%** | ✅ **1786** اختبار + تغطية وحدات **100%** |
+| 62 | 2026-08-03 | **رفع الإصدار إلى v3.1.7 (Goal: نشر نسخة جديدة تعتمد نتائج UAT)**: رفع `config.py` APP_VERSION + `i18n.py` window_title ×3 لغات + `installer.iss` + `build_nuitka.py` (product/file version) إلى 3.1.7 + تحديث docs/version.json (changelog جديد + download/installer URLs v3.1.7) + docs/index.html (badge + softwareVersion + روابط التحميل + سجل v3.1.7 مع upd_date8/upd_new31) + docs/script.js (hero_badge ×3 لغات + upd_date8/upd_new31 بالثلاث) + KNOWLEDGE_BASE.md + USER_GUIDE.md + openapi.yaml + AGENTS.md + إعادة بناء Nuitka (82MB) + Inno Setup (51.6MB) + ZIP المحمول (83MB) كـ v3.1.7 + إنشاء GitHub release v3.1.7 برفع assets | ✅ **1786** اختبار + تغطية وحدات **100%** |
 
 
 

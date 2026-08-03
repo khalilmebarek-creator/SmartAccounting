@@ -4,7 +4,7 @@
 LANGUAGES = {
     "ar": {
         # Window
-        "window_title": "المنصة المحاسبية الذكية v3.1.6",
+        "window_title": "المنصة المحاسبية الذكية v3.1.7",
         # Sidebar
         "sidebar_data_entry": "📋 إدخال البيانات",
         "sidebar_dashboard": "📊 لوحة التحكم",
@@ -1993,7 +1993,7 @@ LANGUAGES = {
     },
     "en": {
         # Window
-        "window_title": "Smart Accounting Platform v3.1.6",
+        "window_title": "Smart Accounting Platform v3.1.7",
         # Sidebar
         "sidebar_data_entry": "📋 Data Entry",
         "sidebar_dashboard": "📊 Dashboard",
@@ -3982,7 +3982,7 @@ LANGUAGES = {
     },
     "fr": {
         # Window
-        "window_title": "Plateforme Comptable Intelligente v3.1.6",
+        "window_title": "Plateforme Comptable Intelligente v3.1.7",
         # Sidebar
         "sidebar_data_entry": "📋 Saisie des Données",
         "sidebar_dashboard": "📊 Tableau de Bord",
