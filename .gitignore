@@ -56,6 +56,13 @@ htmlcov/
 
 # Data (user files)
 users.json
+accounting_data.json
+accounting_data.json.bak
+activity_log.json
+chat_history.json
+login_session.json
+.vault_salt
+nuitka-crash-report.xml
 *.db
 data/
 logs/
