@@ -366,6 +366,17 @@ class TestDataEntryView(unittest.TestCase):
         self.assertEqual(self.dev.avg_receivables.value(), 0.0)
         self.assertEqual(self.dev.avg_inventory.value(), 0.0)
 
+    def test_financial_spins_show_empty_before_input(self):
+        from ui.resources.i18n import t
+        ph = t("de_enter_amount")
+        self.assertEqual(self.dev.current_assets.text().strip(), ph)
+        self.assertEqual(self.dev.inventory.text().strip(), ph)
+        self.assertEqual(self.dev.total_assets.text().strip(), ph)
+        self.assertEqual(self.dev.revenue.text().strip(), ph)
+        self.assertEqual(self.dev.net_income.text().strip(), ph)
+        self.dev.current_assets.setValue(150000)
+        self.assertEqual(self.dev.current_assets.value(), 150000)
+
     def test_load_demo_data_fills_fields(self):
         self.dev.load_default_data()
         self.assertNotEqual(self.dev.company_name.text(), "")

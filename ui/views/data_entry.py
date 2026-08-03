@@ -455,6 +455,8 @@ class DataEntryView(QWidget):
         spin.setSingleStep(1000)
         spin.setAlignment(Qt.AlignLeft)
         spin.setGroupSeparatorShown(True)
+        # لا تُعرض "0.00" قبل أن يدخل المستخدم رقماً (تُعرض تسمية الإدخال مكانها)
+        spin.setSpecialValueText(t("de_enter_amount"))
         return spin
 
     def _set_spin_tooltips(self):

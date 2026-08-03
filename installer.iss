@@ -53,7 +53,9 @@ Name: "associatefiles"; Description: "Associate .sap files with Smart Accounting
 
 [Files]
 Source: "dist_nuitka\run_ui.dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist_nuitka\run_ui.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; ملاحظة: ملفات الحالة (users/settings/accounting_data/...) مستثناة من المثبّت حتى لا تُستبدل
+; بيانات المستخدم الحقيقية عند الترقية (كان هذا سبب طلب تغيير السرّية بعد التحديث)
+Source: "dist_nuitka\run_ui.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "users.json,settings.json,accounting_data.json,chat_history.json,login_session.json,activity_log.json,accounting_platform.db,templates\custom_templates.json,logs\*,logs,data\*,data,backups\*,backups"
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

@@ -583,7 +583,13 @@ class MainWindow(QMainWindow):
         name, factory = self._view_factories[index]
         if hasattr(self, 'status_bar'):
             self.status_bar.showMessage(t("status_loading"))
-        view = factory()
+        try:
+            view = factory()
+        except Exception:
+            import traceback as _tb
+            self.log.error("Failed to load view %s (index=%d):\n%s",
+                           name, index, _tb.format_exc())
+            raise
         self._lazy_views[index] = view
         if hasattr(self, 'status_bar'):
             self.status_bar.showMessage(t("status_ready"))
