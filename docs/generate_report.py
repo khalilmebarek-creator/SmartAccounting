@@ -519,7 +519,7 @@ def build():
     bullet(doc, "تجمّد تحليل DuPont عند العودة: سببه ملفات numpy/matplotlib الناقصة في التثبيت — بعد النسخ تحقق بدورة عودة مزدوجة بلا تجمّد")
     bullet(doc, "الأرقام قبل الإدخال: حقول المبالغ أصبحت تعرض «أدخل المبلغ» بدل 0.00 (مفتاح i18n جديد + اختبار انحدار)")
     bullet(doc, "الترقية تطلب سرّية جديدة: المثبّت أصبح يستثني ملفات الحالة (users/settings/accounting_data/DB/logs/data/backups) — تحقق حقيقي: ترقية فوق تثبيت سابق حافظت على users.json الحرفي")
-    bullet(doc, "إعادة بناء Nuitka (exe 137MB) + Inno Setup (63.8MB) + ZIP محمول (104.3MB بلا ملفات حالة)")
+    bullet(doc, "إعادة بناء Nuitka (exe 143MB) + Inno Setup (66.9MB) + ZIP محمول (109.4MB بلا ملفات حالة)")
 
     heading(doc, "13.14 تحسينات UI/UX", 2)
     bullet(doc, "اختصارات كاملة (Ctrl+1..0، Ctrl+Shift+1..0، F2..F8، Ctrl+T، F1)")
