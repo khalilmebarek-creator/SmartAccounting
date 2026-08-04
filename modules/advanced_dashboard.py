@@ -2,7 +2,6 @@
 # =========================
 
 import logging
-import math
 
 from modules.benchmarks import ALGERIAN_SECTORS, benchmark_analyzer
 

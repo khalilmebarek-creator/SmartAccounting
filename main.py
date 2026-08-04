@@ -2,7 +2,6 @@
 # البرنامج الرئيسي المحدّث
 # ==============================
 
-import os
 
 from config import APP_TITLE, APP_VERSION
 from database import create_tables, save_analysis

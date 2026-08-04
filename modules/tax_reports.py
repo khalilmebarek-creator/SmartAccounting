@@ -1,7 +1,6 @@
 # قوالب الإقرارات الجبائية الجزائرية — DGI
 # =========================================
 
-import os
 from datetime import datetime
 
 from utils.app_logger import get_logger

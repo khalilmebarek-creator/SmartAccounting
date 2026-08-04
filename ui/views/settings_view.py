@@ -4,17 +4,17 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QLineEdit, QComboBox,
-    QGroupBox, QMessageBox, QFrame, QSizePolicy, QFileDialog, QFormLayout, QScrollArea
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QLineEdit, QComboBox, QGroupBox,
+    QMessageBox, QFrame, QFileDialog, QFormLayout,
+    QScrollArea,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont
 
 from ui.app_state import state
 from ui.resources.i18n import t
 from modules.email_notifier import email_notifier
-from ui.widgets.toast import toast_success, toast_error, toast_warning, toast_info
+from ui.widgets.toast import toast_success, toast_error, toast_warning
 
 
 class SettingsView(QWidget):

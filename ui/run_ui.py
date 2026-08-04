@@ -44,7 +44,7 @@ def main():
     MUTEX_NAME = "SmartAccountingMutex"
     ctypes.windll.kernel32.CreateMutexW(None, False, MUTEX_NAME)
 
-    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from PyQt5.QtWidgets import QApplication
     from PyQt5.QtCore import Qt
     from PyQt5.QtGui import QFont
 

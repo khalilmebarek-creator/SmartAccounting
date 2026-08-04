@@ -4,10 +4,9 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QFrame, QSizePolicy, QScrollArea
+    QWidget, QVBoxLayout, QGridLayout, QLabel,
+    QFrame, QSizePolicy, QScrollArea,
 )
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
 from ui.app_state import state

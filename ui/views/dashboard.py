@@ -5,14 +5,13 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import (pyqtSignal)
 from PyQt5.QtGui import QFont
 
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t

@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextBrowser,
     QFileDialog, QMessageBox
 )
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 
 from ui.app_state import state

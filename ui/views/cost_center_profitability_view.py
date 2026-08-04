@@ -9,16 +9,17 @@ matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_pdf import PdfPages
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
-    QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, QLineEdit,
-    QDoubleSpinBox, QMessageBox, QFileDialog, QHeaderView, QGroupBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QComboBox, QTabWidget, QTableWidget,
+    QTableWidgetItem, QLineEdit, QDoubleSpinBox, QMessageBox,
+    QFileDialog, QHeaderView, QGroupBox,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
 from ui.views._base import BaseView
 from ui.views.dashboard import ChartWidget, _chart_text_color
-from ui.app_state import state, ThemeColors
+from ui.app_state import ThemeColors
 from ui.resources.i18n import t
 from modules.cost_center_profitability import CostCenterProfitabilityEngine
 

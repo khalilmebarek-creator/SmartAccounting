@@ -9,13 +9,12 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QStackedWidget, QLabel, QStatusBar,
-    QApplication, QMessageBox, QAction, QFileDialog,
-    QShortcut, QDialog, QDialogButtonBox, QFormLayout,
-    QPushButton
+    QMessageBox, QAction, QFileDialog, QShortcut,
+    QDialog, QDialogButtonBox, QFormLayout, QPushButton,
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
-from PyQt5.QtGui import QFont, QIcon, QKeySequence
+from PyQt5.QtGui import (QIcon, QKeySequence)
 
 from ui.views.login_view import LoginView
 from ui.widgets.alert_banner import AlertBanner
@@ -86,7 +85,7 @@ class MainWindow(QMainWindow):
 
     def _perform_update(self, info: dict):
         """تحميل التحديث → تشغيل المثبت → إعادة التشغيل تلقائياً"""
-        from PyQt5.QtWidgets import QProgressDialog, QApplication
+        from PyQt5.QtWidgets import QProgressDialog
         from modules.update_checker import download_installer, backup_current_executable
 
         installer_url = info.get("installer_url") or info.get("download_url")
@@ -831,7 +830,6 @@ class MainWindow(QMainWindow):
 
         try:
             from matplotlib.backends.backend_pdf import PdfPages
-            import matplotlib.pyplot as plt
 
             with PdfPages(file_path) as pdf:
                 for chart_widget in [

@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import (
     QScrollArea, QComboBox, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont
 
 from ui.app_state import state
 from ui.resources.i18n import t

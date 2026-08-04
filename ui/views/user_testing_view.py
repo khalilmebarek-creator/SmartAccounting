@@ -5,14 +5,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-import os
 
 from PyQt5.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
-    QComboBox, QTableWidget, QTableWidgetItem, QLineEdit, QSpinBox,
-    QTextEdit, QMessageBox, QFileDialog, QHeaderView, QFrame,
+    QHBoxLayout, QGridLayout, QLabel, QPushButton,
+    QComboBox, QTableWidget, QTableWidgetItem, QLineEdit,
+    QSpinBox, QTextEdit, QMessageBox, QFileDialog,
+    QHeaderView,
 )
-from PyQt5.QtGui import QFont
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t

@@ -492,8 +492,8 @@ class ReportGenerator:
         """تصدير التقرير إلى Excel مع رسوم بيانية"""
         try:
             from openpyxl import Workbook
-            from openpyxl.chart import BarChart, PieChart, Reference
-            from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+            from openpyxl.chart import BarChart, Reference
+            from openpyxl.styles import Font, PatternFill, Border, Side
 
             wb = Workbook()
 

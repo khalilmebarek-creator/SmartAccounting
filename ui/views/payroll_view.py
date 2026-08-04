@@ -5,11 +5,11 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
-    QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
-    QMessageBox, QFileDialog, QHeaderView, QFrame, QDateEdit
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QTableWidget, QTableWidgetItem, QLineEdit, QComboBox,
+    QDoubleSpinBox, QSpinBox, QMessageBox, QFileDialog,
+    QHeaderView, QFrame,
 )
-from PyQt5.QtCore import QDate
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t

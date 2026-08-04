@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QGroupBox, QFrame, QMessageBox, QGridLayout, QSizePolicy
 )
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtCore import (Qt)
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas

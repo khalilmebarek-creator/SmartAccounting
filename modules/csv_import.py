@@ -3,7 +3,7 @@
 
 import os
 import csv
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Dict, List, Tuple, Callable
 from utils.app_logger import get_logger
 
 logger = get_logger("csv_import")

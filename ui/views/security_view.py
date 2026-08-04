@@ -3,14 +3,13 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTableWidget, QTableWidgetItem, QGroupBox, QComboBox,
-    QTextEdit, QFrame, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QTableWidget, QTableWidgetItem, QComboBox,
+    QTextEdit, QFrame, QMessageBox,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import (QColor)
 
-from ui.app_state import state
 from ui.resources.i18n import t
 from ui.app_state import ThemeColors
 from modules.fraud_detection import fraud_detector, SEVERITY_ICONS

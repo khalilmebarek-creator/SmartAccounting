@@ -5,7 +5,7 @@ import json
 import os
 import tempfile
 from utils.app_logger import get_logger
-from utils.vault import encrypt, decrypt, is_encrypted
+from utils.vault import encrypt, decrypt
 
 logger = get_logger("app_state")
 

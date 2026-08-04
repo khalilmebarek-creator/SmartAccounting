@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QMessageBox, QFileDialog, QHeaderView, QHBoxLayout, QTextEdit, QGridLayout,
 )
 from ui.views._base import BaseView
-from ui.app_state import state, ThemeColors
+from ui.app_state import state
 from ui.resources.i18n import t
 from modules.demo_data import DemoData
 from modules.demo_templates import (

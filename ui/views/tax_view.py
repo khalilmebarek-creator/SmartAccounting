@@ -2,14 +2,14 @@
 # ==============================
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QDoubleSpinBox, QComboBox, QGroupBox, QFrame, QScrollArea,
-    QTableWidget, QTableWidgetItem, QMessageBox, QTextEdit,
-    QTabWidget, QFormLayout, QHeaderView, QSplitter, QFileDialog,
-    QInputDialog
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QLineEdit, QDoubleSpinBox, QComboBox,
+    QGroupBox, QFrame, QTableWidget, QTableWidgetItem,
+    QMessageBox, QTextEdit, QTabWidget, QFormLayout,
+    QHeaderView, QSplitter, QFileDialog, QInputDialog,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import (QColor)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t

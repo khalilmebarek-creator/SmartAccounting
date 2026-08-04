@@ -3,16 +3,15 @@ from ui.views._path import _  # noqa: F401
 import math
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
-    QFrame, QComboBox, QMessageBox, QScrollArea, QSizePolicy, QCheckBox,
-    QLineEdit, QListWidget, QListWidgetItem, QFileDialog
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
+    QLabel, QPushButton, QFrame, QComboBox,
+    QMessageBox, QScrollArea, QCheckBox, QLineEdit,
+    QListWidget, QListWidgetItem,
 )
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import (QTimer)
 from PyQt5.QtGui import QFont, QColor
 import matplotlib
 matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 from ui.views._base import BaseView

@@ -1,7 +1,7 @@
 """Reusable table filter/search widget for QTableWidget."""
 
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QLabel
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import (pyqtSignal)
 from ui.resources.i18n import t
 
 

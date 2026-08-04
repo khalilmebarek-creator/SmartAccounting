@@ -3,17 +3,15 @@
 
 import html as html_mod
 import json
-import re
 import ssl
 import time
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QTextEdit, QTextBrowser,
-    QFrame, QSizePolicy, QScrollArea
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QTextEdit, QTextBrowser, QFrame,
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QFont, QTextCursor
+from PyQt5.QtGui import (QTextCursor)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t

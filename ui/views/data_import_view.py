@@ -3,17 +3,17 @@
 
 import os
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QFileDialog,
-    QFrame, QLineEdit, QMessageBox, QHeaderView, QGroupBox,
-    QGridLayout, QTextEdit
+    QFrame, QMessageBox, QHeaderView, QGridLayout,
+    QTextEdit,
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import (QFont)
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
-from ui.app_state import state, ThemeColors
+from ui.app_state import state
 from modules.csv_import import csv_importer
 
 

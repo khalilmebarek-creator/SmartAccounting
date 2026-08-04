@@ -4,7 +4,6 @@
 
 from ui.views._path import _  # noqa: F401
 
-import os
 
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,

@@ -3,7 +3,7 @@
 
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import (QFont)
 
 
 class LoadingOverlay(QWidget):

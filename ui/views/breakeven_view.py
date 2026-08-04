@@ -4,12 +4,12 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QDoubleSpinBox, QTableWidget, QTableWidgetItem,
-    QGroupBox, QFormLayout, QHeaderView, QMessageBox, QGridLayout
+    QWidget, QVBoxLayout, QLabel, QPushButton,
+    QDoubleSpinBox, QGroupBox, QFormLayout, QMessageBox,
+    QGridLayout,
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import (QFont)
 
 import matplotlib
 matplotlib.use('Qt5Agg')

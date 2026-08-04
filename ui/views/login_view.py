@@ -3,9 +3,9 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QGroupBox, QMessageBox, QStackedWidget, QFormLayout,
-    QToolButton
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QLineEdit, QMessageBox, QStackedWidget,
+    QFormLayout, QToolButton,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont

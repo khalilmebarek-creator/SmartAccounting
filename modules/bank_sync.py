@@ -2,10 +2,9 @@
 # ============================================
 
 import csv
-import os
 import re
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from utils.app_logger import get_logger
 
 logger = get_logger("bank_sync")

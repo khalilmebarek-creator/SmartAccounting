@@ -4,9 +4,9 @@
 from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QDoubleSpinBox, QLineEdit, QTableWidget, QTableWidgetItem,
-    QGroupBox, QGridLayout, QHeaderView, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+    QPushButton, QDoubleSpinBox, QLineEdit, QTableWidget,
+    QTableWidgetItem, QGroupBox, QHeaderView, QMessageBox,
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor

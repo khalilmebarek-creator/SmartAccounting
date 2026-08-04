@@ -2,7 +2,9 @@
 # =========================
 
 from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QGraphicsOpacityEffect
-from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPoint
+from PyQt5.QtCore import (
+    Qt, QTimer, QPropertyAnimation, QEasingCurve,
+)
 from PyQt5.QtGui import QFont
 
 

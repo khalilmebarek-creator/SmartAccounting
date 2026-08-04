@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (
     QGroupBox, QFormLayout, QHeaderView, QMessageBox
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor, QFont
 
 import matplotlib
 matplotlib.use('Qt5Agg')

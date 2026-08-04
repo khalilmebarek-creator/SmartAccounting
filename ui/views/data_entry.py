@@ -8,11 +8,13 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QDoubleSpinBox, QSpinBox,
-    QPushButton, QFormLayout, QGroupBox, QMessageBox,
-    QFileDialog, QComboBox, QScrollArea, QSizePolicy
+    QPushButton, QGroupBox, QMessageBox, QFileDialog,
+    QComboBox, QScrollArea,
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QSize, QThread, pyqtSignal as _Signal
-from PyQt5.QtGui import QFont, QColor, QDragEnterEvent, QDropEvent
+from PyQt5.QtCore import (
+    Qt, pyqtSignal, QSize, QThread,
+)
+from PyQt5.QtGui import (QDragEnterEvent, QDropEvent)
 
 from modules import CalculationEngine, DataValidator
 from modules.fraud_detection import fraud_detector

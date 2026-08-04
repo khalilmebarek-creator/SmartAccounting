@@ -8,8 +8,6 @@ from PyQt5.QtWidgets import (
     QLabel, QPushButton, QTextBrowser, QListWidget,
     QFileDialog, QMessageBox, QInputDialog
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 
 from ui.app_state import state
 from ui.resources.i18n import t
