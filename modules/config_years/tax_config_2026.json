@@ -1,0 +1,237 @@
+{
+  "country": "Algeria",
+  "country_ar": "الجزائر",
+  "year": 2026,
+  "version": "1.0.0",
+  "last_updated": "2026-08-04",
+  "currency": "DZD",
+  "currency_ar": "دينار جزائري",
+  "source": "نشرة النظام الجبائي الجزائري 2026 — المديرية العامة للضرائب",
+
+  "ibs": {
+    "name": "Impôt sur les Bénéfices des Sociétés",
+    "name_ar": "ضريبة أرباح الشركات",
+    "abbreviation": "IBS",
+    "rates": {
+      "production": 0.19,
+      "construction": 0.23,
+      "other": 0.26
+    },
+    "rate_labels_ar": {
+      "production": "إنتاج السلع (19%)",
+      "construction": "بناء وأشغال عمومية وري وسياحة (23%)",
+      "other": "أنشطة أخرى (26%)"
+    },
+    "minimum_tax": 10000,
+    "reinvested_profit_rate": 0.10,
+    "acomptes": [
+      {"month": 3, "day": 20, "label": "أول دفعة مقدمة", "label_en": "1st installment"},
+      {"month": 6, "day": 20, "label": "ثانية دفعة مقدمة", "label_en": "2nd installment"},
+      {"month": 11, "day": 20, "label": "ثالثة دفعة مقدمة", "label_en": "3rd installment"}
+    ],
+    "balance_deadline": {"month": 4, "day": 30, "label": "تصفيه IBS", "label_en": "IBS balance"},
+    "deductions": {
+      "depreciation": "إهلاك الأصول حسب الجدول الجبائي",
+      "provisions": "الاحتياطيات المقبولة جبائياً",
+      "losses": "خسائر التسويات يمكن تعويضها لمدة 4 سنوات",
+      "reinvested": "الأرباح المعاد استثمارها بسعر مخفض 10%",
+      "bourse": "تخفيض حسب نسبة الرأسمال المفتوح في البورصة (م.68 ق.م 2024)"
+    }
+  },
+
+  "tva": {
+    "name": "Taxe sur la Valeur Ajoutée",
+    "name_ar": "ضريبة القيمة المضافة",
+    "abbreviation": "TVA",
+    "rates": {
+      "standard": 0.19,
+      "reduced": 0.09,
+      "intermediate": 0.06,
+      "zero": 0.0
+    },
+    "rate_labels_ar": {
+      "standard": "النسبة العادية (19%)",
+      "reduced": "النسبة المخفضة (9%)",
+      "intermediate": "النسبة الوسطية (6%)",
+      "zero": "خاضع لـ 0% (معفي)"
+    },
+    "reduced_rate_items": [
+      "المنتجات والمواد والأشغال المحددة في المادة 23 من قانون الرسوم على رقم الأعمال",
+      "منتجات استهلاكية واسعة (حليب، خبز، أدوية، كتب...)",
+      "العمليات الموجهة للتصدير (0%)"
+    ],
+    "exemptions": [
+      "العمليات خارج مجال الرسم على القيمة المضافة",
+      "العمليات المنفذة من طرف الخاضعين لنظام الضريبة الجزافية الوحيدة IFU",
+      "العمليات بين شركات نفس المجموعة",
+      "التعليم والصحة والخدمات المالية"
+    ],
+    "declaration_frequency": "شهري",
+    "deadline_day": 20,
+    "deadline_note": "إيداع الإقرار G N°50 قبل الـ 20 من كل شهر"
+  },
+
+  "irg": {
+    "name": "Impôt sur le Revenu Global",
+    "name_ar": "ضريبة الدخل الشامل",
+    "abbreviation": "IRG",
+    "description": "ضرائب تصاعدية على المداخيل — الجدول التصاعدي 2026",
+    "brackets": [
+      {"min": 0, "max": 240000, "rate": 0.0, "label": "معفي"},
+      {"min": 240001, "max": 480000, "rate": 0.23, "label": "23%"},
+      {"min": 480001, "max": 960000, "rate": 0.27, "label": "27%"},
+      {"min": 960001, "max": 1920000, "rate": 0.30, "label": "30%"},
+      {"min": 1920001, "max": 3840000, "rate": 0.33, "label": "33%"},
+      {"min": 3840001, "max": null, "rate": 0.35, "label": "35%"}
+    ],
+    "proportional_deduction": {
+      "rate": 0.40,
+      "min_annual": 12000,
+      "max_annual": 18000,
+      "description": "خصم تناسلي 40% على الرواتب"
+    },
+    "withholding_rate": 0.10,
+    "rental_withholding": {
+      "rates": {
+        "residential": 0.07,
+        "commercial": 0.15,
+        "professional": 0.15,
+        "agricultural": 0.10,
+        "unbuilt": 0.15
+      },
+      "threshold": 1800000,
+      "provisional_rate": 0.07,
+      "note_ar": "إيجار سنوي ≤1.800.000 دج: معدل محرر 7%/15%. فوقها: اقتطاع مؤقت 7% يُخصم من الإخضاع النهائي"
+    },
+    "declaration_frequency": "شهري",
+    "deadline_day": 20
+  },
+
+  "ifu": {
+    "name": "Impôt Forfaitaire Unique",
+    "name_ar": "الضريبة الجزافية الوحيدة",
+    "abbreviation": "IFU",
+    "rates": {
+      "auto": 0.005,
+      "production": 0.05,
+      "other": 0.12
+    },
+    "rate_labels_ar": {
+      "auto": "نظام المقاول الذاتي (0.5%)",
+      "production": "إنتاج وبيع السلع (5%)",
+      "other": "الأنشطة الأخرى (12%)"
+    },
+    "minimum_tax": 30000,
+    "auto_minimum_tax": 10000,
+    "withholding_digital": 0.05,
+    "turnover_threshold": 8000000,
+    "notes": {
+      "threshold": "لا يتجاوز رقم الأعمال السنوي 8.000.000 دج",
+      "auto_max": "المقاول الذاتي: رقم أعمال ≤5.000.000 دج",
+      "free_activities": "معفاة: الترقية العقارية، الاستيراد لإعادة البيع، بيع الجملة، العيادات، المخابر الطبية، الإطعام المصنف، الأشغال العمومية، وكالات السياحة..."
+    }
+  },
+
+  "formation_tax": {
+    "name": "Taxe sur la Formation Professionnelle et l'Apprentissage",
+    "name_ar": "رسم التكوين المهني ورسم التمهين",
+    "abbreviation": "FTP",
+    "rate": 0.01,
+    "note_ar": "رسمان بنسبة 1% لكل منهما من كتلة الأجور الخام، مطروحاً منها الميزانية المخصصة فعلياً للتكوين/التمهين"
+  },
+
+  "cnas": {
+    "name": "Caisse Nationale des Assurances Sociales",
+    "name_ar": "الصندوق الوطني للتأمينات الاجتماعية",
+    "abbreviation": "CNAS",
+    "employer": {
+      "assurance_sociale": 0.125,
+      "accidents_travail": 0.0125,
+      "retraite": 0.105,
+      "retraite_anticipee": 0.0025,
+      "total": 0.245
+    },
+    "employee": {
+      "assurance_sociale": 0.015,
+      "retraite": 0.0675,
+      "chomage": 0.0075,
+      "total": 0.09
+    },
+    "total_rate": 0.335,
+    "ceiling_multiple": 8,
+    "declaration_frequency": "شهري",
+    "deadline_day": 20,
+    "penalties": {
+      "late_payment": 0.10,
+      "monthly_penalty": 0.03,
+      "note": "غرامة تأخير 10% + 3% شهرياً"
+    }
+  },
+
+  "cnac": {
+    "name": "Caisse Nationale d'Assurance Chômage",
+    "name_ar": "الصندوق الوطني لتأمين البطالة",
+    "abbreviation": "CNAC",
+    "employer_rate": 0.015,
+    "employee_rate": 0.005,
+    "total_rate": 0.02,
+    "declaration_frequency": "شهري",
+    "deadline_day": 20
+  },
+
+  "versement_forfaitaire": {
+    "name": "Versement Forfaitaire",
+    "name_ar": "الدفعات المقدمة على حساب الضريبة",
+    "abbreviation": "VF",
+    "standard_rate": 0.02,
+    "construction_rate": 0.01,
+    "description": "يُدفع شهرياً كدفعة مقدمة على حساب IBS وIRG",
+    "deadline_day": 20
+  },
+
+  "tax_calendar": {
+    "monthly": [
+      {"day": 20, "taxes": ["TVA", "IRG", "CNAS", "CNAC", "VF"], "label": "الالتزامات الشهرية", "label_en": "Monthly obligations"}
+    ],
+    "quarterly": [
+      {"month": 3, "day": 20, "taxes": ["IBS_Acompte_1"], "label": "أول دفعة مقدمة IBS"},
+      {"month": 6, "day": 20, "taxes": ["IBS_Acompte_2"], "label": "ثانية دفعة مقدمة IBS"},
+      {"month": 11, "day": 20, "taxes": ["IBS_Acompte_3"], "label": "ثالثة دفعة مقدمة IBS"}
+    ],
+    "annual": [
+      {"month": 1, "day": 31, "taxes": ["DAS"], "label": "إيداع الإقرار السنوي للرواتب"},
+      {"month": 4, "day": 30, "taxes": ["IBS_Balance"], "label": "تصفيه IBS"},
+      {"month": 4, "day": 30, "taxes": ["IBS_Annual"], "label": "تقديم الإقرار السنوي IBS"},
+      {"month": 4, "day": 30, "taxes": ["IFU"], "label": "الضريبة الجزافية الوحيدة (دوران آخر سنة)"}
+    ]
+  },
+
+  "activity_types": [
+    {"key": "production", "label_ar": "نشاط إنتاجي (صناعة)", "label_en": "Manufacturing", "ibs_rate_key": "production"},
+    {"key": "construction", "label_ar": "بناء وأشغال عامة", "label_en": "Construction", "ibs_rate_key": "construction"},
+    {"key": "commerce", "label_ar": "تجارة", "label_en": "Trade", "ibs_rate_key": "other"},
+    {"key": "services", "label_ar": "خدمات", "label_en": "Services", "ibs_rate_key": "other"},
+    {"key": "tourism", "label_ar": "سياحة", "label_en": "Tourism", "ibs_rate_key": "construction"},
+    {"key": "transport", "label_ar": "نقل", "label_en": "Transport", "ibs_rate_key": "other"},
+    {"key": "tech", "label_ar": "تكنولوجيا", "label_en": "Technology", "ibs_rate_key": "other"},
+    {"key": "real_estate", "label_ar": "عقارات", "label_en": "Real Estate", "ibs_rate_key": "other"}
+  ],
+
+  "exemptions_2026": {
+    "note": "مستخلص من نشرة DGI 2026",
+    "permanent": [
+      "تصدير السلع والخدمات",
+      "المؤسسات التابعة لجمعيات ذوي الاحتياجات الخاصة المعتمدة",
+      "جمع وبيع الحليب الطازج",
+      "الفرق الشحيفة"
+    ],
+    "temporary": {
+      "startup_label": "علامة المؤسسة الناشئة (4 سنوات قابلة للتمديد سنتين)",
+      "incubator_label": "علامة الحاضنة (سنتان)",
+      "employment_support": "أنظمة دعم التشغيل: ANSEJ/CNAC/ANGEM 3-6 سنوات، +سنتان عند توظيف 3 عمال",
+      "south_50": "تخفيض 50% لسكان ولايات الجنوب (أدرار، تندوف، إيليزي، تمنراست...) من 01/01/2025 لمدة 5 سنوات",
+      "iso_banks": "حسابات الاستثمار للصيرفة الإسلامية — 5 سنوات",
+      "hotels": "مؤسسات سياحية 10 سنوات، وكالات الأسفار والفنادق 3 سنوات"
+    }
+  }
+}

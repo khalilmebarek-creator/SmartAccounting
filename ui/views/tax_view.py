@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QDoubleSpinBox, QComboBox, QGroupBox, QFrame, QScrollArea,
     QTableWidget, QTableWidgetItem, QMessageBox, QTextEdit,
-    QTabWidget, QFormLayout, QHeaderView, QSplitter, QFileDialog
+    QTabWidget, QFormLayout, QHeaderView, QSplitter, QFileDialog,
+    QInputDialog
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont, QColor
@@ -13,6 +14,7 @@ from PyQt5.QtGui import QFont, QColor
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
 from modules.tax import TaxEngine
+from modules import tax_years
 from modules.tax_reports import tax_declaration_generator
 from datetime import datetime
 
@@ -55,6 +57,7 @@ class TaxView(QWidget):
         self._build_tax_calculators_tab()
         self._build_obligations_tab()
         self._build_declarations_tab()
+        self._build_years_tab()
 
         self.setLayout(self.main_layout)
 
@@ -619,6 +622,402 @@ class TaxView(QWidget):
         self.tabs.addTab(tab, t("taxdecl_tab"))
         self._on_decl_type_changed(0)
 
+    def _build_years_tab(self):
+        """بناء تبويب السنوات الجبائية + الحاسبات الجديدة (IFU/تكوين/اقتطاع)"""
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
+        layout.setSpacing(12)
+
+        # --- إدارة السنوات ---
+        years_group = QGroupBox(t("tax_tab_years"))
+        years_form = QFormLayout()
+        years_form.setSpacing(8)
+
+        self.years_active_label = QLabel(t("tax_years_active"))
+        years_form.addRow(self.years_active_label, QLabel(""))
+
+        self.years_combo = QComboBox()
+        self.reload_years_combo()
+        years_form.addRow(t("tax_years_available"), self.years_combo)
+
+        btn_row = QHBoxLayout()
+        self.years_switch_btn = QPushButton(t("tax_years_switch"))
+        self.years_switch_btn.clicked.connect(self.switch_year)
+        btn_row.addWidget(self.years_switch_btn)
+        self.years_add_btn = QPushButton(t("tax_years_add"))
+        self.years_add_btn.clicked.connect(self.add_year)
+        btn_row.addWidget(self.years_add_btn)
+        self.years_delete_btn = QPushButton(t("tax_years_delete"))
+        self.years_delete_btn.clicked.connect(self.delete_year)
+        btn_row.addWidget(self.years_delete_btn)
+        years_form.addRow(btn_row)
+
+        years_group.setLayout(years_form)
+        layout.addWidget(years_group)
+
+        source_label = QLabel(t("tax_years_source_note"))
+        source_label.setObjectName("subtitleLabel")
+        source_label.setWordWrap(True)
+        layout.addWidget(source_label)
+
+        # --- محرر JSON ---
+        editor_group = QGroupBox(t("tax_years_editor_title"))
+        editor_layout = QVBoxLayout()
+
+        hint_label = QLabel(t("tax_years_edit_hint"))
+        hint_label.setWordWrap(True)
+        hint_label.setObjectName("subtitleLabel")
+        editor_layout.addWidget(hint_label)
+
+        self.years_editor = QTextEdit()
+        self.years_editor.setObjectName("detailText")
+        self.years_editor.setMinimumHeight(220)
+        editor_layout.addWidget(self.years_editor)
+
+        editor_btns = QHBoxLayout()
+        self.years_load_btn = QPushButton(t("tax_years_available"))
+        self.years_load_btn.setText("↻")
+        self.years_load_btn.setToolTip(t("tax_years_available"))
+        self.years_load_btn.clicked.connect(self.load_editor_from_year)
+        editor_btns.addWidget(self.years_load_btn)
+        self.years_validate_btn = QPushButton(t("tax_years_validate"))
+        self.years_validate_btn.clicked.connect(self.validate_year_config)
+        editor_btns.addWidget(self.years_validate_btn)
+        self.years_save_btn = QPushButton(t("tax_years_save"))
+        self.years_save_btn.clicked.connect(self.save_year_config)
+        editor_btns.addWidget(self.years_save_btn)
+        self.years_import_btn = QPushButton(t("tax_years_import"))
+        self.years_import_btn.clicked.connect(self.import_year_json)
+        editor_btns.addWidget(self.years_import_btn)
+        self.years_export_btn = QPushButton(t("tax_years_export"))
+        self.years_export_btn.clicked.connect(self.export_year_json)
+        editor_btns.addWidget(self.years_export_btn)
+        editor_layout.addLayout(editor_btns)
+
+        editor_group.setLayout(editor_layout)
+        layout.addWidget(editor_group)
+
+        # --- الحاسبات الجديدة ---
+        calcs_group = QGroupBox(t("tax_newtaxes_group"))
+        calcs_layout = QVBoxLayout()
+        calcs_layout.setSpacing(10)
+
+        # IFU
+        ifu_box = QGroupBox(t("tax_ifu_group"))
+        ifu_form = QFormLayout()
+        ifu_form.setSpacing(4)
+        self.ifu_turnover_input = QDoubleSpinBox()
+        self.ifu_turnover_input.setRange(0, 999999999999)
+        self.ifu_turnover_input.setDecimals(0)
+        self.ifu_turnover_input.setGroupSeparatorShown(True)
+        self.ifu_turnover_input.setSuffix(" DZD")
+        ifu_form.addRow(t("tax_ifu_turnover"), self.ifu_turnover_input)
+        self.ifu_regime_combo = QComboBox()
+        self.ifu_regime_combo.addItems([
+            t("tax_ifu_regime_auto"), t("tax_ifu_regime_production"),
+            t("tax_ifu_regime_other")
+        ])
+        ifu_form.addRow(t("tax_ifu_regime"), self.ifu_regime_combo)
+        self.ifu_calc_btn = QPushButton(t("tax_ifu_calc"))
+        self.ifu_calc_btn.clicked.connect(self.calc_ifu)
+        ifu_form.addRow(self.ifu_calc_btn)
+        self.ifu_result_label = QLabel("")
+        self.ifu_result_label.setWordWrap(True)
+        self.ifu_result_label.setObjectName("resultLabel")
+        ifu_form.addRow("", self.ifu_result_label)
+        ifu_hint = QLabel(t("tax_ifu_max_hint"))
+        ifu_hint.setObjectName("subtitleLabel")
+        ifu_form.addRow(ifu_hint)
+        ifu_box.setLayout(ifu_form)
+        calcs_layout.addWidget(ifu_box)
+
+        # رسم التكوين والتمهين
+        form_box = QGroupBox(t("tax_formation_group"))
+        form_form = QFormLayout()
+        form_form.setSpacing(4)
+        self.form_payroll_input = QDoubleSpinBox()
+        self.form_payroll_input.setRange(0, 999999999999)
+        self.form_payroll_input.setDecimals(0)
+        self.form_payroll_input.setGroupSeparatorShown(True)
+        self.form_payroll_input.setSuffix(" DZD")
+        form_form.addRow(t("tax_formation_payroll"), self.form_payroll_input)
+        self.form_budget_input = QDoubleSpinBox()
+        self.form_budget_input.setRange(0, 999999999999)
+        self.form_budget_input.setDecimals(0)
+        self.form_budget_input.setGroupSeparatorShown(True)
+        self.form_budget_input.setSuffix(" DZD")
+        form_form.addRow(t("tax_formation_budget"), self.form_budget_input)
+        self.form_apprentice_input = QDoubleSpinBox()
+        self.form_apprentice_input.setRange(0, 999999999999)
+        self.form_apprentice_input.setDecimals(0)
+        self.form_apprentice_input.setGroupSeparatorShown(True)
+        self.form_apprentice_input.setSuffix(" DZD")
+        form_form.addRow(t("tax_apprenticeship_budget"), self.form_apprentice_input)
+        self.form_calc_btn = QPushButton(t("tax_formation_calc"))
+        self.form_calc_btn.clicked.connect(self.calc_formation_tax)
+        form_form.addRow(self.form_calc_btn)
+        self.form_result_label = QLabel("")
+        self.form_result_label.setWordWrap(True)
+        self.form_result_label.setObjectName("resultLabel")
+        form_form.addRow("", self.form_result_label)
+        form_hint = QLabel(t("tax_formation_hint"))
+        form_hint.setObjectName("subtitleLabel")
+        form_hint.setWordWrap(True)
+        form_form.addRow(form_hint)
+        form_box.setLayout(form_form)
+        calcs_layout.addWidget(form_box)
+
+        # الاقتطاع على الإيجارات
+        rent_box = QGroupBox(t("tax_rental_group"))
+        rent_form = QFormLayout()
+        rent_form.setSpacing(4)
+        self.rent_amount_input = QDoubleSpinBox()
+        self.rent_amount_input.setRange(0, 999999999999)
+        self.rent_amount_input.setDecimals(0)
+        self.rent_amount_input.setGroupSeparatorShown(True)
+        self.rent_amount_input.setSuffix(" DZD")
+        rent_form.addRow(t("tax_rental_amount"), self.rent_amount_input)
+        self.rent_kind_combo = QComboBox()
+        self.rent_kind_combo.addItems([
+            t("tax_rental_residential"), t("tax_rental_commercial"),
+            t("tax_rental_professional"), t("tax_rental_agricultural"),
+            t("tax_rental_unbuilt")
+        ])
+        rent_form.addRow(t("tax_rental_kind"), self.rent_kind_combo)
+        self.rent_calc_btn = QPushButton(t("tax_rental_calc"))
+        self.rent_calc_btn.clicked.connect(self.calc_rental_withholding)
+        rent_form.addRow(self.rent_calc_btn)
+        self.rent_result_label = QLabel("")
+        self.rent_result_label.setWordWrap(True)
+        self.rent_result_label.setObjectName("resultLabel")
+        rent_form.addRow("", self.rent_result_label)
+        rent_hint = QLabel(t("tax_rental_provisional_hint"))
+        rent_hint.setObjectName("subtitleLabel")
+        rent_hint.setWordWrap(True)
+        rent_form.addRow(rent_hint)
+        rent_box.setLayout(rent_form)
+        calcs_layout.addWidget(rent_box)
+
+        calcs_group.setLayout(calcs_layout)
+        layout.addWidget(calcs_group)
+
+        layout.addStretch()
+        self.tabs.addTab(tab, t("tax_tab_years"))
+        self.load_editor_from_year()
+
+    # ==================== Year Management ====================
+
+    def reload_years_combo(self):
+        """تحديث قائمة السنوات"""
+        self.years_combo.clear()
+        for year in self.tax_engine.list_years():
+            self.years_combo.addItem(str(year))
+        current = self.tax_engine.get_config_year()
+        index = self.years_combo.findText(str(current))
+        if index >= 0:
+            self.years_combo.setCurrentIndex(index)
+
+    def switch_year(self):
+        """تفعيل السنة المختارة"""
+        text = self.years_combo.currentText()
+        if not text:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+            return
+        year = int(text)
+        if self.tax_engine.set_year(year):
+            self.load_editor_from_year()
+            self.years_active_label.setText(f"{t('tax_years_active')} {year}")
+            QMessageBox.information(self, t("success"),
+                                    f"{t('tax_years_switched')} {year}")
+        else:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+
+    def add_year(self):
+        """إضافة سنة جديدة بنسخ أحدث سنة"""
+        latest = self.tax_engine.list_years()
+        if not latest:
+            QMessageBox.warning(self, t("error"), t("tax_years_new_fail"))
+            return
+        src = max(latest)
+        year, ok = QInputDialog.getInt(
+            self, t("tax_years_add"), t("tax_years_new_prompt"),
+            minValue=src + 1, maxValue=2100)
+        if not ok:
+            return
+        if tax_years.copy_year(src, year):
+            self.reload_years_combo()
+            self.years_combo.setCurrentText(str(year))
+            self.tax_engine.set_year(year)
+            self.load_editor_from_year()
+            self.years_active_label.setText(t("tax_years_active") + f" {year}")
+            QMessageBox.information(self, t("success"), t("tax_years_new_copied"))
+        else:
+            QMessageBox.warning(self, t("error"), t("tax_years_new_fail"))
+
+    def delete_year(self):
+        """حذف السنة الحالية (مع حماية آخر سنة)"""
+        text = self.years_combo.currentText()
+        if not text:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+            return
+        year = int(text)
+        years = self.tax_engine.list_years()
+        if len(years) <= 1:
+            QMessageBox.warning(self, t("error"), t("tax_years_clone_warn"))
+            return
+        if QMessageBox.question(
+                self, t("tax_years_delete"),
+                f"{t('tax_years_delete')} {year}?") != QMessageBox.Yes:
+            return
+        if tax_years.delete_year(year):
+            years_left = self.tax_engine.list_years()
+            self.reload_years_combo()
+            if years_left:
+                self.tax_engine.set_year(max(years_left))
+                self.years_active_label.setText(
+                    t("tax_years_active") + f" {max(years_left)}")
+            self.load_editor_from_year()
+            QMessageBox.information(self, t("success"), t("tax_years_deleted"))
+        else:
+            QMessageBox.warning(self, t("error"), t("tax_years_delete_fail"))
+
+    def load_editor_from_year(self):
+        """تحميل إعدادات السنة المختارة في المحرر"""
+        text = self.years_combo.currentText() if hasattr(self, "years_combo") else ""
+        year = int(text) if text.isdigit() else self.tax_engine.get_config_year()
+        data = tax_years.load_year(year)
+        if data is not None:
+            import json
+            self.years_editor.setPlainText(
+                json.dumps(data, ensure_ascii=False, indent=2))
+        else:
+            self.years_editor.setPlainText(t("tax_years_no_selection"))
+
+    def validate_year_config(self):
+        """التحقق من سلامة الإعدادات في المحرر"""
+        import json
+        try:
+            data = json.loads(self.years_editor.toPlainText())
+        except (ValueError, TypeError):
+            QMessageBox.warning(self, t("error"), t("tax_years_imported_fail"))
+            return
+        errors = tax_years.validate_year_config(data)
+        if errors:
+            msg = "\n".join("• " + e for e in errors)
+            QMessageBox.warning(self, t("tax_years_invalid"), msg)
+        else:
+            QMessageBox.information(self, t("success"), t("tax_years_valid"))
+
+    def save_year_config(self):
+        """حفظ إعدادات السنة الحالية"""
+        import json
+        text = self.years_combo.currentText()
+        if not text:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+            return
+        year = int(text)
+        try:
+            data = json.loads(self.years_editor.toPlainText())
+        except (ValueError, TypeError):
+            QMessageBox.warning(self, t("error"), t("tax_years_imported_fail"))
+            return
+        errors = tax_years.validate_year_config(data)
+        if errors:
+            msg = "\n".join("• " + e for e in errors)
+            QMessageBox.warning(self, t("tax_years_invalid"), msg)
+            return
+        if tax_years.save_year(year, data):
+            self.tax_engine.set_year(year)
+            QMessageBox.information(self, t("success"), t("tax_years_saved_ok"))
+        else:
+            QMessageBox.warning(self, t("error"), t("tax_years_saved_fail"))
+
+    def import_year_json(self):
+        """استيراد إعدادات سنة من ملف JSON"""
+        text = self.years_combo.currentText()
+        if not text:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+            return
+        year = int(text)
+        path, _ = QFileDialog.getOpenFileName(
+            self, t("tax_years_import"), "", "JSON Files (*.json)")
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except OSError:
+            QMessageBox.warning(self, t("error"), t("tax_years_imported_fail"))
+            return
+        data, errors = tax_years.import_year_from_json(content)
+        if errors:
+            QMessageBox.warning(self, t("error"),
+                                t("tax_years_imported_fail") + "\n" + "\n".join(errors))
+            return
+        data["year"] = year
+        if tax_years.save_year(year, data):
+            self.tax_engine.set_year(year)
+            self.load_editor_from_year()
+            QMessageBox.information(self, t("success"), t("tax_years_imported_ok"))
+        else:
+            QMessageBox.warning(self, t("error"), t("tax_years_saved_fail"))
+
+    def export_year_json(self):
+        """تصدير إعدادات السنة الحالية إلى ملف JSON"""
+        text = self.years_combo.currentText()
+        if not text:
+            QMessageBox.warning(self, t("error"), t("tax_years_no_selection"))
+            return
+        year = int(text)
+        path, _ = QFileDialog.getSaveFileName(
+            self, t("tax_years_export"),
+            f"tax_config_{year}.json", "JSON Files (*.json)")
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(self.years_editor.toPlainText())
+            QMessageBox.information(self, t("success"), t("tax_years_saved_ok"))
+        except OSError:
+            QMessageBox.warning(self, t("error"), t("tax_years_saved_fail"))
+
+    # ==================== New Tax Calculators ====================
+
+    def calc_ifu(self):
+        """حساب الضريبة الجزافية الوحيدة IFU"""
+        turnover = self.ifu_turnover_input.value()
+        regimes = ["auto", "production", "other"]
+        idx = self.ifu_regime_combo.currentIndex()
+        regime = regimes[idx] if 0 <= idx < len(regimes) else "other"
+        result = self.tax_engine.calculate_ifu(turnover, regime)
+        min_mark = " ⚠️" if result["minimum_applied"] else ""
+        self.ifu_result_label.setText(
+            f"<b>{t('tax_ifu_amount')}</b> {result['tax_amount']:,.0f} DZD<br>"
+            f"<b>{t('tax_ibs_rate')}</b> {result['rate']*100:.1f}%{min_mark}")
+
+    def calc_formation_tax(self):
+        """حساب رسم التكوين المهني والتمهين"""
+        payroll = self.form_payroll_input.value()
+        budget = self.form_budget_input.value()
+        apprentice = self.form_apprentice_input.value()
+        result = self.tax_engine.calculate_formation_tax(payroll, budget, apprentice)
+        self.form_result_label.setText(
+            f"<b>{t('tax_formation_formation')}</b> {result['formation_amount']:,.0f} DZD<br>"
+            f"<b>{t('tax_formation_apprenticeship')}</b> {result['apprenticeship_amount']:,.0f} DZD<br>"
+            f"<b>{t('tax_formation_total')}</b> {result['total']:,.0f} DZD")
+
+    def calc_rental_withholding(self):
+        """حساب الاقتطاع من المصدر على الإيجارات"""
+        rent = self.rent_amount_input.value()
+        kinds = ["residential", "commercial", "professional", "agricultural", "unbuilt"]
+        idx = self.rent_kind_combo.currentIndex()
+        kind = kinds[idx] if 0 <= idx < len(kinds) else "residential"
+        result = self.tax_engine.calculate_rental_withholding(rent, kind)
+        prov = t("tax_rental_provisional_hint") if result["provisional"] else ""
+        self.rent_result_label.setText(
+            f"<b>{t('tax_rental_amount_o')}</b> {result['withholding_amount']:,.0f} DZD<br>"
+            f"<b>{t('tax_ibs_rate')}</b> {result['rate']*100:.0f}%<br>{prov}")
+
     def _on_decl_type_changed(self, index):
         """إظهار حقول الإدخال حسب نوع الإقرار"""
         is_g50 = index == 0
@@ -1155,4 +1554,5 @@ class TaxView(QWidget):
         self.tabs.setTabText(1, t("tax_tab_calculators"))
         self.tabs.setTabText(2, t("tax_tab_obligations"))
         self.tabs.setTabText(3, t("taxdecl_tab"))
+        self.tabs.setTabText(4, t("tax_tab_years"))
         self.tabs.setCurrentIndex(current_tab)

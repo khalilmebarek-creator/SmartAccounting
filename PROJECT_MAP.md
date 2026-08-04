@@ -53,7 +53,7 @@
 | calculations | modules/calculations.py (20 ratios + Z-Score) | ✅ |
 | analysis | modules/analysis.py (DuPont + Waterfall + Industry Compare + Recommendations, Trends, WC, CashFlow) | ✅ |
 | audit | modules/audit.py (8 checks) | ✅ |
-| tax_engine | modules/tax.py + tax_config.json + tax_reminders.py + tax_reports.py | ✅ |
+| tax_engine | modules/tax.py + tax_config.json + tax_config.json + tax_years.py + config_years/ + tax_reminders.py + tax_reports.py | ✅ |
 | tax_reports | modules/tax_reports.py (قوالب الإقرارات G50/G57/DAS + تصدير PDF/Excel) | ✅ |
 | benchmarks | modules/benchmarks.py (7 قطاعات × 10 نسب + أفضل الممارسات + دولي + منافسون + اتجاه) | ✅ |
 | advanced_dashboard | modules/advanced_dashboard.py (6 KPI + 4 رسوم + تنبيهات/إجراءات + تخطيطات مخصصة + تصدير) | ✅ |
@@ -113,7 +113,7 @@
 | Style Dark | ui/resources/style_dark.qss | ✅ |
 | Style Modern | ui/resources/style_modern.qss | ✅ |
 | Messages | ui/widgets/messages.py (رسائل خطأ/تحذير موحّدة + إجراء مقترح مترجم) | ✅ |
-| i18n | ui/resources/i18n.py (AR + EN + FR, 1924 keys) | ✅ |
+| i18n | ui/resources/i18n.py (AR + EN + FR, 1986 keys) | ✅ |
 
 ### ✅ UTILS (100% — مكتمل)
 | المكوّن | الملفات | الحالة |
@@ -153,9 +153,11 @@ Accounting_Platform/
 │   ├── currency.py                  # multi-currency engine + exchange rates + report
 │   ├── cloud_sync.py                # cloud sync destinations + snapshots + backup + history
 │   ├── demo_templates.py            # CSV templates + export company data + pre-made reports
-│   ├── tax.py                       # TaxEngine (IBS/TVA/IRG/CNAS/CNAC/VF)
+│   ├── tax.py                       # TaxEngine (IBS/TVA/IRG/CNAS/CNAC/VF + IFU + formation + rental)
+│   ├── tax_years.py                 # Year configs manager (config_years/*.json + .active_year)
 │   ├── tax_reminders.py             # Reminder system + calendar
-│   ├── tax_config.json              # Algerian tax rates
+│   ├── tax_config.json              # Algerian tax rates (legacy, year 2025)
+│   ├── config_years/                # Year-based tax configs (2025/2026…) + .active_year pointer
 │   ├── tax_reports.py               # G50/G57/DAS declaration templates + PDF/Excel
 │   ├── reporting.py                 # TXT/HTML/PDF/Excel
 │   ├── data_import.py               # Excel/CSV import
@@ -245,6 +247,7 @@ Accounting_Platform/
     ├── test_messages.py              # unified error-message helpers
     ├── test_tax.py
     ├── test_tax_reports.py
+    ├── test_tax_years.py               # year-based tax configs + IFU/formation/rental
     ├── test_ui.py                    # UI tests
     ├── test_security.py
     ├── test_demo_data.py
@@ -336,6 +339,7 @@ Accounting_Platform/
 | test_tax_reminders_extra.py | ✅ | 32 |
 | test_tax_reports.py | ✅ | 22 |
 | test_tax_reports_extra.py | ✅ | 14 |
+| test_tax_years.py | ✅ | 46 |
 | test_ui.py | ✅ | 116 |
 | test_update_checker.py | ✅ | 15 |
 | test_update_checker_extra.py | ✅ | 28 |
@@ -399,7 +403,7 @@ Accounting_Platform/
 
 ## EXECUTION LOG
 
-> **آخر حالة (2026-08-04):** v3.1.7 — **1800 اختباراً** + تغطية وحدات 100% + 1925 مفتاح i18n × 3 لغات + طبقة تصدير موحدة ui/exporters.py + CI + 4 اختبارات أداء. الجدول أدناه سجل تاريخي؛ أرقام الجلسات القديمة تعكس حالتها وقتها.
+> **آخر حالة (2026-08-04):** v3.1.7 — **1846 اختباراً** + تغطية وحدات 100% + 1986 مفتاح i18n × 3 لغات + طبقة تصدير موحدة ui/exporters.py + CI + 4 اختبارات أداء + **إصدارات النظام الجبائي السنوية (tax_years + تبويب سنوات في TaxView) + النظم الجديدة (IFU/رسم التكوين/الاقتطاع من المصدر)**. الجدول أدناه سجل تاريخي؛ أرقام الجلسات القديمة تعكس حالتها وقتها.
 
 | # | التاريخ | الإجراء | النتيجة |
 |---|---------|---------|---------|
@@ -445,6 +449,7 @@ Accounting_Platform/
 | 70 | 2026-08-04 | **مراجعة شاملة للجاهزية + إصلاحات ISO 9001 (Goal: شهادة ISO)**: مراجعة شاملة (مشروع/فيديو/توثيق) كشفت: (1) اختبار واحد فاشل — `pypdf` ناقص في requirements-dev.txt → أُضيف `pypdf>=4.0,<6.0` و1800/1800 ناجح؛ (2) CI كان يثبّت `requirements.txt` فقط فـpypdf مفقود في GitHub Actions → `pip install -r requirements-dev.txt`؛ (3) pyproject.toml كان 2.1.0 → 3.1.7 + README badge 1.0.0 → 3.1.7 + محتوى README محدّث (35 شاشة/20 نسبة/بنية حالية)؛ (4) USER_GUIDE + KNOWLEDGE_BASE 29 → 35 شاشة (أضيفت شاشات 30-35 باختصاراتها F10/F11/F12/Ctrl+Shift+B/C/D) + index.html meta 27 → 35؛ (5) وثائق ISO جديدة — `docs/QUALITY_POLICY.md` (بيان + 9 أهداف قابلة للقياس + مخاطر + سجلات ISO 9001) + `CHANGELOG.md` (v3.0.0 → v3.1.7 كامل)؛ (6) تنظيف 274MB مخلفات (zips v3.1.1/3.1.2 + cloudflared.exe + Setup-v3.0.0.exe من docs/)؛ (7) جلب الوسوم البعيدة v3.0.0/v3.1.3/3.1.4/3.1.6/3.1.7 — v3.1.5 لم يكن له commit مستقل (دُمج في a2e6cd2) → توثيق traceability note في CHANGELOG | ✅ 1800/1800 + توثيق |
 | 71 | 2026-08-04 | **استكمال ملف الجودة ISO بند 8.1 (Goal: اكتمال شروط الشهادة)**: `docs/DEVELOPMENT_METHODOLOGY.md` — منهجية تطوير موثقة تعكس الممارسات الفعلية (نموذج تكراري موجّه بالأهداف) — دورة حياة الميزة (تحليل تأثير ← تصميم DRY ← تعديل جراحي ← TDD ← مجموعة كاملة ← توثيق ← مزامنة الحالة ← Conventional Commit) + الأدوار + معايير القبول (Definition of Done) + إجراءات عدم المطابقة (RCA + اختبار انحدار + تسجيل) + إدارة التكوين والإصدارات + تتبع الإصدارات — رُبطت في KNOWLEDGE_BASE.md (قسم ISO) + QUALITY_POLICY.md (إدارة السجلات) — **نتيجة CI التحقق: GitHub Actions أخضر (1800 passed, 27.8s)** | ✅ توثيق (لا اختبارات جديدة) |
 | 72 | 2026-08-04 | **طلب براءة اختراع INAPI (Goal: حماية قانونية للابتكار)**: `thesis/PATENT_APPLICATION.md` — ملف براءة اختراع كامل بالفرنسية (لغة INAPI المعيارية) — العنوان: Système et procédé automatisé d'analyse financière conforme à la fiscalité algérienne intégrant IA pour PME — 10 قسم (domaine technique / état de l'art G1-G5 / exposé inventif / description détaillée 5 figures / 10 revendications indépendantes+-dependantes / résumé / dessins / données prototype / novéauté / appel de protection) — الملفات المحمية: TaxEngine (IBS/TVA/IRG/CNAS/CNAC/VF + calendar + pénalités) + CalculationEngine (20 ratios + Z-Score) + AIInsightsEngine (forecasting 3 méthodes + anomalies z-score/IQR + alertes) + FinancialAnalyzer (DuPont decomposition) + BenchmarkEngine (7 sectors × 10 ratios) + ScenarioAnalyzer (3 scenarios + Tornado) + Security (PBKDF2/AES-256/2FA/4 roles) + CloudSync (AES-GCM + SHA-256 checksum) + i18n (1925 keys × 3 + RTL) + lazy loading (44ms) + SQLite WAL | ✅ وثائق (لا اختبارات) |
+| 73 | 2026-08-04 | **إصدارات النظام الجبائي السنوية (Goal: مواكبة نشرة DGI 2026)**: تحليل نشرة DGI الرسمية `Downloads/النظام-الجبائي-الجزائري-2026.pdf` (43 صفحة) → تصحيح شرائح IRG 2026 (0/23/27/30/33/35% بحدود 240k/480k/960k/1920k/3840k بدل القديم الخاطئ 0/20/30/35% بحدود 120k/360k/1440k) + إضافة النظم المفقودة: **IFU** (ضريبة جزافية وحيدة — 0.5% مقاول ذاتي/5% إنتاج/12% أخرى، حد أدنى 30,000 دج) + **رسم التكوين المهني والتمهين** (1% × 2 من كتلة الأجور قابلة للخصم بالميزانية المنفقة) + **الاقتطاع من المصدر على الإيجارات** (7% سكني/15% تجاري مهني + اقتطاع مؤقت 7% فوق 1.8M) + `modules/tax_years.py` (إدارة السنوات: list/load/save/copy/delete/validate/import-export JSON، مجلد `modules/config_years/`، مؤشر `.active_year`) + ملفّا `tax_config_2025.json` و`tax_config_2026.json` وفق النشرة + تبويب «سنوات النظام» في TaxView (مبدّل سنوات + محرر JSON مع تحقق/استيراد/تصدير + حاسبات IFU/تكوين/إيجار) + **دمج عميق** مع الافتراضية كي تعمل الملفات القديمة (تنسيق 2025 المنسوخ من القالب القديم بلا أقسام جديدة) + i18n 1986 (+61 ×3) (tax_years.py, tax.py, tax_view.py) | ✅ **1846** اختبار (46 في test_tax_years.py) |
 
 
 

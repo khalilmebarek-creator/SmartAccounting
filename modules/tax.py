@@ -7,16 +7,42 @@ from datetime import datetime, date
 
 
 class TaxEngine:
-    """محرك حساب الضرائب — يدعم النظام الجبائي الجزائري"""
+    """محرك حساب الضرائب — يدعم النظام الجبائي الجزائري (إصدارات سنوية)"""
 
-    def __init__(self, config_path=None):
-        if config_path is None:
+    def __init__(self, config_path=None, year=None):
+        if config_path is None and year is not None:
+            from modules import tax_years
+            year_config = tax_years.load_year(year)
+            if year_config is not None:
+                self.config = self._merge_with_defaults(year_config)
+                self._cache = {}
+                return
             config_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "tax_config.json"
             )
-        self.config = self._load_config(config_path)
+        elif config_path is None:
+            config_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "tax_config.json"
+            )
+        self.config = self._merge_with_defaults(self._load_config(config_path))
         self._cache = {}
+
+    def set_year(self, year):
+        """تبديل إعدادات المحرك إلى سنة محددة. Returns: bool"""
+        from modules import tax_years
+        year_config = tax_years.load_year(year)
+        if year_config is None:
+            return False
+        self.config = self._merge_with_defaults(year_config)
+        self._cache.clear()
+        return True
+
+    def list_years(self):
+        """قائمة السنوات المتوفرة (تصاعدي). Returns: list[int]"""
+        from modules import tax_years
+        return tax_years.list_years()
 
     def _load_config(self, path):
         """تحميل ملف الإعدادات"""
@@ -41,8 +67,33 @@ class TaxEngine:
             ]},
             "cnas": {"employer": {"total": 0.245}, "employee": {"total": 0.09}},
             "cnac": {"employer_rate": 0.015, "employee_rate": 0.005},
-            "versement_forfaitaire": {"standard_rate": 0.02, "construction_rate": 0.01}
+            "versement_forfaitaire": {"standard_rate": 0.02, "construction_rate": 0.01},
+            "ifu": {"rates": {"auto": 0.005, "production": 0.05, "other": 0.12},
+                    "minimum_tax": 30000, "auto_minimum_tax": 10000},
+            "formation_tax": {"rate": 0.01},
+            "rental_withholding": {"rates": {"residential": 0.07, "commercial": 0.15,
+                                             "professional": 0.15, "agricultural": 0.10,
+                                             "unbuilt": 0.15},
+                                   "threshold": 1800000, "provisional_rate": 0.07}
         }
+
+    @staticmethod
+    def _deep_merge(base, override):
+        """دمج عميق: قيم override (سنة) تعلو قيم base (افتراضية)"""
+        result = dict(base)
+        for key, value in (override or {}).items():
+            if isinstance(value, dict) and isinstance(result.get(key), dict):
+                result[key] = TaxEngine._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
+
+    def _merge_with_defaults(self, config):
+        """دمج إعدادات سنة مع الافتراضية لضمان وجود الأقسام الجديدة"""
+        defaults = self._default_config()
+        merged = self._deep_merge(defaults, config)
+        merged.setdefault("year", defaults.get("year", 2025))
+        return merged
 
     def reload_config(self, config_path=None):
         """إعادة تحميل الإعدادات (للتحديث السنوي)"""
@@ -372,6 +423,110 @@ class TaxEngine:
             "employer_rate": cnac_config.get("employer_rate", 0.015),
             "employee_rate": cnac_config.get("employee_rate", 0.005),
             "gross_salary": gross_salary
+        }
+
+    # ==================== IFU (الضريبة الجزافية الوحيدة) ====================
+
+    def calculate_ifu(self, annual_turnover, regime="other"):
+        """
+        حساب الضريبة الجزافية الوحيدة (IFU) — نشرة DGI 2026
+        
+        Args:
+            annual_turnover: رقم الأعمال السنوي
+            regime: نوع النظام (auto, production, other)
+        
+        Returns:
+            dict: {tax_amount, rate, minimum_applied, regime}
+        """
+        ifu_config = self.config.get("ifu", {})
+        rates = ifu_config.get("rates", {})
+        rate = rates.get(regime, rates.get("other", 0.12))
+
+        min_tax = ifu_config.get("minimum_tax", 30000)
+        if regime == "auto":
+            min_tax = ifu_config.get("auto_minimum_tax", 10000)
+
+        if annual_turnover <= 0:
+            return {
+                "tax_amount": min_tax,
+                "rate": rate,
+                "minimum_applied": True,
+                "regime": regime,
+                "annual_turnover": annual_turnover
+            }
+
+        tax_before_minimum = annual_turnover * rate
+        minimum_applied = tax_before_minimum < min_tax
+        tax_amount = max(tax_before_minimum, min_tax)
+
+        return {
+            "tax_amount": round(tax_amount, 2),
+            "rate": rate,
+            "minimum_applied": minimum_applied,
+            "regime": regime,
+            "annual_turnover": annual_turnover
+        }
+
+    # ==================== رسم التكوين المهني والتمهين ====================
+
+    def calculate_formation_tax(self, gross_payroll, formation_budget=0, apprenticeship_budget=0):
+        """
+        حساب رسم التكوين المهني + رسم التمهين (1% لكل منهما من كتلة الأجور)
+        نشرة DGI 2026 — المستحق = 1% من الكتلة - الميزانية المخصصة فعلياً
+        
+        Args:
+            gross_payroll: كتلة الأجور الخام
+            formation_budget: ميزانية التكوين المنفقة (خصم)
+            apprenticeship_budget: ميزانية التمهين المنفقة (خصم)
+        
+        Returns:
+            dict: {formation_amount, apprenticeship_amount, total, rate, deductible}
+        """
+        ft_config = self.config.get("formation_tax", {})
+        rate = ft_config.get("rate", 0.01)
+
+        required = gross_payroll * rate
+        formation_amount = max(0.0, required - (formation_budget or 0))
+        apprenticeship_amount = max(0.0, required - (apprenticeship_budget or 0))
+
+        return {
+            "formation_amount": round(formation_amount, 2),
+            "apprenticeship_amount": round(apprenticeship_amount, 2),
+            "total": round(formation_amount + apprenticeship_amount, 2),
+            "rate": rate,
+            "gross_payroll": gross_payroll,
+            "required": round(required, 2)
+        }
+
+    # ==================== الاقتطاع من المصدر على الإيجارات ====================
+
+    def calculate_rental_withholding(self, annual_rent, kind="residential"):
+        """
+        حساب الاقتطاع من المصدر على مداخيل إيجار الملكيات — نشرة DGI 2026
+        
+        Args:
+            annual_rent: مبلغ الإيجار السنوي الخام
+            kind: نوع الملكية (residential, commercial, professional, agricultural, unbuilt)
+        
+        Returns:
+            dict: {withholding_amount, rate, provisional, annual_rent}
+        """
+        rw_config = self.config.get("rental_withholding",
+                                    self.config.get("irg", {}).get("rental_withholding", {}))
+        rates = rw_config.get("rates", {})
+        rate = rates.get(kind, rates.get("residential", 0.07))
+        threshold = rw_config.get("threshold", 1800000)
+        provisional_rate = rw_config.get("provisional_rate", 0.07)
+
+        provisional = annual_rent > threshold
+        applied_rate = provisional_rate if provisional else rate
+        amount = annual_rent * applied_rate
+
+        return {
+            "withholding_amount": round(amount, 2),
+            "rate": applied_rate,
+            "provisional": provisional,
+            "annual_rent": annual_rent
         }
 
     # ==================== VERSEMENT FORFAITAIRE ====================
