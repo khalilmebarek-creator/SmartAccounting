@@ -546,55 +546,48 @@ class AIInsightsView(BaseView):
             QMessageBox.critical(self, t("error"), str(e))
 
     def _write_excel(self, file_path):
-        from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill
-        header_font = Font(bold=True, color="FFFFFF")
-        header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+        from ui.exporters import add_excel_sheet, new_workbook
 
-        wb = Workbook()
+        wb = new_workbook()
 
-        ws = wb.active
-        ws.title = "Forecasts"
-        ws.append(["Metric", "Period", "Forecast", "Lower", "Upper", "Growth%"])
+        forecast_rows = []
         for metric, key in (("Revenue", "revenue"), ("Expenses", "expenses"), ("Profit", "profit")):
             fc = self._result["forecasts"].get(key, {})
             for row, p in enumerate(fc.get("forecast", [])):
                 conf = fc.get("confidence", [])
-                ws.append([metric, p.get("period", ""), p.get("value", 0),
-                           conf[row].get("lower", 0) if row < len(conf) else 0,
-                           conf[row].get("upper", 0) if row < len(conf) else 0,
-                           fc.get("growth_rate_pct", 0)])
-        for cell in ws[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+                forecast_rows.append(
+                    [metric, p.get("period", ""), p.get("value", 0),
+                     conf[row].get("lower", 0) if row < len(conf) else 0,
+                     conf[row].get("upper", 0) if row < len(conf) else 0,
+                     fc.get("growth_rate_pct", 0)])
+        add_excel_sheet(wb, "Forecasts",
+                        ["Metric", "Period", "Forecast", "Lower", "Upper", "Growth%"],
+                        forecast_rows)
 
-        ws2 = wb.create_sheet("Anomalies")
-        ws2.append(["Kind", "Value", "Expected", "Score", "Severity"])
+        anomaly_rows = []
         for a in self._result["anomalies"].get("profit", []):
-            ws2.append(["profit", a.get("value", ""), a.get("expected", ""),
-                        a.get("z_score", ""), a.get("severity", "")])
+            anomaly_rows.append(["profit", a.get("value", ""), a.get("expected", ""),
+                                 a.get("z_score", ""), a.get("severity", "")])
         for a in self._result["anomalies"].get("transactions", []):
-            ws2.append(["transaction", a.get("amount", ""), "", a.get("score", ""),
-                        a.get("severity", "")])
-        for cell in ws2[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+            anomaly_rows.append(["transaction", a.get("amount", ""), "", a.get("score", ""),
+                                 a.get("severity", "")])
+        add_excel_sheet(wb, "Anomalies",
+                        ["Kind", "Value", "Expected", "Score", "Severity"],
+                        anomaly_rows)
 
-        ws3 = wb.create_sheet("Recommendations")
-        ws3.append(["Category", "Title", "Priority"])
-        for r in self._result["recommendations"]:
-            ws3.append([r.get("category", ""), r.get("title", ""), r.get("priority", "")])
-        for cell in ws3[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Recommendations",
+            ["Category", "Title", "Priority"],
+            [[r.get("category", ""), r.get("title", ""), r.get("priority", "")]
+             for r in self._result["recommendations"]],
+        )
 
-        ws4 = wb.create_sheet("Alerts")
-        ws4.append(["Type", "Severity", "Message"])
-        for a in self._result["alerts"]:
-            ws4.append([a.get("type", ""), a.get("severity", ""), a.get("message", "")])
-        for cell in ws4[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Alerts",
+            ["Type", "Severity", "Message"],
+            [[a.get("type", ""), a.get("severity", ""), a.get("message", "")]
+             for a in self._result["alerts"]],
+        )
 
         wb.save(file_path)
 

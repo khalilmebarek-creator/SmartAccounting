@@ -703,36 +703,35 @@ class AdvancedDashboardView(BaseView):
             QMessageBox.critical(self, t("error"), str(e))
 
     def _write_excel(self, file_path):
-        from openpyxl import Workbook
+        from ui.exporters import add_excel_sheet, new_workbook
         data = advanced_dashboard_engine.export_data(
             state.financial_data or {}, state.ratios or {},
             self.sector_combo.currentData()
         )
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "KPIs"
-        ws.append(["KPI", "Value", "Unit", "Status"])
-        for k in data["kpis"]:
-            ws.append([k["key"], k["value"], k["unit"], k["status"]])
-        exporters.style_header_row(ws)
+        wb = new_workbook()
 
-        ws2 = wb.create_sheet("Revenue Trend")
-        ws2.append(["Period", "Revenue"])
-        for label, val in zip(data["revenue_trend"]["labels"], data["revenue_trend"]["values"]):
-            ws2.append([label, val])
-        exporters.style_header_row(ws2)
-
-        ws3 = wb.create_sheet("Expenses")
-        ws3.append(["Category", "Amount"])
-        for label, val in zip(data["expenses"]["labels"], data["expenses"]["values"]):
-            ws3.append([label, val])
-        exporters.style_header_row(ws3)
-
-        ws4 = wb.create_sheet("Alerts")
-        ws4.append(["Category", "Severity", "Message"])
-        for a in data["alerts"]:
-            ws4.append([a["category"], a["severity"], a.get("message_en", "")])
-        exporters.style_header_row(ws4)
+        add_excel_sheet(
+            wb, "KPIs",
+            ["KPI", "Value", "Unit", "Status"],
+            [[k["key"], k["value"], k["unit"], k["status"]] for k in data["kpis"]],
+        )
+        add_excel_sheet(
+            wb, "Revenue Trend",
+            ["Period", "Revenue"],
+            [[label, val] for label, val in
+             zip(data["revenue_trend"]["labels"], data["revenue_trend"]["values"])],
+        )
+        add_excel_sheet(
+            wb, "Expenses",
+            ["Category", "Amount"],
+            [[label, val] for label, val in
+             zip(data["expenses"]["labels"], data["expenses"]["values"])],
+        )
+        add_excel_sheet(
+            wb, "Alerts",
+            ["Category", "Severity", "Message"],
+            [[a["category"], a["severity"], a.get("message_en", "")] for a in data["alerts"]],
+        )
 
         wb.save(file_path)
 

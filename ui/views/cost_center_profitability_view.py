@@ -744,63 +744,52 @@ class CostCenterProfitabilityView(BaseView):
             QMessageBox.critical(self, t("error"), str(e))
 
     def _write_excel(self, file_path):
-        from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill
-        header_font = Font(bold=True, color="FFFFFF")
-        header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+        from ui.exporters import add_excel_sheet, new_workbook
 
-        wb = Workbook()
+        wb = new_workbook()
 
-        ws = wb.active
-        ws.title = "Profitability"
-        ws.append(["Center", "Type", "Revenue", "Direct", "Allocated",
-                   "Total Cost", "Profit", "Margin %", "Rev Share %", "Profit Share %"])
-        for c in self._result["centers"]:
-            ws.append([c["name"], c["type"], c["revenue"], c["direct_costs"],
-                       c["indirect_costs"], c["total_costs"], c["profit"],
-                       c["margin_pct"], c["revenue_share_pct"], c["profit_share_pct"]])
-        for cell in ws[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Profitability",
+            ["Center", "Type", "Revenue", "Direct", "Allocated",
+             "Total Cost", "Profit", "Margin %", "Rev Share %", "Profit Share %"],
+            [[c["name"], c["type"], c["revenue"], c["direct_costs"],
+              c["indirect_costs"], c["total_costs"], c["profit"],
+              c["margin_pct"], c["revenue_share_pct"], c["profit_share_pct"]]
+             for c in self._result["centers"]],
+        )
 
-        ws2 = wb.create_sheet("Ranking")
-        ws2.append(["Rank", "Center", "Revenue", "Total Cost", "Profit", "Margin %"])
         reports = self._engine.get_reports()
-        for idx, c in enumerate(reports["ranking"], start=1):
-            ws2.append([idx, c["name"], c["revenue"], c["total_costs"], c["profit"],
-                        c["margin_pct"]])
-        for cell in ws2[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Ranking",
+            ["Rank", "Center", "Revenue", "Total Cost", "Profit", "Margin %"],
+            [[idx, c["name"], c["revenue"], c["total_costs"], c["profit"],
+              c["margin_pct"]]
+             for idx, c in enumerate(reports["ranking"], start=1)],
+        )
 
-        ws3 = wb.create_sheet("Comparisons")
-        ws3.append(["Center", "Prev Revenue", "Revenue Delta", "Prev Profit",
-                    "Profit Delta", "Change", "Variance"])
-        if self._comparison:
-            for r in self._comparison["previous"]:
-                ws3.append([r["name"], r["prev_revenue"], r["revenue_delta"],
-                            r["prev_profit"], r["profit_delta"], r["change"],
-                            r["revenue_delta"]])
-        for cell in ws3[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Comparisons",
+            ["Center", "Prev Revenue", "Revenue Delta", "Prev Profit",
+             "Profit Delta", "Change", "Variance"],
+            [[r["name"], r["prev_revenue"], r["revenue_delta"],
+              r["prev_profit"], r["profit_delta"], r["change"],
+              r["revenue_delta"]]
+             for r in (self._comparison["previous"] if self._comparison else [])],
+        )
 
-        ws4 = wb.create_sheet("Standards")
-        ws4.append(["Center", "Target %", "Margin %", "Status"])
-        if self._comparison:
-            for s in self._comparison["standards"]:
-                ws4.append([s["name"], s["target_margin_pct"], s["margin_pct"], s["status"]])
-        for cell in ws4[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Standards",
+            ["Center", "Target %", "Margin %", "Status"],
+            [[s["name"], s["target_margin_pct"], s["margin_pct"], s["status"]]
+             for s in (self._comparison["standards"] if self._comparison else [])],
+        )
 
-        ws5 = wb.create_sheet("Recommendations")
-        ws5.append(["Center", "Type", "Message"])
-        for r in self._engine.get_recommendations():
-            ws5.append([r["center"], r["type"], r["message"]])
-        for cell in ws5[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        add_excel_sheet(
+            wb, "Recommendations",
+            ["Center", "Type", "Message"],
+            [[r["center"], r["type"], r["message"]]
+             for r in self._engine.get_recommendations()],
+        )
 
         wb.save(file_path)
 
