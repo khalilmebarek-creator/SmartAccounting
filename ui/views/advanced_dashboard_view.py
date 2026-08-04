@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from ui.views._base import BaseView
 from ui.views.dashboard import ChartWidget, _chart_text_color
 from ui.app_state import state, ThemeColors
+from ui import exporters
 from ui.resources.i18n import t
 from modules.advanced_dashboard import (
     advanced_dashboard_engine, DEFAULT_KPIS, ALL_WIDGETS
@@ -667,18 +668,17 @@ class AdvancedDashboardView(BaseView):
         if not state.has_data():
             QMessageBox.warning(self, t("warning"), t("advd_no_data"))
             return
-        file_path, _ = QFileDialog.getSaveFileName(
+        file_path = exporters.ask_save_path(
             self, t("advd_export"), "advanced_dashboard.pdf", "PDF Files (*.pdf)"
         )
         if not file_path:
             return
         try:
-            from matplotlib.backends.backend_pdf import PdfPages
-            with PdfPages(file_path) as pdf:
-                for chart in (self.chart_revenue, self.chart_expense,
-                              self.chart_profitability, self.chart_radar):
-                    if chart.isVisible():
-                        pdf.savefig(chart.figure, dpi=150, bbox_inches="tight")
+            figures = [c.figure for c in
+                       (self.chart_revenue, self.chart_expense,
+                        self.chart_profitability, self.chart_radar)
+                       if c.isVisible()]
+            exporters.write_charts_pdf(file_path, figures)
             QMessageBox.information(
                 self, t("success"), f"✅ {t('advd_export_success')}\n{file_path}"
             )
@@ -689,7 +689,7 @@ class AdvancedDashboardView(BaseView):
         if not state.has_data():
             QMessageBox.warning(self, t("warning"), t("advd_no_data"))
             return
-        file_path, _ = QFileDialog.getSaveFileName(
+        file_path = exporters.ask_save_path(
             self, t("advd_export"), "advanced_dashboard.xlsx", "Excel Files (*.xlsx)"
         )
         if not file_path:
@@ -704,47 +704,35 @@ class AdvancedDashboardView(BaseView):
 
     def _write_excel(self, file_path):
         from openpyxl import Workbook
-        from openpyxl.styles import Font, PatternFill
         data = advanced_dashboard_engine.export_data(
             state.financial_data or {}, state.ratios or {},
             self.sector_combo.currentData()
         )
-        header_font = Font(bold=True, color="FFFFFF")
-        header_fill = PatternFill(start_color="2980B9", end_color="2980B9", fill_type="solid")
-
         wb = Workbook()
         ws = wb.active
         ws.title = "KPIs"
         ws.append(["KPI", "Value", "Unit", "Status"])
         for k in data["kpis"]:
             ws.append([k["key"], k["value"], k["unit"], k["status"]])
-        for cell in ws[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        exporters.style_header_row(ws)
 
         ws2 = wb.create_sheet("Revenue Trend")
         ws2.append(["Period", "Revenue"])
         for label, val in zip(data["revenue_trend"]["labels"], data["revenue_trend"]["values"]):
             ws2.append([label, val])
-        for cell in ws2[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        exporters.style_header_row(ws2)
 
         ws3 = wb.create_sheet("Expenses")
         ws3.append(["Category", "Amount"])
         for label, val in zip(data["expenses"]["labels"], data["expenses"]["values"]):
             ws3.append([label, val])
-        for cell in ws3[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        exporters.style_header_row(ws3)
 
         ws4 = wb.create_sheet("Alerts")
         ws4.append(["Category", "Severity", "Message"])
         for a in data["alerts"]:
             ws4.append([a["category"], a["severity"], a.get("message_en", "")])
-        for cell in ws4[1]:
-            cell.font = header_font
-            cell.fill = header_fill
+        exporters.style_header_row(ws4)
 
         wb.save(file_path)
 
