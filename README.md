@@ -1,10 +1,10 @@
 # المنصة المحاسبية الذكية
 # The Smart Accounting Platform
 
-![Version](https://img.shields.io/badge/version-3.1.7-blue)
+![Version](https://img.shields.io/badge/version-3.1.8-blue)
 ![Python](https://img.shields.io/badge/python-3.11+-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-![Tests](https://img.shields.io/badge/tests-1800-green)
+![Tests](https://img.shields.io/badge/tests-1862-green)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-orange)
 
 منصة محاسبية متكاملة للمؤسسات الصغيرة والمتوسطة في الجزائر — 35 شاشة تفاعلية، امتثال ضريبي جزائري كامل (IBS/TVA/IRG/CNAS/CNAC/VF)، تحليل مالي متقدم (20 نسبة + DuPont + Z-Score)، ورؤى ذكية قائمة على الذكاء الاصطناعي.
@@ -29,7 +29,7 @@
 ```
 Accounting_Platform/
 ├── main.py                          # نقطة الدخول CLI
-├── config.py                        # الإصدار والإعدادات (v3.1.7)
+├── config.py                        # الإصدار والإعدادات (v3.1.8)
 ├── requirements.txt                 # المكتبات المطلوبة (إنتاج)
 ├── requirements-dev.txt             # مكتبات التطوير/الاختبار
 ├── ui/

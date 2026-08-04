@@ -8,6 +8,8 @@ import shutil
 import sys
 import tempfile
 import unittest
+from datetime import datetime
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -355,6 +357,122 @@ class TestEngineBackwardsCompatible(unittest.TestCase):
             # الحاسبة الجديدة تعمل مباشرة
             ifu = engine.calculate_ifu(1000000, "auto")
             self.assertEqual(ifu["rate"], 0.005)
+
+
+class TestTaxYearsErrorBranches(unittest.TestCase):
+    """تغطية فروع الخطأ في tax_years.py (2026-08-04)"""
+
+    def setUp(self):
+        self._orig_dir = tax_years.YEARS_DIR
+        self.tmp = tempfile.mkdtemp()
+        data = tax_years.load_year(2026)
+        tax_years.YEARS_DIR = self.tmp
+        if data is not None:
+            with open(os.path.join(self.tmp, "tax_config_2026.json"),
+                      "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False)
+
+    def tearDown(self):
+        tax_years.YEARS_DIR = self._orig_dir
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_load_year_non_dict_returns_none(self):
+        with open(os.path.join(self.tmp, "tax_config_2050.json"),
+                  "w", encoding="utf-8") as f:
+            f.write("[1, 2, 3]")
+        self.assertIsNone(tax_years.load_year(2050))
+
+    def test_load_year_corrupt_json_returns_none(self):
+        with open(os.path.join(self.tmp, "tax_config_2051.json"),
+                  "w", encoding="utf-8") as f:
+            f.write("{not valid json")
+        self.assertIsNone(tax_years.load_year(2051))
+
+    def test_copy_year_exception_returns_false(self):
+        # config غير قابل للتسلسل → json.dumps يرمي TypeError → except
+        self.assertFalse(tax_years.copy_year(2026, 2090,
+                                             config={"bad": object()}))
+
+    def test_delete_year_oserror_returns_false(self):
+        tax_years.save_year(2080, {"country": "Algeria"})
+        with mock.patch("os.remove", side_effect=OSError("denied")):
+            self.assertFalse(tax_years.delete_year(2080))
+
+    def test_get_active_year_with_pointer_file(self):
+        pointer = os.path.join(self.tmp, ".active_year")
+        with open(pointer, "w", encoding="utf-8") as f:
+            f.write("2026")
+        self.assertEqual(tax_years.get_active_year(2030), 2026)
+
+    def test_get_active_year_non_numeric_pointer(self):
+        pointer = os.path.join(self.tmp, ".active_year")
+        with open(pointer, "w", encoding="utf-8") as f:
+            f.write("not-a-year")
+        self.assertEqual(tax_years.get_active_year(2030), 2030)
+
+    def test_get_active_year_default_current_year(self):
+        # بلا وسيط default وقبل إنشاء مؤشر → year الحالي
+        self.assertEqual(tax_years.get_active_year(),
+                         datetime.now().year)
+
+    def test_get_active_year_unreadable_pointer_fallback(self):
+        import builtins
+        pointer = os.path.join(self.tmp, ".active_year")
+        with open(pointer, "w", encoding="utf-8") as f:
+            f.write("2026")
+        real_open = builtins.open
+        def bad_open(path, *args, **kwargs):
+            if path.endswith(".active_year"):
+                raise OSError("denied")
+            return real_open(path, *args, **kwargs)
+        with mock.patch.object(tax_years, "open", bad_open):
+            self.assertEqual(tax_years.get_active_year(2031), 2031)
+
+    def test_set_active_year_success(self):
+        self.assertTrue(tax_years.set_active_year(2027))
+        self.assertEqual(tax_years.get_active_year(2026), 2027)
+
+    def test_set_active_year_invalid_year_returns_false(self):
+        self.assertFalse(tax_years.set_active_year("abc"))
+
+    def test_set_active_year_oserror_returns_false(self):
+        def bad_open(*args, **kwargs):
+            raise OSError("denied")
+        with mock.patch.object(tax_years, "open", bad_open):
+            self.assertFalse(tax_years.set_active_year(2027))
+
+    def test_validate_non_dict_config(self):
+        actual = tax_years.validate_year_config("not-a-dict")
+        self.assertIn("config is not a dict", actual)
+
+    def test_validate_bracket_max_not_greater_than_min(self):
+        cfg = {"ibs": {"rates": {"production": 0.19}, "minimum_tax": 10000},
+               "tva": {"rates": {"standard": 0.19, "reduced": 0.09, "zero": 0.0}},
+               "irg": {"brackets": [
+                   {"min": 0, "max": 0, "rate": 0.10}
+               ]},
+               "cnas": {"employer": {"total": 0.245}, "employee": {"total": 0.09}},
+               "cnac": {"employer_rate": 0.015, "employee_rate": 0.005},
+               "versement_forfaitaire": {"standard_rate": 0.02, "construction_rate": 0.01}}
+        errors = tax_years.validate_year_config(cfg)
+        self.assertTrue(any("bracket max must be > min" in e for e in errors))
+
+    def test_validate_vf_rate_out_of_range(self):
+        data = tax_years.load_year(2026)
+        data["versement_forfaitaire"] = {"standard_rate": 1.5, "construction_rate": 0.01}
+        errors = tax_years.validate_year_config(data)
+        self.assertTrue(any("versement_forfaitaire" in e for e in errors))
+
+    def test_validate_ifu_rate_out_of_range(self):
+        data = tax_years.load_year(2026)
+        data["ifu"] = {"rates": {"auto": 2.0}}
+        errors = tax_years.validate_year_config(data)
+        self.assertTrue(any("ifu.rates" in e for e in errors))
+
+    def test_import_non_object_json(self):
+        data, errors = tax_years.import_year_from_json("[1,2,3]")
+        self.assertIsNone(data)
+        self.assertTrue(any("expected JSON object" in e for e in errors))
 
 
 if __name__ == "__main__":

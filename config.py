@@ -4,7 +4,7 @@
 import os
 
 APP_TITLE = "المنصة المحاسبية الذكية"
-APP_VERSION = "3.1.7"
+APP_VERSION = "3.1.8"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_NAME = "accounting_platform.db"

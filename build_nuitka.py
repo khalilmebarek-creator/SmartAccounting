@@ -38,9 +38,9 @@ def main():
         "--nofollow-import-to=tkinter,unittest,test,scipy",
         "--company-name=Smart Accounting Team",
         "--product-name=Smart Accounting Platform",
-        "--product-version=3.1.7",
+        "--product-version=3.1.8",
         "--file-description=Educational Accounting Software",
-        "--file-version=3.1.7.0",
+        "--file-version=3.1.8.0",
         "--assume-yes-for-downloads",
         "ui/run_ui.py",
     ]
