@@ -66,6 +66,16 @@ class UserTestingView(BaseView):
     def setup_ui(self):
         self._make_header("ut_title", "ut_subtitle")
 
+        self._build_session_card()
+        self._build_feedback_card()
+        self._build_stats()
+        self._build_table_card()
+        self._build_reports_card()
+
+        self._main_layout.addStretch()
+    def _build_session_card(self):
+        """بطاقة الجلسة: الاسم/المجموعة/السيناريو"""
+
         # 1) الجلسة
         session_card = self._make_card("ut_sessions_card")
         form = QGridLayout()
@@ -119,6 +129,9 @@ class UserTestingView(BaseView):
         session_card.layout().addLayout(actions)
         self._main_layout.addWidget(session_card)
 
+    def _build_feedback_card(self):
+        """بطاقة إضافة ملاحظة"""
+
         # 2) إضافة ملاحظة
         feedback_card = self._make_card("ut_feedback_card")
         frow = QGridLayout()
@@ -168,6 +181,9 @@ class UserTestingView(BaseView):
         feedback_card.layout().addLayout(fbtn)
         self._main_layout.addWidget(feedback_card)
 
+    def _build_stats(self):
+        """بطاقات المؤشرات"""
+
         # 3) المؤشرات
         stats_grid = QGridLayout()
         stats_grid.setSpacing(12)
@@ -179,6 +195,9 @@ class UserTestingView(BaseView):
                                   self.stat_issues, self.stat_enh)):
             stats_grid.addWidget(stat, 0, i)
         self._main_layout.addLayout(stats_grid)
+
+    def _build_table_card(self):
+        """بطاقة جدول الملاحظات مع المرشحات"""
 
         # 4) جدول الملاحظات
         table_card = self._make_card("ut_feedback_card")
@@ -218,6 +237,9 @@ class UserTestingView(BaseView):
         self.table.setMinimumHeight(48 * 6 + 40)
         table_card.layout().addWidget(self.table)
         self._main_layout.addWidget(table_card)
+
+    def _build_reports_card(self):
+        """بطاقة التقارير والتصدير"""
 
         # 5) التقارير والتصدير
         report_card = self._make_card("ut_reports_card")
