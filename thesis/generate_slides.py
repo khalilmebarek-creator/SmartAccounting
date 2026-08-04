@@ -7,7 +7,10 @@ Output: thesis/video_slides/slide_01.png ... slide_11.png
 """
 import os
 import math
+import re
 from PIL import Image, ImageDraw, ImageFont
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 # ── Paths ──────────────────────────────────────────────────────
 OUT = os.path.join("thesis", "video_slides")
@@ -34,6 +37,16 @@ PURPLE  = (163, 113, 247)
 
 W, H = 1920, 1080
 
+_ARABIC_RE = re.compile(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]')
+
+
+def _shape_arabic(text):
+    """Reshape + BiDi reorder Arabic text for correct Pillow rendering."""
+    if not _ARABIC_RE.search(text):
+        return text
+    reshaped = arabic_reshaper.reshape(text)
+    return get_display(reshaped)
+
 
 # ── Helpers ────────────────────────────────────────────────────
 def font(path, size):
@@ -49,8 +62,9 @@ def text_size(draw, txt, f):
 
 
 def draw_text(draw, x, y, txt, f, color=WHITE, anchor="lt", max_w=0):
+    shaped = _shape_arabic(txt)
     if max_w:
-        words = txt.split()
+        words = shaped.split()
         lines, line = [], ""
         for w in words:
             test = f"{line} {w}".strip()
@@ -65,7 +79,7 @@ def draw_text(draw, x, y, txt, f, color=WHITE, anchor="lt", max_w=0):
         for i, ln in enumerate(lines):
             draw.text((x, y + i * (f.size + 8)), ln, font=f, fill=color, anchor=anchor)
         return len(lines) * (f.size + 8)
-    draw.text((x, y), txt, font=f, fill=color, anchor=anchor)
+    draw.text((x, y), shaped, font=f, fill=color, anchor=anchor)
     return f.size
 
 
@@ -91,12 +105,30 @@ def draw_icon(draw, cx, cy, icon, size=48, color=GOLD):
     draw.text((cx, cy), icon, font=f, fill=color, anchor="mm")
 
 
+class _SmartDraw:
+    """Wraps ImageDraw to auto-reshape Arabic text in .text() calls."""
+    def __init__(self, draw):
+        self._d = draw
+
+    def __getattr__(self, name):
+        return getattr(self._d, name)
+
+    def text(self, xy, text, **kw):
+        shaped = _shape_arabic(text)
+        self._d.text(xy, shaped, **kw)
+
+    def textbbox(self, *a, **kw):
+        return self._d.textbbox(*a, **kw)
+
+    def multiline_textbbox(self, *a, **kw):
+        return self._d.multiline_textbbox(*a, **kw)
+
+
 def slide_bg():
     img = Image.new("RGB", (W, H), BG)
     draw = ImageDraw.Draw(img)
-    # top gradient bar
     draw_gradient_bar(draw, 0, 0, W, 6, BLUE)
-    return img, draw
+    return img, _SmartDraw(draw)
 
 
 def section_number(draw, num, x=100, y=100):
