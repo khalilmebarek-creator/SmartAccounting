@@ -5,7 +5,6 @@
 
 import json
 import os
-import shutil
 from datetime import datetime
 
 YEAR_PREFIX = "tax_config_"
