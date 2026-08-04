@@ -74,6 +74,7 @@
 | الوثيقة | المحتوى |
 |---------|---------|
 | [`QUALITY_POLICY.md`](QUALITY_POLICY.md) | سياسة الجودة + أهداف الجودة (ISO 9001) |
+| [`DEVELOPMENT_METHODOLOGY.md`](DEVELOPMENT_METHODOLOGY.md) | منهجية التطوير (بند 8.1/8.3/10.2) — دورة الميزة + معايير القبول + الإجراءات التصحيحية |
 | [`../CHANGELOG.md`](../CHANGELOG.md) | سجل الإصدارات الكامل |
 
 ---
