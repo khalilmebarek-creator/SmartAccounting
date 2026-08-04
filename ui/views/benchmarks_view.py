@@ -117,6 +117,31 @@ class BenchmarkView(BaseView):
     def setup_ui(self):
         title = self._make_header("bench_title", "bench_subtitle")
 
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setObjectName("dashboardScroll")
+
+        scroll_content = QWidget()
+        self.content_layout = QVBoxLayout(scroll_content)
+        self.content_layout.setSpacing(15)
+        self._build_controls()
+        self._build_score()
+        self._build_table_section()
+        self._build_strengths_weaknesses()
+        self._build_charts()
+        self._build_suggestions()
+        self._build_trend()
+        self._build_competitors()
+
+        self.content_layout.addStretch()
+
+        scroll.setWidget(scroll_content)
+        self._main_layout.addWidget(scroll, 1)
+
+        self.refresh()
+    def _build_controls(self):
+        """شريط التحكم: القطاع + أزرار المقارنة"""
+
         controls = QHBoxLayout()
         controls.setSpacing(10)
 
@@ -158,6 +183,9 @@ class BenchmarkView(BaseView):
         self.setTabOrder(self.compare_btn, self.print_btn)
         self.setTabOrder(self.print_btn, self.export_btn)
 
+    def _build_score(self):
+        """بطاقة النتيجة والتقييم"""
+
         sep = QFrame()
         sep.setFrameShape(QFrame.HLine)
         sep.setObjectName("separator")
@@ -196,13 +224,8 @@ class BenchmarkView(BaseView):
 
         self._main_layout.addWidget(self.score_frame)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setObjectName("dashboardScroll")
-
-        scroll_content = QWidget()
-        self.content_layout = QVBoxLayout(scroll_content)
-        self.content_layout.setSpacing(15)
+    def _build_table_section(self):
+        """جدول المعايير"""
 
         self.table_title = QLabel(t("bench_table_title"))
         self.table_title.setObjectName("sectionTitle")
@@ -231,6 +254,9 @@ class BenchmarkView(BaseView):
         self.table.setMinimumHeight(300)
         self.content_layout.addWidget(self.table)
 
+    def _build_strengths_weaknesses(self):
+        """نقاط القوة والضعف"""
+
         self.sw_title = QLabel(t("bench_sw_title"))
         self.sw_title.setObjectName("sectionTitle")
         self.content_layout.addWidget(self.sw_title)
@@ -246,6 +272,9 @@ class BenchmarkView(BaseView):
         sw_layout.addWidget(self.strengths_list, 1)
         sw_layout.addWidget(self.weaknesses_list, 1)
         self.content_layout.addLayout(sw_layout)
+
+    def _build_charts(self):
+        """الرسوم البيانية (رادار/أعمدة)"""
 
         charts_layout = QHBoxLayout()
         charts_layout.setSpacing(15)
@@ -270,6 +299,9 @@ class BenchmarkView(BaseView):
 
         self.content_layout.addLayout(charts_layout)
 
+    def _build_suggestions(self):
+        """التوصيات"""
+
         self.suggestions_title = QLabel(t("bench_suggestions"))
         self.suggestions_title.setObjectName("sectionTitle")
         self.content_layout.addWidget(self.suggestions_title)
@@ -278,6 +310,9 @@ class BenchmarkView(BaseView):
         self.suggestions_list.setMinimumHeight(120)
         self.suggestions_list.setMaximumHeight(200)
         self.content_layout.addWidget(self.suggestions_list)
+
+    def _build_trend(self):
+        """الاتجاه عبر السنوات"""
 
         self.trend_title = QLabel(t("bench_trend_title"))
         self.trend_title.setObjectName("sectionTitle")
@@ -288,6 +323,9 @@ class BenchmarkView(BaseView):
         self.trend_chart_layout = QVBoxLayout(self.trend_frame)
         self.trend_chart_layout.setContentsMargins(10, 10, 10, 10)
         self.content_layout.addWidget(self.trend_frame)
+
+    def _build_competitors(self):
+        """مقارنة المنافسين"""
 
         self.comp_title = QLabel(t("bench_comp_title"))
         self.comp_title.setObjectName("sectionTitle")
@@ -318,11 +356,6 @@ class BenchmarkView(BaseView):
         self.comp_table.setMinimumHeight(120)
         self.comp_table.setMaximumHeight(200)
         self.content_layout.addWidget(self.comp_table)
-
-        self.content_layout.addStretch()
-
-        scroll.setWidget(scroll_content)
-        self._main_layout.addWidget(scroll, 1)
 
         self.refresh()
 
