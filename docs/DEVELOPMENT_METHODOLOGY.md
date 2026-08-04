@@ -140,7 +140,7 @@ bump config.py + i18n window_title + installer.iss + build_nuitka.py
 |---------|---------|
 | `PROJECT_MAP.md` | سجل التنفيذ 70 جلسة + جداول الأخطاء |
 | `docs/QUALITY_POLICY.md` | سياسة الجودة + أهداف قابلة للقياس + سجل مخاطر |
-| `CHANGELOG.md` | سجل الإصدارات v3.0.0 → v3.1.7 |
+| `CHANGELOG.md` | سجل الإصدارات v3.0.0 → v3.1.8 |
 | `AGENTS.md` | بروتوكول التعديل الجراحي + قواعد الرفع |
 | `.github/workflows/ci.yml` | تدفق الاختبار الآلي |
 
