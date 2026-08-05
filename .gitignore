@@ -28,6 +28,11 @@ build/
 installer_output/
 distribution/
 *.spec
+
+# Commercial licensing — vendor private keys and local state (never commit)
+commercial/keys/
+license.dat
+
 *.bat
 
 # Binary files

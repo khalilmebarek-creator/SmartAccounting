@@ -576,9 +576,15 @@ class MainWindow(QMainWindow):
         ))
 
         help_menu = menubar.addMenu(t("menu_help"))
+        help_menu.addAction(self._make_action(t("menu_license"), slot=self.show_license_dialog))
         help_menu.addAction(self._make_action(t("menu_about"), slot=self.show_about))
         help_menu.addAction(self._make_action(t("menu_tests"), slot=self.run_tests))
         help_menu.addAction(self._make_action(t("menu_rollback"), slot=self._perform_rollback))
+
+    def show_license_dialog(self):
+        """فتح حوار تفعيل الترخيص (Module 1 - Licensing)."""
+        from commercial.licensing.license_dialog import LicenseDialog
+        LicenseDialog(self).exec_()
 
     def create_menu_bar(self):
         """إنشاء شريط القوائم"""

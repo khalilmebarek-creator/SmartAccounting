@@ -72,7 +72,26 @@ def main():
 
     window.status_bar.showMessage(t("status_ready") + " 🚀")
 
+    _nudge_license_check(window)
+
     sys.exit(app.exec_())
+
+
+def _nudge_license_check(window):
+    """Show the license dialog at startup only when the license is past grace.
+
+    Non-blocking and fully guarded: without a valid pub key or licensing
+    package the app must start exactly as before (no regression).
+    """
+    try:
+        from PyQt5.QtCore import QTimer
+        from commercial.licensing.activation import LicenseStore
+        store = LicenseStore()
+        if store.is_read_only():
+            from commercial.licensing.license_dialog import LicenseDialog
+            QTimer.singleShot(800, lambda: LicenseDialog(window, store=store).exec_())
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
