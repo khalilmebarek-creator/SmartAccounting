@@ -482,6 +482,15 @@ QStatusBar {
     color: #9A9A9A;
     border-top: 1px solid #2A2A4A;
     font-size: 9pt;
+    min-height: 40px;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+QStatusBar QLabel {
+    color: #9A9A9A;
 }
 
 /* === Scroll Area === */

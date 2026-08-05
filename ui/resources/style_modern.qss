@@ -544,10 +544,15 @@ QStatusBar {
     padding: 6px 14px;
     border-top: 1px solid rgba(255, 255, 255, 20);
     font-weight: 500;
+    min-height: 40px;
 }
 
 QStatusBar::item {
     border: none;
+}
+
+QStatusBar QLabel {
+    color: #FFFFFF;
 }
 
 /* === Text Browser (Reports) === */

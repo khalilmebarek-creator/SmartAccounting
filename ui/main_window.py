@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import (
     QListWidget, QStackedWidget, QLabel, QStatusBar,
     QMessageBox, QAction, QFileDialog, QShortcut,
     QDialog, QDialogButtonBox, QFormLayout, QPushButton,
+    QTableWidget,
+    QApplication,
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
@@ -23,6 +25,7 @@ from modules.user_manager import user_manager
 from utils.app_logger import get_logger
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t, Translator
+from config import APP_VERSION
 
 
 def _lazy_view_factory(module_name, class_name):
@@ -67,7 +70,6 @@ class MainWindow(QMainWindow):
         """عرض رسالة التحديث بأمان عبر signal"""
         try:
             from PyQt5.QtWidgets import QMessageBox
-            from config import APP_VERSION
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Information)
             msg.setWindowTitle("تحديث متاح | Update Available")
@@ -227,8 +229,12 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         """إنشاء الواجهة الرئيسية"""
         self.setWindowTitle(t("window_title"))
-        self.setGeometry(100, 100, 1440, 880)
-        self.setMinimumSize(QSize(1100, 650))
+        screen = QApplication.primaryScreen().availableGeometry()
+        self.setGeometry(screen)
+        self.setMinimumSize(
+            min(1200, screen.width()),
+            min(800, screen.height()),
+        )
         
         # App icon
         icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'resources', 'app_icon.ico')
@@ -365,6 +371,10 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage(t("status_ready"))
+        self.version_label = QLabel(f"v{APP_VERSION}")
+        self.version_label.setObjectName("versionLabel")
+        self.version_label.setAlignment(Qt.AlignCenter)
+        self.status_bar.addPermanentWidget(self.version_label)
 
         self._setup_shortcuts()
         self._setup_auto_save()
@@ -574,6 +584,11 @@ class MainWindow(QMainWindow):
         """إنشاء شريط القوائم"""
         self._build_menu_items(self.menuBar())
 
+    def _normalize_table_rows(self, view):
+        """توحيد ارتفاع صفوف الجداول (44px) حسب المعيار الموحد"""
+        for table in view.findChildren(QTableWidget):
+            table.verticalHeader().setDefaultSectionSize(44)
+
     def _get_or_create_view(self, index):
         if index in self._lazy_views:
             return self._lazy_views[index]
@@ -590,6 +605,7 @@ class MainWindow(QMainWindow):
                            name, index, _tb.format_exc())
             raise
         self._lazy_views[index] = view
+        self._normalize_table_rows(view)
         if hasattr(self, 'status_bar'):
             self.status_bar.showMessage(t("status_ready"))
 
