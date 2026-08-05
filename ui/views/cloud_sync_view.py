@@ -17,6 +17,8 @@ from PyQt5.QtGui import QFont, QColor
 from ui.views._base import BaseView
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
+from ui.widgets.messages import show_feature_denied
+from commercial.entitlement import feature_allowed
 from modules.cloud_sync import (
     cloud_sync_engine, DEFAULT_BACKUP_DIR, MAX_BACKUPS,
 )
@@ -384,6 +386,9 @@ class CloudSyncView(BaseView):
         self._do_push(None)
 
     def _do_push(self, dest_ids):
+        if not feature_allowed("cloud_sync"):
+            show_feature_denied(self, "cloud_sync")
+            return
         try:
             results = self._engine.push(state, dest_ids, passphrase=None)
         except Exception as e:
@@ -453,6 +458,9 @@ class CloudSyncView(BaseView):
         QMessageBox.information(self, t("cloud_title"), t("cloud_restore_done"))
 
     def _pull(self):
+        if not feature_allowed("cloud_sync"):
+            show_feature_denied(self, "cloud_sync")
+            return
         dest_id = self.pull_combo.currentData()
         name = self.snap_combo.currentText()
         if dest_id is None or not name:

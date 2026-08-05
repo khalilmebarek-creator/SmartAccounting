@@ -43,24 +43,31 @@ def _derive_key(passphrase):
     )
 
 
+# ==================== payload encryption (Argon2id, v2) ====================
+# Module 2 upgrade: new blobs use Argon2id via commercial/encryption;
+# legacy PBKDF2 blobs keep decrypting through the fallback path below.
+
+
 def encrypt_payload(payload, passphrase):
-    """تشفير نص JSON payload بكلمة مرور عبر AES-GCM → سلسلة base64."""
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    iv = os.urandom(12)
-    cipher = AESGCM(_derive_key(passphrase))
-    ct = cipher.encrypt(
-        iv, json.dumps(payload, ensure_ascii=False).encode("utf-8"), None
-    )
-    return base64.b64encode(iv + ct).decode("ascii")
+    """تشفير نص JSON payload بكلمة مرور عبر AES-GCM (Argon2id) → سلسلة base64."""
+    from commercial.encryption import encrypt_bytes
+    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    return base64.b64encode(encrypt_bytes(data, passphrase)).decode("ascii")
 
 
 def decrypt_payload(encoded, passphrase):
-    """فك تشفير نص snapshot إلى payload dict أصلي."""
+    """فك تشفير نص snapshot إلى payload dict أصلي (يدعم التنسيق القديم)."""
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from commercial.encryption import EncryptionError, decrypt_bytes, is_encrypted_blob
     raw = base64.b64decode(encoded)
+    if is_encrypted_blob(raw):
+        return json.loads(decrypt_bytes(raw, passphrase).decode("utf-8"))
     iv, ct = raw[:12], raw[12:]
     cipher = AESGCM(_derive_key(passphrase))
-    return json.loads(cipher.decrypt(iv, ct, None).decode("utf-8"))
+    try:
+        return json.loads(cipher.decrypt(iv, ct, None).decode("utf-8"))
+    except Exception as exc:  # InvalidTag على المفاتيح القديمة الخطأ
+        raise EncryptionError("decryption failed: wrong passphrase or tampered data") from exc
 
 
 def _atomic_write(path, text):

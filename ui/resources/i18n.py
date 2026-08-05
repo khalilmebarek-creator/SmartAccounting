@@ -2074,6 +2074,11 @@ LANGUAGES = {
         "license_success": "تم تفعيل الترخيص بنجاح.",
         "license_restart_note": "أعد تشغيل التطبيق ليُطبَّق الترخيص.",
         "license_file_corrupt": "ملف الترخيص تالف أو معدّل.",
+        # Tier enforcement (Module 3)
+        "ent_denied_title": "هذه الميزة تتطلب نسخة مدفوعة",
+        "ent_denied_msg": "ميزة «{feature}» متاحة في نسخة {tier}.\nفعّل ترخيصك من قائمة مساعدة ← الترخيص.",
+        "ent_feature_cloud_sync": "المزامنة السحابية",
+        "ent_feature_ai_unlimited": "التحليل الذكي المتقدم",
     },
     "en": {
         # Window
@@ -4147,6 +4152,11 @@ LANGUAGES = {
         "license_success": "License activated successfully.",
         "license_restart_note": "Restart the app for the license to apply.",
         "license_file_corrupt": "The license file is corrupted or modified.",
+        # Tier enforcement (Module 3)
+        "ent_denied_title": "This feature requires a paid plan",
+        "ent_denied_msg": "The “{feature}” feature is available in {tier}.\nActivate your license from Help → License.",
+        "ent_feature_cloud_sync": "Cloud sync",
+        "ent_feature_ai_unlimited": "Advanced AI insights",
     },
     "fr": {
         # Window
@@ -6220,6 +6230,11 @@ LANGUAGES = {
         "license_success": "Licence activée avec succès.",
         "license_restart_note": "Redémarrez l'application pour appliquer la licence.",
         "license_file_corrupt": "Le fichier de licence est corrompu ou modifié.",
+        # Tier enforcement (Module 3)
+        "ent_denied_title": "Cette fonctionnalité nécessite un plan payant",
+        "ent_denied_msg": "La fonctionnalité « {feature} » est disponible dans {tier}.\nActivez votre licence depuis Aide → Licence.",
+        "ent_feature_cloud_sync": "Synchronisation cloud",
+        "ent_feature_ai_unlimited": "Analyses IA avancées",
     },
 }
 

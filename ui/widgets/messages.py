@@ -44,3 +44,22 @@ def show_warning(parent, message, hint_key=None, title_key="warning"):
 def show_info(parent, message, title_key="success"):
     """Show an informational success dialog."""
     QMessageBox.information(parent, t(title_key), message)
+
+
+def show_feature_denied(parent, feature):
+    """عرض رسالة أن الميزة تتطلب نسخة مدفوعة (Module 3 — بوابات الطبقات)."""
+    from commercial.entitlement import required_tier
+    from commercial.licensing.tier import Tier
+
+    required = required_tier(feature)
+    tier_key = {
+        Tier.PRO: "license_tier_pro",
+        Tier.ENTERPRISE: "license_tier_enterprise",
+    }.get(required, "license_tier_free")
+    QMessageBox.information(
+        parent,
+        t("ent_denied_title"),
+        t("ent_denied_msg").format(
+            feature=t(f"ent_feature_{feature}"), tier=t(tier_key)
+        ),
+    )
