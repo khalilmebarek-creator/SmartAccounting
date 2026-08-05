@@ -705,7 +705,7 @@ class TaxView(QWidget):
         # IFU
         ifu_box = QGroupBox(t("tax_ifu_group"))
         ifu_form = QFormLayout()
-        ifu_form.setSpacing(4)
+        ifu_form.setSpacing(8)
         self.ifu_turnover_input = QDoubleSpinBox()
         self.ifu_turnover_input.setRange(0, 999999999999)
         self.ifu_turnover_input.setDecimals(0)
@@ -734,7 +734,7 @@ class TaxView(QWidget):
         # رسم التكوين والتمهين
         form_box = QGroupBox(t("tax_formation_group"))
         form_form = QFormLayout()
-        form_form.setSpacing(4)
+        form_form.setSpacing(8)
         self.form_payroll_input = QDoubleSpinBox()
         self.form_payroll_input.setRange(0, 999999999999)
         self.form_payroll_input.setDecimals(0)
@@ -770,7 +770,7 @@ class TaxView(QWidget):
         # الاقتطاع على الإيجارات
         rent_box = QGroupBox(t("tax_rental_group"))
         rent_form = QFormLayout()
-        rent_form.setSpacing(4)
+        rent_form.setSpacing(8)
         self.rent_amount_input = QDoubleSpinBox()
         self.rent_amount_input.setRange(0, 999999999999)
         self.rent_amount_input.setDecimals(0)

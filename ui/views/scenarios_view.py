@@ -357,7 +357,7 @@ class ScenariosView(QWidget):
         card.setMinimumSize(250, 170)
 
         layout = QVBoxLayout()
-        layout.setSpacing(5)
+        layout.setSpacing(8)
         layout.setContentsMargins(15, 15, 15, 15)
         card.setLayout(layout)
 

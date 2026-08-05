@@ -69,7 +69,7 @@ class SummaryCard(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         layout = QVBoxLayout()
-        layout.setSpacing(5)
+        layout.setSpacing(8)
         layout.setContentsMargins(15, 15, 15, 15)
 
         self.title_label = QLabel(title)

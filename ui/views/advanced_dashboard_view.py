@@ -200,7 +200,7 @@ class AdvancedDashboardView(BaseView):
         frame.setObjectName("card")
         layout = QVBoxLayout(frame)
         layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(4)
+        layout.setSpacing(8)
 
         frame.title_label = QLabel(t(_KPI_LABEL_KEYS.get(key, key)))
         frame.title_label.setStyleSheet("font-size: 11px; color: #888;")

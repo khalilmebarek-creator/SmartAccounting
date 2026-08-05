@@ -360,7 +360,7 @@ class DuPontView(QWidget):
         card.setMinimumSize(250, 150)
 
         layout = QVBoxLayout()
-        layout.setSpacing(5)
+        layout.setSpacing(8)
         layout.setContentsMargins(15, 15, 15, 15)
 
         # العنوان

@@ -48,7 +48,7 @@ class AuditItemCard(QFrame):
         layout.addWidget(self.icon_label)
 
         text_layout = QVBoxLayout()
-        text_layout.setSpacing(3)
+        text_layout.setSpacing(5)
 
         self.type_label = QLabel(label)
         self.type_label.setObjectName("issueTypeLabel")
@@ -207,7 +207,7 @@ class AuditView(QWidget):
 
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 10, 12, 10)
-        layout.setSpacing(3)
+        layout.setSpacing(8)
 
         card.title_label = QLabel(title)
         card.title_label.setObjectName("cardTitle")

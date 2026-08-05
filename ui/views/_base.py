@@ -5,6 +5,10 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel
 from PyQt5.QtGui import QFont
 
 from ui.resources.i18n import t
+from ui.constants import (
+    PAGE_MARGINS, PAGE_SPACING, CARD_MARGINS, CARD_SPACING,
+    STAT_MARGINS, STAT_SPACING, apply_standard_layout,
+)
 
 
 def _clear_nested(layout):
@@ -25,8 +29,8 @@ class BaseView(QWidget):
     def __init__(self):
         super().__init__()
         self._main_layout = QVBoxLayout()
-        self._main_layout.setContentsMargins(20, 20, 20, 20)
-        self._main_layout.setSpacing(15)
+        self._main_layout.setContentsMargins(*PAGE_MARGINS)
+        self._main_layout.setSpacing(PAGE_SPACING)
         self.setLayout(self._main_layout)
 
     def _make_header(self, title_key: str, subtitle_key: str = None):
@@ -47,8 +51,7 @@ class BaseView(QWidget):
         card = QFrame()
         card.setObjectName("card")
         layout = QVBoxLayout()
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(10)
+        apply_standard_layout(layout, "card")
 
         if title_key:
             lbl = QLabel(t(title_key))
@@ -67,7 +70,7 @@ class BaseView(QWidget):
         frame = QFrame()
         frame.setObjectName("card")
         layout = QVBoxLayout()
-        layout.setContentsMargins(16, 12, 16, 12)
+        apply_standard_layout(layout, "stat")
 
         lbl_title = QLabel(title)
         lbl_title.setStyleSheet("font-size: 11px; color: #888;")

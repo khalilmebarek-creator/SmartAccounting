@@ -181,8 +181,9 @@ QPushButton {
     background-color: #2A2A4A;
     color: #C8C8C8;
     border: 1px solid #3A3A6A;
-    padding: 8px 16px;
+    padding: 0 16px;
     border-radius: 6px;
+    min-height: 40px;
 }
 
 QPushButton:hover {
@@ -205,10 +206,11 @@ QLineEdit, QSpinBox, QDoubleSpinBox {
     background-color: #0F0F23;
     border: 2px solid #2A2A4A;
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 0 12px;
     font-size: 11pt;
     color: #E0E0E0;
     selection-background-color: #00D2FF;
+    min-height: 40px;
 }
 
 QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus {
@@ -306,10 +308,11 @@ QComboBox {
     background-color: #16213E;
     border: 2px solid #2A2A4A;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 0 12px;
     font-size: 11pt;
     color: #E0E0E0;
     min-width: 150px;
+    min-height: 40px;
 }
 
 QComboBox:hover {

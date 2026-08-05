@@ -173,7 +173,7 @@ class LoginView(QWidget):
 
         pass_layout = QHBoxLayout()
         pass_layout.setContentsMargins(0, 0, 0, 0)
-        pass_layout.setSpacing(4)
+        pass_layout.setSpacing(5)
         pass_layout.addWidget(self.login_password)
         self._pwd_toggle_btn = QToolButton()
         self._pwd_toggle_btn.setText("👁")

@@ -247,7 +247,7 @@ class TaxCalendarView(BaseView):
             card.setObjectName("card")
             card_layout = QVBoxLayout()
             card_layout.setContentsMargins(8, 8, 8, 8)
-            card_layout.setSpacing(4)
+            card_layout.setSpacing(8)
 
             month_lbl = QLabel(t(month_keys[col]))
             month_lbl.setAlignment(Qt.AlignCenter)

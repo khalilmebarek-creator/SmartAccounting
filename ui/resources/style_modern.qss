@@ -151,7 +151,7 @@ QGroupBox::title {
 
 /* === Buttons (Gradient + Glow) === */
 QPushButton {
-    padding: 10px 22px;
+    padding: 0 22px;
     border-radius: 8px;
     font-weight: 600;
     font-size: 10pt;
@@ -159,6 +159,7 @@ QPushButton {
     background: rgba(255, 255, 255, 20);
     color: #FFFFFF;
     min-width: 100px;
+    min-height: 40px;
 }
 
 QPushButton:hover {
@@ -266,13 +267,14 @@ QPushButton#secondaryBtn:hover {
 
 /* === Input Fields (Glass) === */
 QLineEdit, QDoubleSpinBox, QSpinBox, QTextEdit, QPlainTextEdit {
-    padding: 10px 14px;
+    padding: 0 14px;
     border: 1px solid rgba(255, 255, 255, 25);
     border-radius: 8px;
     background: rgba(255, 255, 255, 12);
     color: #FFFFFF;
     selection-background-color: #00D2FF;
     selection-color: #003366;
+    min-height: 40px;
 }
 
 QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus,
@@ -418,12 +420,13 @@ QHeaderView::section:last {
 
 /* === Combo Box === */
 QComboBox {
-    padding: 8px 14px;
+    padding: 0 14px;
     border: 1px solid rgba(255, 255, 255, 25);
     border-radius: 8px;
     background: rgba(255, 255, 255, 12);
     color: #FFFFFF;
     min-width: 120px;
+    min-height: 40px;
 }
 
 QComboBox:hover {

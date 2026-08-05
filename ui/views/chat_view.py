@@ -627,7 +627,7 @@ class ChatView(QWidget):
         input_layout.addWidget(self.input_field, 1)
 
         btn_col = QVBoxLayout()
-        btn_col.setSpacing(5)
+        btn_col.setSpacing(8)
 
         self.send_btn = QPushButton(t("chat_send"))
         self.send_btn.setObjectName("primaryBtn")

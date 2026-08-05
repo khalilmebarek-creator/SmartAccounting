@@ -109,12 +109,13 @@ QLabel#sectionTitle {
 
 /* ===== Form ===== */
 QLineEdit, QDoubleSpinBox, QSpinBox {
-    padding: 10px 14px;
+    padding: 0 14px;
     border: 2px solid #DEE2E6;
     border-radius: 8px;
     background-color: #FFFFFF;
     selection-background-color: #3498DB;
     font-size: 10pt;
+    min-height: 40px;
 }
 
 QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {
@@ -123,12 +124,13 @@ QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus {
 }
 
 QComboBox {
-    padding: 8px 12px;
+    padding: 0 12px;
     border: 2px solid #DEE2E6;
     border-radius: 8px;
     background-color: #FFFFFF;
     font-size: 10pt;
     min-width: 140px;
+    min-height: 40px;
 }
 
 QComboBox:hover {
@@ -169,12 +171,13 @@ QComboBox QAbstractItemView {
 
 /* ===== Buttons ===== */
 QPushButton {
-    padding: 11px 24px;
+    padding: 0 24px;
     border-radius: 8px;
     font-weight: 600;
     font-size: 10pt;
     border: none;
     min-width: 100px;
+    min-height: 40px;
     background-color: #ECF0F1;
     color: #2C3E50;
     border: 1px solid #DEE2E6;
