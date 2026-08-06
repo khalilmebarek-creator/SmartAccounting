@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextEdit,
     QMessageBox, QFileDialog, QFrame
 )
-from PyQt5.QtCore import Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t

@@ -7,8 +7,7 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QDoubleSpinBox, QDateEdit,
-    QMessageBox, QFileDialog, QHeaderView, QFrame, QTextEdit,
-    QSplitter
+    QMessageBox, QFileDialog, QHeaderView, QFrame, QTextEdit
 )
 from PyQt5.QtCore import QDate
 
