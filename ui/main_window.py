@@ -307,6 +307,25 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(self.sidebar)
 
+        right_side = QWidget()
+        right_layout = QVBoxLayout()
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(0)
+
+        self.header_bar = QWidget()
+        self.header_bar.setObjectName("headerBar")
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(16, 0, 16, 0)
+        self.header_title = QLabel(t("window_title"))
+        self.header_title.setObjectName("headerTitle")
+        self.header_section = QLabel("")
+        self.header_section.setObjectName("headerSub")
+        header_layout.addWidget(self.header_title)
+        header_layout.addStretch()
+        header_layout.addWidget(self.header_section)
+        self.header_bar.setLayout(header_layout)
+        right_layout.addWidget(self.header_bar)
+
         self.content = QStackedWidget()
         self.content.setObjectName("contentStack")
 
@@ -319,9 +338,9 @@ class MainWindow(QMainWindow):
         content_wrapper.addWidget(self.alert_banner)
         content_wrapper.addWidget(self.content, 1)
 
-        content_container = QWidget()
-        content_container.setLayout(content_wrapper)
-        main_layout.addWidget(content_container, 1)
+        right_layout.addLayout(content_wrapper, 1)
+        right_side.setLayout(right_layout)
+        main_layout.addWidget(right_side, 1)
 
         self.login_view = LoginView()
         self.login_view.login_success.connect(self._on_login_success)
@@ -375,7 +394,9 @@ class MainWindow(QMainWindow):
         self.status_bar.addPermanentWidget(self.theme_toggle_btn)
 
     def _toggle_theme(self):
-        state.theme = "dark" if state.theme == "light" else "light"
+        themes = ["light", "dark", "modern"]
+        idx = themes.index(state.theme) if state.theme in themes else 0
+        state.theme = themes[(idx + 1) % 3]
         state.save_settings()
         self.apply_theme()
 
@@ -682,6 +703,9 @@ class MainWindow(QMainWindow):
         if current and hasattr(current, 'refresh'):
             current.refresh()
         self._fade_in_view(current)
+        if hasattr(self, 'header_section'):
+            name = self._view_factories.get(view_id, ("",))[0]
+            self.header_section.setText(t(f"sidebar_{name}"))
 
     def _fade_in_view(self, widget):
         """انتقال ناعم (تلاشي) عند تغيير الشاشة — بضمانة أمان ضد بقاء الشاشة سوداء"""

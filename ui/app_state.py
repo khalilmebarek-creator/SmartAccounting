@@ -256,47 +256,78 @@ state = AppState()
 
 
 class ThemeColors:
-    """ثوابت الألوان حسب الثيم — يستخدمها كل الواجهات"""
+    """ثوابت الألوان Material Design 3 — ثلاث ثيمات"""
+
+    _MODERN = {
+        "bg": "#0F0F23",
+        "card_bg": "#1A1A35",
+        "text": "#E8EAF6",
+        "text_secondary": "#B0BEC5",
+        "text_muted": "#78909C",
+        "border": "rgba(255,255,255,0.08)",
+        "chart_text": "#B0BEC5",
+        "chart_edge": "rgba(255,255,255,0.10)",
+        "error": "#FF5252",
+        "success": "#69F0AE",
+        "warning": "#FFD740",
+        "info": "#40C4FF",
+        "chart_bg": "#1A1A35",
+        "chart_grid": "rgba(255,255,255,0.06)",
+        "primary": "#7C4DFF",
+        "surface": "#1A1A35",
+        "on_surface": "#E8EAF6",
+        "outline": "rgba(255,255,255,0.12)",
+    }
 
     _DARK = {
-        "bg": "#1A1A2E",
-        "card_bg": "#2A2A3C",
+        "bg": "#121212",
+        "card_bg": "#1E1E1E",
         "text": "#E0E0E0",
-        "text_secondary": "#AAAAAA",
-        "text_muted": "#888888",
-        "border": "#444444",
-        "chart_text": "#CCCCCC",
-        "chart_edge": "#555555",
-        "error": "#E74C3C",
-        "success": "#2ECC71",
-        "warning": "#F39C12",
-        "info": "#3498DB",
-        "chart_bg": "#2A2A3C",
-        "chart_grid": "#444444",
+        "text_secondary": "#9E9E9E",
+        "text_muted": "#757575",
+        "border": "rgba(255,255,255,0.08)",
+        "chart_text": "#9E9E9E",
+        "chart_edge": "rgba(255,255,255,0.10)",
+        "error": "#CF6679",
+        "success": "#4CAF50",
+        "warning": "#FFB74D",
+        "info": "#64B5F6",
+        "chart_bg": "#1E1E1E",
+        "chart_grid": "rgba(255,255,255,0.06)",
+        "primary": "#90CAF9",
+        "surface": "#1E1E1E",
+        "on_surface": "#E0E0E0",
+        "outline": "rgba(255,255,255,0.15)",
     }
 
     _LIGHT = {
-        "bg": "#F5F6FA",
+        "bg": "#F8FAFC",
         "card_bg": "#FFFFFF",
-        "text": "#2C3E50",
-        "text_secondary": "#7F8C8D",
-        "text_muted": "#999999",
-        "border": "#E0E0E0",
-        "chart_text": "#7F8C8D",
-        "chart_edge": "#FFFFFF",
-        "error": "#E74C3C",
-        "success": "#2ECC71",
-        "warning": "#F39C12",
-        "info": "#3498DB",
+        "text": "#1E293B",
+        "text_secondary": "#64748B",
+        "text_muted": "#94A3B8",
+        "border": "#E2E8F0",
+        "chart_text": "#64748B",
+        "chart_edge": "#F1F5F9",
+        "error": "#EF4444",
+        "success": "#22C55E",
+        "warning": "#F59E0B",
+        "info": "#3B82F6",
         "chart_bg": "#FFFFFF",
-        "chart_grid": "#EAECEE",
+        "chart_grid": "#F1F5F9",
+        "primary": "#3B82F6",
+        "surface": "#FFFFFF",
+        "on_surface": "#1E293B",
+        "outline": "#CBD5E1",
     }
+
+    _PALETTES = {"light": _LIGHT, "dark": _DARK, "modern": _MODERN}
 
     @classmethod
     def get(cls, key):
-        palette = cls._DARK if state.theme == "dark" else cls._LIGHT
+        palette = cls._PALETTES.get(state.theme, cls._LIGHT)
         return palette.get(key, "#888888")
 
     @classmethod
     def chart_palette(cls):
-        return ["#3498DB", "#2ECC71", "#E74C3C", "#F39C12", "#9B59B6", "#1ABC9C"]
+        return ["#3B82F6", "#22C55E", "#EF4444", "#F59E0B", "#8B5CF6", "#06B6D4"]
