@@ -85,28 +85,31 @@ class TestUatFullApp(unittest.TestCase):
         _pump(50)
         self.assertTrue(self.win.sidebar.isVisible())
         # الشاشات الـ35 تُبنى كسلاzy ولا تسقط
-        for idx in range(0, 35):
-            self.win.change_view(idx)
+        for vid in range(1, 36):
+            self.win._go_to_view(vid)
             _pump(50)
             view = self.win.content.currentWidget()
-            self.assertIsNotNone(view, f"view index {idx} is None")
+            self.assertIsNotNone(view, f"view id {vid} is None")
+            self.assertEqual(self.win.content.currentIndex(), vid)
 
     def test_all_screens_have_real_widgets_after_login(self):
         self._login()
-        for idx in range(0, 35):
-            self.win.change_view(idx)
-            view = self.win._get_or_create_view(idx + 1)
-            self.assertIsInstance(view, QWidget, f"screen {idx} not a widget")
+        for vid in range(1, 36):
+            self.win._go_to_view(vid)
+            view = self.win._get_or_create_view(vid)
+            self.assertIsInstance(view, QWidget, f"screen {vid} not a widget")
 
     def test_sidebar_has_35_items(self):
         self._login()
-        self.assertEqual(self.win.sidebar.count(), 35)
+        self.assertEqual(len(self.win._sidebar_row_to_view), 35)
+        self.assertEqual(len(self.win.sidebar_items), 35)
+        self.assertGreater(self.win.sidebar.count(), 35)
 
     # ---------- السيناريو 2: إدخال بيانات + حساب + انتشار الحالة ----------
 
     def test_enter_data_calculate_propagates_state(self):
         self._login()
-        self.win.change_view(0)  # data entry
+        self.win._go_to_view(1)  # data entry
         dev = self.win._get_or_create_view(1)
         dev.load_default_data()
         dev.calculate_ratios()
@@ -115,18 +118,18 @@ class TestUatFullApp(unittest.TestCase):
         self.assertGreater(state.ratios.get("roe", 0), 0)
         self.assertTrue(dev.save_btn.isEnabled())
         # لوحة التحكم والنسب تعرضان نفس البيانات
-        self.win.change_view(1)  # dashboard
+        self.win._go_to_view(2)  # dashboard
         _pump(100)
         dash = self.win._get_or_create_view(2)
         self.assertIsNotNone(dash)
-        self.win.change_view(2)  # ratios
+        self.win._go_to_view(3)  # ratios
         _pump(100)
         ratios_view = self.win._get_or_create_view(3)
         self.assertIsNotNone(ratios_view)
 
     def test_save_to_db_works(self):
         self._login()
-        self.win.change_view(0)
+        self.win._go_to_view(1)
         dev = self.win._get_or_create_view(1)
         dev.load_default_data()
         dev.calculate_ratios()
@@ -142,12 +145,13 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            self.assertEqual(self.win.sidebar.count(), 35)
+            self.assertEqual(len(self.win._sidebar_row_to_view), 35)
             self.assertEqual(Translator.get_language(), lang)
             # لا تعرض أسماء مفاتيح خام في السايدبار
             for i in range(self.win.sidebar.count()):
-                item_text = self.win.sidebar.item(i).text()
+                item_text = self.win.sidebar.item(i).text().strip()
                 self.assertFalse(item_text.startswith("sidebar_"), item_text)
+                self.assertFalse(item_text.startswith("nav_group_"), item_text)
 
     def test_language_switch_preserves_all_views(self):
         self._login()
@@ -155,10 +159,10 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            for idx in range(0, 35):
-                self.win.change_view(idx)
-                view = self.win._get_or_create_view(idx + 1)
-                self.assertIsNotNone(view, f"lang={lang} screen {idx} broken")
+            for vid in range(1, 36):
+                self.win._go_to_view(vid)
+                view = self.win._get_or_create_view(vid)
+                self.assertIsNotNone(view, f"lang={lang} screen {vid} broken")
 
     # ---------- السيناريو 4: تسجيل الخروج ----------
 

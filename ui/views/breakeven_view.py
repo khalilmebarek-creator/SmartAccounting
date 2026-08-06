@@ -62,7 +62,7 @@ class BreakEvenView(QWidget):
 
         self.run_btn = QPushButton(t("breakeven_run"))
         self.run_btn.setObjectName("primaryBtn")
-        self.run_btn.setMinimumHeight(42)
+        self.run_btn.setMinimumHeight(40)
         self.run_btn.clicked.connect(self.run_analysis)
         main_layout.addWidget(self.run_btn)
 

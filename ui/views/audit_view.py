@@ -206,7 +206,7 @@ class AuditView(QWidget):
         card.setMinimumSize(150, 80)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(12, 10, 12, 10)
+        layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(8)
 
         card.title_label = QLabel(title)

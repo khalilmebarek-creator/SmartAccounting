@@ -5,14 +5,14 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QStackedWidget,
-    QFormLayout, QToolButton,
+    QFormLayout, QToolButton, QCheckBox,
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 
 from ui.resources.i18n import t
 from ui.app_state import ThemeColors
-from ui.login_session import save_login_email, load_login_email
+from ui.login_session import load_login_email, save_login_session
 from modules.user_manager import user_manager
 
 
@@ -186,6 +186,10 @@ class LoginView(QWidget):
 
         layout.addLayout(form)
 
+        self.login_remember = QCheckBox(t("login_remember_me"))
+        self.login_remember.setMinimumHeight(32)
+        layout.addWidget(self.login_remember)
+
         self.login_error = QLabel("")
         self.login_error.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
         self.login_error.setAlignment(Qt.AlignCenter)
@@ -244,6 +248,10 @@ class LoginView(QWidget):
         form.addRow(self._reg_pass_label, self.reg_password)
 
         layout.addLayout(form)
+
+        self.reg_remember = QCheckBox(t("login_remember_me"))
+        self.reg_remember.setMinimumHeight(32)
+        layout.addWidget(self.reg_remember)
 
         self.reg_error = QLabel("")
         self.reg_error.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
@@ -448,6 +456,7 @@ class LoginView(QWidget):
 
     def _go_to_login_from_register(self):
         self.login_email.setEnabled(True)
+        self.login_remember.setChecked(self.reg_remember.isChecked())
         self.stack.setCurrentIndex(0)
 
     def do_login(self):
@@ -459,7 +468,7 @@ class LoginView(QWidget):
         ok, error_code, extra = user_manager.login(email, password)
         if ok:
             self.login_error.setText("")
-            save_login_email(email)
+            save_login_session(email, password, self.login_remember.isChecked())
             self.login_password.clear()
             self._had_login_error = False
             self.forgot_link.setVisible(False)
@@ -498,6 +507,7 @@ class LoginView(QWidget):
             self.reg_email.clear()
             self.reg_display.clear()
             self.reg_password.clear()
+            self.login_remember.setChecked(self.reg_remember.isChecked())
             self.stack.setCurrentIndex(0)
             self.login_email.setText(email)
             self.login_email.setEnabled(False)
@@ -525,6 +535,10 @@ class LoginView(QWidget):
             self.login_password.setPlaceholderText(t("login_password"))
         if hasattr(self, 'login_btn'):
             self.login_btn.setText(t("login_btn"))
+        if hasattr(self, 'login_remember'):
+            self.login_remember.setText(t("login_remember_me"))
+        if hasattr(self, 'reg_remember'):
+            self.reg_remember.setText(t("login_remember_me"))
         if hasattr(self, 'register_link'):
             self.register_link.setText(t("login_register_link"))
         if hasattr(self, 'forgot_link'):

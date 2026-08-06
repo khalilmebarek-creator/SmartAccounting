@@ -35,7 +35,7 @@ class ChartWidget(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
 
         self.title_label = QLabel(title)
         self.title_label.setObjectName("sectionTitle")
@@ -70,7 +70,7 @@ class SummaryCard(QFrame):
 
         layout = QVBoxLayout()
         layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
 
         self.title_label = QLabel(title)
         self.title_label.setObjectName("cardTitle")
@@ -170,7 +170,7 @@ class DashboardView(QWidget):
         self.export_btn = QPushButton(t("dashboard_export_pdf"))
         self.export_btn.setObjectName("primaryBtn")
         self.export_btn.setMinimumWidth(280)
-        self.export_btn.setMinimumHeight(42)
+        self.export_btn.setMinimumHeight(40)
         self.export_btn.clicked.connect(self.export_pdf_clicked.emit)
         btn_layout.addWidget(self.export_btn)
 

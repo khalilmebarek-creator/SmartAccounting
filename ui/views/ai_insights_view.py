@@ -97,7 +97,7 @@ class AIInsightsView(BaseView):
 
         self.analyze_btn = QPushButton(t("ai_analyze_btn"))
         self.analyze_btn.setObjectName("primaryBtn")
-        self.analyze_btn.setMinimumHeight(36)
+        self.analyze_btn.setMinimumHeight(40)
         self.analyze_btn.clicked.connect(self.refresh)
         controls.addWidget(self.analyze_btn)
 
@@ -209,7 +209,7 @@ class AIInsightsView(BaseView):
         frame = QFrame()
         frame.setObjectName("card")
         v = QVBoxLayout(frame)
-        v.setContentsMargins(16, 10, 16, 10)
+        v.setContentsMargins(16, 12, 16, 12)
         lbl = QLabel(title)
         lbl.setStyleSheet("font-size: 11px; color: #888;")
         v.addWidget(lbl)

@@ -435,14 +435,14 @@ class DataEntryView(QWidget):
 
         self.undo_btn = QPushButton("↩ Undo")
         self.undo_btn.setObjectName("secondaryBtn")
-        self.undo_btn.setMinimumSize(QSize(80, 36))
+        self.undo_btn.setMinimumSize(QSize(80, 40))
         self.undo_btn.setToolTip("Ctrl+Z")
         self.undo_btn.clicked.connect(self._undo)
         buttons_layout.addWidget(self.undo_btn)
 
         self.redo_btn = QPushButton("↪ Redo")
         self.redo_btn.setObjectName("secondaryBtn")
-        self.redo_btn.setMinimumSize(QSize(80, 36))
+        self.redo_btn.setMinimumSize(QSize(80, 40))
         self.redo_btn.setToolTip("Ctrl+Y")
         self.redo_btn.clicked.connect(self._redo)
         buttons_layout.addWidget(self.redo_btn)

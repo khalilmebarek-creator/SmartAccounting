@@ -25,7 +25,7 @@ class RatioCard(QFrame):
         
         layout = QVBoxLayout()
         layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
         
         # العنوان
         self.title_label = QLabel(title)

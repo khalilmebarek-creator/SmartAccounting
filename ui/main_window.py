@@ -8,7 +8,7 @@ from ui.views._path import _  # noqa: F401
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QListWidget, QStackedWidget, QLabel, QStatusBar,
+    QListWidget, QListWidgetItem, QStackedWidget, QLabel, QStatusBar,
     QMessageBox, QAction, QFileDialog, QShortcut,
     QDialog, QDialogButtonBox, QFormLayout, QPushButton,
     QTableWidget,
@@ -16,10 +16,11 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
-from PyQt5.QtGui import (QIcon, QKeySequence)
+from PyQt5.QtGui import (QIcon, QKeySequence, QFont, QColor)
 
 from ui.views.login_view import LoginView
 from ui.widgets.alert_banner import AlertBanner
+from ui.login_session import load_login_session, clear_saved_password
 from modules.activity_log import activity_log
 from modules.user_manager import user_manager
 from utils.app_logger import get_logger
@@ -297,48 +298,9 @@ class MainWindow(QMainWindow):
         self.sidebar.setObjectName("sidebar")
         self.sidebar.setFixedWidth(250)
         self.sidebar.setIconSize(QSize(20, 20))
-
-        self.sidebar_items = [
-            t("sidebar_data_entry"),
-            t("sidebar_dashboard"),
-            t("sidebar_ratios"),
-            t("sidebar_dupont"),
-            t("sidebar_audit"),
-            t("sidebar_reports"),
-            t("sidebar_settings"),
-            t("sidebar_chat"),
-            t("sidebar_tax"),
-            t("sidebar_comparative"),
-            t("sidebar_cashflow"),
-            t("sidebar_security"),
-            t("sidebar_zscore"),
-            t("sidebar_forecast"),
-            t("sidebar_budget"),
-            t("sidebar_cost_center"),
-            t("sidebar_breakeven"),
-            t("sidebar_benchmarks"),
-            t("sidebar_tax_calendar"),
-            t("sidebar_data_import"),
-            t("sidebar_bank_sync"),
-            t("sidebar_scenarios"),
-            t("sidebar_advanced_dashboard"),
-            t("sidebar_ai_insights"),
-            t("sidebar_cost_profit"),
-            t("sidebar_currency"),
-            t("sidebar_cloud_sync"),
-            t("sidebar_demo_data"),
-            t("sidebar_user_testing"),
-            t("sidebar_ledger"),
-            t("sidebar_partners"),
-            t("sidebar_invoicing"),
-            t("sidebar_inventory"),
-            t("sidebar_payroll"),
-            t("sidebar_budgeting"),
-        ]
-
-        self.sidebar.blockSignals(True)
-        self.sidebar.addItems(self.sidebar_items)
-        self.sidebar.blockSignals(False)
+        self._sidebar_row_to_view = {}
+        self.sidebar_items = []
+        self._populate_sidebar()
         self.sidebar.currentRowChanged.connect(self.change_view)
 
         main_layout.addWidget(self.sidebar)
@@ -351,7 +313,7 @@ class MainWindow(QMainWindow):
         content_wrapper.setSpacing(0)
 
         self.alert_banner = AlertBanner()
-        self.alert_banner.view_clicked.connect(lambda: self.sidebar.setCurrentRow(11))
+        self.alert_banner.view_clicked.connect(lambda: self._go_to_view(12))
         content_wrapper.addWidget(self.alert_banner)
         content_wrapper.addWidget(self.content, 1)
 
@@ -381,11 +343,16 @@ class MainWindow(QMainWindow):
         self._setup_theme_toggle()
 
         self.sidebar.blockSignals(True)
-        self.sidebar.setCurrentRow(0)
+        for row, vid in self._sidebar_row_to_view.items():
+            if vid == 1:
+                self.sidebar.setCurrentRow(row)
+                break
         self.sidebar.blockSignals(False)
         self.sidebar.hide()
         self.alert_banner.hide()
         self.content.setCurrentIndex(0)
+
+        QTimer.singleShot(0, self._try_auto_login)
 
     def _setup_auto_save(self):
         """Auto-save data every 30 seconds."""
@@ -417,16 +384,32 @@ class MainWindow(QMainWindow):
         self.alert_banner.show()
         self.content.setCurrentIndex(1)
         self._get_or_create_view(1)
-        self.sidebar.setCurrentRow(0)
+        self._go_to_view(1)
         welcome = t("login_logged_in")
         self.status_bar.showMessage(f"{welcome}: {user['display_name']} ({user['role']})")
         self.log.info(f"User logged in: {user['username']} ({user['role']})")
         activity_log.log("login", f"user={user['username']}, role={user['role']}")
 
+    def _try_auto_login(self):
+        """Skip the login screen when a valid remember-me session exists."""
+        try:
+            email, password = load_login_session()
+            if not email or not password:
+                return
+            ok, _code, _extra = user_manager.login(email, password)
+            if ok and not user_manager.needs_password_change():
+                self.login_view.login_email.setText(email)
+                self._on_login_success()
+            elif ok:
+                user_manager.logout()
+        except Exception as exc:
+            self.log.error(f"Auto-login failed: {exc}")
+
     def _do_logout(self):
         user = user_manager.get_current_user()
         username = user["username"] if user else "unknown"
         user_manager.logout()
+        clear_saved_password()
         self.sidebar.hide()
         self.alert_banner.hide()
         self.content.setCurrentIndex(0)
@@ -478,44 +461,44 @@ class MainWindow(QMainWindow):
         dialog.exec_()
 
     def _setup_shortcuts(self):
-        """اختصارات لوحة المفاتيح"""
+        """اختصارات لوحة المفاتيح — تشير لمعرّف الشاشة (1-35) لا صف الشريط"""
         QShortcut(QKeySequence("Ctrl+P"), self, self.print_current_view)
         QShortcut(QKeySequence("Ctrl+E"), self, self.export_dashboard_pdf)
-        QShortcut(QKeySequence("Ctrl+1"), self, lambda: self.sidebar.setCurrentRow(0))
-        QShortcut(QKeySequence("Ctrl+2"), self, lambda: self.sidebar.setCurrentRow(1))
-        QShortcut(QKeySequence("Ctrl+3"), self, lambda: self.sidebar.setCurrentRow(2))
-        QShortcut(QKeySequence("Ctrl+4"), self, lambda: self.sidebar.setCurrentRow(3))
-        QShortcut(QKeySequence("Ctrl+5"), self, lambda: self.sidebar.setCurrentRow(4))
-        QShortcut(QKeySequence("Ctrl+6"), self, lambda: self.sidebar.setCurrentRow(5))
-        QShortcut(QKeySequence("Ctrl+7"), self, lambda: self.sidebar.setCurrentRow(6))
-        QShortcut(QKeySequence("Ctrl+8"), self, lambda: self.sidebar.setCurrentRow(7))
-        QShortcut(QKeySequence("Ctrl+9"), self, lambda: self.sidebar.setCurrentRow(8))
-        QShortcut(QKeySequence("Ctrl+0"), self, lambda: self.sidebar.setCurrentRow(9))
-        QShortcut(QKeySequence("Ctrl+Shift+1"), self, lambda: self.sidebar.setCurrentRow(10))
-        QShortcut(QKeySequence("Ctrl+Shift+2"), self, lambda: self.sidebar.setCurrentRow(11))
-        QShortcut(QKeySequence("Ctrl+Shift+3"), self, lambda: self.sidebar.setCurrentRow(12))
-        QShortcut(QKeySequence("Ctrl+Shift+4"), self, lambda: self.sidebar.setCurrentRow(13))
-        QShortcut(QKeySequence("Ctrl+Shift+5"), self, lambda: self.sidebar.setCurrentRow(14))
-        QShortcut(QKeySequence("Ctrl+Shift+6"), self, lambda: self.sidebar.setCurrentRow(15))
-        QShortcut(QKeySequence("Ctrl+Shift+7"), self, lambda: self.sidebar.setCurrentRow(16))
-        QShortcut(QKeySequence("Ctrl+Shift+8"), self, lambda: self.sidebar.setCurrentRow(17))
-        QShortcut(QKeySequence("Ctrl+Shift+9"), self, lambda: self.sidebar.setCurrentRow(18))
-        QShortcut(QKeySequence("Ctrl+Shift+0"), self, lambda: self.sidebar.setCurrentRow(19))
-        QShortcut(QKeySequence("Ctrl+Shift+A"), self, lambda: self.sidebar.setCurrentRow(20))
-        QShortcut(QKeySequence("F2"), self, lambda: self.sidebar.setCurrentRow(21))
-        QShortcut(QKeySequence("F3"), self, lambda: self.sidebar.setCurrentRow(22))
-        QShortcut(QKeySequence("F4"), self, lambda: self.sidebar.setCurrentRow(23))
-        QShortcut(QKeySequence("F5"), self, lambda: self.sidebar.setCurrentRow(24))
-        QShortcut(QKeySequence("F6"), self, lambda: self.sidebar.setCurrentRow(25))
-        QShortcut(QKeySequence("F7"), self, lambda: self.sidebar.setCurrentRow(26))
-        QShortcut(QKeySequence("F8"), self, lambda: self.sidebar.setCurrentRow(27))
-        QShortcut(QKeySequence("F9"), self, lambda: self.sidebar.setCurrentRow(28))
-        QShortcut(QKeySequence("F10"), self, lambda: self.sidebar.setCurrentRow(29))
-        QShortcut(QKeySequence("F11"), self, lambda: self.sidebar.setCurrentRow(30))
-        QShortcut(QKeySequence("F12"), self, lambda: self.sidebar.setCurrentRow(31))
-        QShortcut(QKeySequence("Ctrl+Shift+B"), self, lambda: self.sidebar.setCurrentRow(32))
-        QShortcut(QKeySequence("Ctrl+Shift+C"), self, lambda: self.sidebar.setCurrentRow(33))
-        QShortcut(QKeySequence("Ctrl+Shift+D"), self, lambda: self.sidebar.setCurrentRow(34))
+        QShortcut(QKeySequence("Ctrl+1"), self, lambda: self._go_to_view(1))
+        QShortcut(QKeySequence("Ctrl+2"), self, lambda: self._go_to_view(2))
+        QShortcut(QKeySequence("Ctrl+3"), self, lambda: self._go_to_view(3))
+        QShortcut(QKeySequence("Ctrl+4"), self, lambda: self._go_to_view(4))
+        QShortcut(QKeySequence("Ctrl+5"), self, lambda: self._go_to_view(5))
+        QShortcut(QKeySequence("Ctrl+6"), self, lambda: self._go_to_view(6))
+        QShortcut(QKeySequence("Ctrl+7"), self, lambda: self._go_to_view(7))
+        QShortcut(QKeySequence("Ctrl+8"), self, lambda: self._go_to_view(8))
+        QShortcut(QKeySequence("Ctrl+9"), self, lambda: self._go_to_view(9))
+        QShortcut(QKeySequence("Ctrl+0"), self, lambda: self._go_to_view(10))
+        QShortcut(QKeySequence("Ctrl+Shift+1"), self, lambda: self._go_to_view(11))
+        QShortcut(QKeySequence("Ctrl+Shift+2"), self, lambda: self._go_to_view(12))
+        QShortcut(QKeySequence("Ctrl+Shift+3"), self, lambda: self._go_to_view(13))
+        QShortcut(QKeySequence("Ctrl+Shift+4"), self, lambda: self._go_to_view(14))
+        QShortcut(QKeySequence("Ctrl+Shift+5"), self, lambda: self._go_to_view(15))
+        QShortcut(QKeySequence("Ctrl+Shift+6"), self, lambda: self._go_to_view(16))
+        QShortcut(QKeySequence("Ctrl+Shift+7"), self, lambda: self._go_to_view(17))
+        QShortcut(QKeySequence("Ctrl+Shift+8"), self, lambda: self._go_to_view(18))
+        QShortcut(QKeySequence("Ctrl+Shift+9"), self, lambda: self._go_to_view(19))
+        QShortcut(QKeySequence("Ctrl+Shift+0"), self, lambda: self._go_to_view(20))
+        QShortcut(QKeySequence("Ctrl+Shift+A"), self, lambda: self._go_to_view(21))
+        QShortcut(QKeySequence("F2"), self, lambda: self._go_to_view(22))
+        QShortcut(QKeySequence("F3"), self, lambda: self._go_to_view(23))
+        QShortcut(QKeySequence("F4"), self, lambda: self._go_to_view(24))
+        QShortcut(QKeySequence("F5"), self, lambda: self._go_to_view(25))
+        QShortcut(QKeySequence("F6"), self, lambda: self._go_to_view(26))
+        QShortcut(QKeySequence("F7"), self, lambda: self._go_to_view(27))
+        QShortcut(QKeySequence("F8"), self, lambda: self._go_to_view(28))
+        QShortcut(QKeySequence("F9"), self, lambda: self._go_to_view(29))
+        QShortcut(QKeySequence("F10"), self, lambda: self._go_to_view(30))
+        QShortcut(QKeySequence("F11"), self, lambda: self._go_to_view(31))
+        QShortcut(QKeySequence("F12"), self, lambda: self._go_to_view(32))
+        QShortcut(QKeySequence("Ctrl+Shift+B"), self, lambda: self._go_to_view(33))
+        QShortcut(QKeySequence("Ctrl+Shift+C"), self, lambda: self._go_to_view(34))
+        QShortcut(QKeySequence("Ctrl+Shift+D"), self, lambda: self._go_to_view(35))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -560,11 +543,13 @@ class MainWindow(QMainWindow):
             "F10", "F11", "F12",
             "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
         ]
+        view_ids = getattr(self, "_sidebar_view_ids", list(range(1, 36)))
         for i, label in enumerate(getattr(self, "sidebar_items", [])):
             key = view_keys[i] if i < len(view_keys) else None
+            vid = view_ids[i] if i < len(view_ids) else (i + 1)
             view_menu.addAction(self._make_action(
                 label, key,
-                (lambda row: lambda: self.sidebar.setCurrentRow(row))(i)
+                (lambda v: lambda: self._go_to_view(v))(vid)
             ))
         view_menu.addSeparator()
         view_menu.addAction(self._make_action(t("view_theme"), "Ctrl+T", self._toggle_theme))
@@ -572,7 +557,7 @@ class MainWindow(QMainWindow):
         settings_menu = menubar.addMenu(t("menu_settings"))
         settings_menu.addAction(self._make_action(
             t("menu_settings"), "Ctrl+,",
-            lambda: self.sidebar.setCurrentRow(6)
+            lambda: self._go_to_view(7)
         ))
 
         help_menu = menubar.addMenu(t("menu_help"))
@@ -629,12 +614,62 @@ class MainWindow(QMainWindow):
         self.log.info(f"Lazy-loaded view: {name} (index={index})")
         return view
 
+    # مجموعات الشريط الجانبي: (مفتاح i18n للمجموعة، [معرّفات الشاشات 1-35])
+    _SIDEBAR_GROUPS = (
+        ("nav_group_main", (1, 2, 23)),
+        ("nav_group_accounting", (30, 31, 32, 33, 34, 35)),
+        ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22)),
+        ("nav_group_tax", (9, 19)),
+        ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27)),
+        ("nav_group_system", (7, 12, 28, 29)),
+    )
+
+    def _populate_sidebar(self):
+        """بناء الشريط الجانبي مجمّعاً — العناوين غير قابلة للنقر"""
+        self.sidebar.blockSignals(True)
+        self.sidebar.clear()
+        self._sidebar_row_to_view = {}
+        self.sidebar_items = []
+        self._sidebar_view_ids = []
+        header_color = QColor(ThemeColors.get("info"))
+        for group_key, view_ids in self._SIDEBAR_GROUPS:
+            header = QListWidgetItem(t(group_key))
+            header.setFlags(Qt.NoItemFlags)
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(9)
+            header.setFont(font)
+            header.setForeground(header_color)
+            header.setData(Qt.UserRole, None)
+            self.sidebar.addItem(header)
+            for vid in view_ids:
+                name = self._view_factories[vid][0]
+                label = t(f"sidebar_{name}")
+                item = QListWidgetItem(f"  {label}")
+                item.setData(Qt.UserRole, vid)
+                self.sidebar.addItem(item)
+                row = self.sidebar.count() - 1
+                self._sidebar_row_to_view[row] = vid
+                self.sidebar_items.append(label)
+                self._sidebar_view_ids.append(vid)
+        self.sidebar.blockSignals(False)
+
+    def _go_to_view(self, view_id):
+        """الانتقال لشاشة بمعرّفها (1-35) بغض النظر عن صف الشريط"""
+        for row, vid in self._sidebar_row_to_view.items():
+            if vid == view_id:
+                self.sidebar.setCurrentRow(row)
+                return
+
     def change_view(self, index):
-        """تغيير الواجهة المعروضة"""
+        """تغيير الواجهة المعروضة — index = صف الشريط (يتجاوز العناوين)"""
         if not hasattr(self, 'content') or self.content is None:
             return
-        self._get_or_create_view(index + 1)
-        self.content.setCurrentIndex(index + 1)
+        view_id = self._sidebar_row_to_view.get(index)
+        if view_id is None:
+            return
+        self._get_or_create_view(view_id)
+        self.content.setCurrentIndex(view_id)
         current = self.content.currentWidget()
         if current and hasattr(current, 'refresh'):
             current.refresh()
@@ -687,7 +722,7 @@ class MainWindow(QMainWindow):
         self._get_or_create_view(3).refresh()
         self._get_or_create_view(4).refresh()
         self._get_or_create_view(13).load_from_state()
-        self.sidebar.setCurrentRow(1)
+        self._go_to_view(2)
         self.status_bar.showMessage(
             f"{t('status_calculated')} | {state.summary()}"
         )
@@ -732,49 +767,10 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(t("window_title"))
 
-        self.sidebar.blockSignals(True)
-        self.sidebar.clear()
-        self.sidebar_items = [
-            t("sidebar_data_entry"),
-            t("sidebar_dashboard"),
-            t("sidebar_ratios"),
-            t("sidebar_dupont"),
-            t("sidebar_audit"),
-            t("sidebar_reports"),
-            t("sidebar_settings"),
-            t("sidebar_chat"),
-            t("sidebar_tax"),
-            t("sidebar_comparative"),
-            t("sidebar_cashflow"),
-            t("sidebar_security"),
-            t("sidebar_zscore"),
-            t("sidebar_forecast"),
-            t("sidebar_budget"),
-            t("sidebar_cost_center"),
-            t("sidebar_breakeven"),
-            t("sidebar_benchmarks"),
-            t("sidebar_tax_calendar"),
-            t("sidebar_data_import"),
-            t("sidebar_bank_sync"),
-            t("sidebar_scenarios"),
-            t("sidebar_advanced_dashboard"),
-            t("sidebar_ai_insights"),
-            t("sidebar_cost_profit"),
-            t("sidebar_currency"),
-            t("sidebar_cloud_sync"),
-            t("sidebar_demo_data"),
-            t("sidebar_user_testing"),
-            t("sidebar_ledger"),
-            t("sidebar_partners"),
-            t("sidebar_invoicing"),
-            t("sidebar_inventory"),
-            t("sidebar_payroll"),
-            t("sidebar_budgeting"),
-        ]
-        self.sidebar.addItems(self.sidebar_items)
-        current_idx = self.content.currentIndex()
-        self.sidebar.setCurrentRow(current_idx - 1 if current_idx > 0 else 0)
-        self.sidebar.blockSignals(False)
+        current_view = self.content.currentIndex()
+        self._populate_sidebar()
+        if current_view > 0:
+            self._go_to_view(current_view)
 
         self._rebuild_menu_bar()
 
@@ -812,6 +808,12 @@ class MainWindow(QMainWindow):
         if os.path.exists(style_path):
             with open(style_path, 'r', encoding='utf-8') as f:
                 self.setStyleSheet(f.read())
+        if hasattr(self, "sidebar") and self.sidebar is not None:
+            header_color = QColor(ThemeColors.get("info"))
+            for i in range(self.sidebar.count()):
+                item = self.sidebar.item(i)
+                if item is not None and item.data(Qt.UserRole) is None:
+                    item.setForeground(header_color)
 
     def apply_style(self):
         """تطبيق ملف الستايل"""

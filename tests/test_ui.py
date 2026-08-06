@@ -632,20 +632,20 @@ class TestFadeInSafety(unittest.TestCase):
         loop.exec_()
 
     def test_rapid_switching_clears_effect(self):
-        for idx in (0, 1, 2, 3, 4, 0, 1, 2):
-            self.win.change_view(idx)
+        for vid in (1, 2, 3, 4, 5, 1, 2, 3):
+            self.win._go_to_view(vid)
         self._pump(600)
         cur = self.win.content.currentWidget()
         self.assertIsNone(cur.graphicsEffect())
 
     def test_no_lingering_animations_referenced(self):
-        self.win.change_view(0)
+        self.win._go_to_view(1)
         self.assertIn(id(self.win.content.currentWidget()), self.win._view_anims)
         self._pump(600)
         self.assertEqual(self.win._view_anims, {})
 
     def test_single_navigation_clean(self):
-        self.win.change_view(3)
+        self.win._go_to_view(4)
         self._pump(400)
         cur = self.win.content.currentWidget()
         self.assertIsNone(cur.graphicsEffect())

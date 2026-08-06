@@ -150,7 +150,7 @@ class BenchmarkView(BaseView):
 
         self.sector_combo = QComboBox()
         self.sector_combo.setMinimumWidth(220)
-        self.sector_combo.setMinimumHeight(36)
+        self.sector_combo.setMinimumHeight(40)
         for s in benchmark_analyzer.get_sectors_list():
             self.sector_combo.addItem(s["name_ar"], s["code"])
         self.sector_combo.currentIndexChanged.connect(self._on_sector_changed)
@@ -194,7 +194,7 @@ class BenchmarkView(BaseView):
         self.score_frame = QFrame()
         self.score_frame.setObjectName("card")
         score_layout = QHBoxLayout(self.score_frame)
-        score_layout.setContentsMargins(20, 15, 20, 15)
+        score_layout.setContentsMargins(16, 12, 16, 12)
 
         self.score_title = QLabel(t("bench_score"))
         self.score_title.setObjectName("cardTitle")

@@ -151,7 +151,7 @@ class TaxView(QWidget):
 
         self.construction_check = QPushButton(t("tax_is_construction"))
         self.construction_check.setCheckable(True)
-        self.construction_check.setMinimumHeight(35)
+        self.construction_check.setMinimumHeight(40)
         form.addRow("", self.construction_check)
 
         input_group.setLayout(form)
@@ -159,7 +159,7 @@ class TaxView(QWidget):
 
         self.simulate_btn = QPushButton(t("tax_simulate"))
         self.simulate_btn.setObjectName("primaryBtn")
-        self.simulate_btn.setMinimumHeight(50)
+        self.simulate_btn.setMinimumHeight(40)
         self.simulate_btn.clicked.connect(self.run_simulation)
         left_layout.addWidget(self.simulate_btn)
 
@@ -459,23 +459,31 @@ class TaxView(QWidget):
         self.decl_company_group = QGroupBox(t("taxdecl_company_group"))
         company_form = QFormLayout()
         company_form.setSpacing(8)
+        company_form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        company_form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
         self.decl_name_input = QLineEdit(state.company_name)
+        self.decl_name_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_company_name"), self.decl_name_input)
 
         self.decl_nif_input = QLineEdit(state.company_nif)
+        self.decl_nif_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_nif"), self.decl_nif_input)
 
         self.decl_rc_input = QLineEdit(state.company_rc)
+        self.decl_rc_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_rc"), self.decl_rc_input)
 
         self.decl_ai_input = QLineEdit()
+        self.decl_ai_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_ai"), self.decl_ai_input)
 
         self.decl_address_input = QLineEdit(state.company_address)
+        self.decl_address_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_address"), self.decl_address_input)
 
         self.decl_dgi_input = QLineEdit()
+        self.decl_dgi_input.setMinimumHeight(40)
         company_form.addRow(t("taxdecl_dgi"), self.decl_dgi_input)
 
         self.decl_company_group.setLayout(company_form)

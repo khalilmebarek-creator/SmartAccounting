@@ -25,7 +25,7 @@ class TableFilterWidget(QWidget):
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText(placeholder or t("filter_placeholder"))
-        self.search_input.setMinimumHeight(32)
+        self.search_input.setMinimumHeight(40)
         self.search_input.textChanged.connect(self._apply_filter)
         layout.addWidget(self.search_input)
 

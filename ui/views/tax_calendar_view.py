@@ -134,7 +134,7 @@ class TaxCalendarView(BaseView):
         toolbar.addWidget(year_lbl)
         self.year_combo = QComboBox()
         self.year_combo.setMinimumWidth(100)
-        self.year_combo.setMinimumHeight(36)
+        self.year_combo.setMinimumHeight(40)
         current_year = datetime.now().year
         for y in range(current_year + 1, current_year - 4, -1):
             self.year_combo.addItem(str(y), y)
@@ -181,7 +181,14 @@ class TaxCalendarView(BaseView):
             t("taxcal_col_form"), t("taxcal_col_severity"),
             t("taxcal_col_action"),
         ])
-        self.upcoming_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.upcoming_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+        self.upcoming_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.upcoming_table.setColumnWidth(0, 90)
+        self.upcoming_table.setColumnWidth(2, 110)
+        self.upcoming_table.setColumnWidth(3, 80)
+        self.upcoming_table.setColumnWidth(4, 100)
+        self.upcoming_table.setColumnWidth(5, 130)
+        self.upcoming_table.setColumnWidth(6, 120)
         self.upcoming_table.setAlternatingRowColors(True)
         self.upcoming_table.verticalHeader().setVisible(False)
         self.upcoming_table.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -217,14 +224,25 @@ class TaxCalendarView(BaseView):
         if year:
             self._build_calendar_overview(year)
 
+    _TAX_TYPE_COLORS = {
+        "TVA": "info",
+        "IBS": "error",
+        "IRG": "warning",
+        "CNAS": "success",
+        "CNAC": "info",
+        "Accounting": "text_secondary",
+        "Audit": "error",
+    }
+    _PRIORITY_TYPES = {"IBS", "Audit", "Accounting"}
+
+    def _month_priority(self, obligations):
+        return "high" if any(o.get("tax_type") in self._PRIORITY_TYPES for o in obligations) else "normal"
+
     def _build_calendar_overview(self, year=None):
-        for i in range(self.calendar_layout.count()):
-            item = self.calendar_layout.itemAt(i)
-            if item is None:
-                continue
+        while self.calendar_layout.count():
+            item = self.calendar_layout.takeAt(0)
             w = item.widget()
             if w:
-                w.setParent(None)
                 w.deleteLater()
 
         if year is None:
@@ -241,38 +259,61 @@ class TaxCalendarView(BaseView):
             "tax_month_oct", "tax_month_nov", "tax_month_dec",
         ]
 
+        text_secondary = ThemeColors.get("text_secondary")
+        text_muted = ThemeColors.get("text_muted")
+        info_color = ThemeColors.get("info")
+        error_color = ThemeColors.get("error")
+
+        current_month = datetime.now().month if year == datetime.now().year else None
+
         for col in range(12):
             month = col + 1
+            obligations = cal_summary.get(month, [])
+            priority = self._month_priority(obligations)
+            is_current = (month == current_month)
+
             card = QFrame()
             card.setObjectName("card")
+
             card_layout = QVBoxLayout()
-            card_layout.setContentsMargins(8, 8, 8, 8)
-            card_layout.setSpacing(8)
+            card_layout.setContentsMargins(8, 4, 8, 8)
+            card_layout.setSpacing(5)
+
+            if priority == "high":
+                strip = QWidget()
+                strip.setFixedHeight(3)
+                strip.setStyleSheet(f"background-color: {error_color};")
+                card_layout.addWidget(strip)
 
             month_lbl = QLabel(t(month_keys[col]))
             month_lbl.setAlignment(Qt.AlignCenter)
             font = QFont()
             font.setBold(True)
-            font.setPointSize(11)
+            font.setPointSize(12 if is_current else 11)
             month_lbl.setFont(font)
+            if is_current:
+                month_lbl.setStyleSheet(f"color: {info_color};")
             card_layout.addWidget(month_lbl)
 
-            obligations = cal_summary.get(month, [])
             if obligations:
                 for ob in obligations:
                     name = ob.get("name_en", ob.get("name_ar", ""))
                     tax_type = ob.get("tax_type", "")
-                    ob_lbl = QLabel(f"• {name[:22]}")
-                    ob_lbl.setStyleSheet(f"font-size: 9px; color: {ThemeColors.get('text_secondary')};")
+                    color_key = self._TAX_TYPE_COLORS.get(tax_type, "text_secondary")
+                    color = ThemeColors.get(color_key)
+                    ob_lbl = QLabel(f"• {name}")
+                    ob_lbl.setStyleSheet(f"font-size: 10px; color: {color};")
                     ob_lbl.setWordWrap(True)
                     card_layout.addWidget(ob_lbl)
-                count_lbl = QLabel(f"{len(obligations)} {t('taxcal_items')}")
-                count_lbl.setStyleSheet(f"font-size: 10px; color: {ThemeColors.get('info')}; font-weight: bold;")
+                count_text = f"{len(obligations)} {t('taxcal_items')}"
+                count_lbl = QLabel(count_text)
+                count_color = error_color if priority == "high" else info_color
+                count_lbl.setStyleSheet(f"font-size: 10px; color: {count_color}; font-weight: bold;")
                 count_lbl.setAlignment(Qt.AlignCenter)
                 card_layout.addWidget(count_lbl)
             else:
                 empty_lbl = QLabel(t("taxcal_no_items"))
-                empty_lbl.setStyleSheet(f"font-size: 10px; color: {ThemeColors.get('text_muted')};")
+                empty_lbl.setStyleSheet(f"font-size: 10px; color: {text_muted}; font-style: italic;")
                 empty_lbl.setAlignment(Qt.AlignCenter)
                 card_layout.addWidget(empty_lbl)
 
@@ -366,7 +407,7 @@ class TaxCalendarView(BaseView):
             sev_item.setTextAlignment(Qt.AlignCenter)
 
             ack_btn = QPushButton(t("taxcal_acknowledge"))
-            ack_btn.setMinimumHeight(30)
+            ack_btn.setMinimumHeight(40)
             if rem.get("acknowledged"):
                 ack_btn.setText(t("taxcal_acknowledged"))
                 ack_btn.setEnabled(False)

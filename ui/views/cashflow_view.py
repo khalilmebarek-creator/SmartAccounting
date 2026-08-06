@@ -38,13 +38,13 @@ class CashFlowView(QWidget):
 
         self.calc_btn = QPushButton(t("cf_calculate"))
         self.calc_btn.setObjectName("primaryBtn")
-        self.calc_btn.setMinimumHeight(45)
+        self.calc_btn.setMinimumHeight(40)
         self.calc_btn.clicked.connect(self._calculate_cash_flow)
         btn_layout.addWidget(self.calc_btn)
 
         self.export_btn = QPushButton(t("cf_export"))
         self.export_btn.setObjectName("secondaryBtn")
-        self.export_btn.setMinimumHeight(45)
+        self.export_btn.setMinimumHeight(40)
         self.export_btn.clicked.connect(self._export)
         self.export_btn.setEnabled(False)
         btn_layout.addWidget(self.export_btn)

@@ -121,8 +121,8 @@ class CostCenterProfitabilityView(BaseView):
         self.center_table.setRowCount(self.MAX_CENTERS)
         self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.center_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        self.center_table.verticalHeader().setDefaultSectionSize(46)
-        self.center_table.setMinimumHeight(46 * self.MAX_CENTERS + 40)
+        self.center_table.verticalHeader().setDefaultSectionSize(44)
+        self.center_table.setMinimumHeight(44 * self.MAX_CENTERS + 40)
 
         self._center_data = []
         for i in range(self.MAX_CENTERS):
@@ -193,7 +193,7 @@ class CostCenterProfitabilityView(BaseView):
         row.addStretch()
         self.run_btn = QPushButton(t("cost_profit_run"))
         self.run_btn.setObjectName("primaryBtn")
-        self.run_btn.setMinimumHeight(36)
+        self.run_btn.setMinimumHeight(40)
         self.run_btn.clicked.connect(self.run_analysis)
         row.addWidget(self.run_btn)
 
@@ -234,7 +234,7 @@ class CostCenterProfitabilityView(BaseView):
         frame = QFrame()
         frame.setObjectName("card")
         v = QVBoxLayout(frame)
-        v.setContentsMargins(12, 10, 12, 10)
+        v.setContentsMargins(16, 12, 16, 12)
         lbl = QLabel("--")
         lbl.setObjectName("cardValue")
         lbl.setAlignment(Qt.AlignCenter)
@@ -277,7 +277,7 @@ class CostCenterProfitabilityView(BaseView):
 
         self.compare_btn = QPushButton(t("cost_profit_compare_btn"))
         self.compare_btn.setObjectName("primaryBtn")
-        self.compare_btn.setMinimumHeight(36)
+        self.compare_btn.setMinimumHeight(40)
         self.compare_btn.clicked.connect(self.run_comparison)
         layout.addWidget(self.compare_btn)
 
@@ -315,7 +315,7 @@ class CostCenterProfitabilityView(BaseView):
 
         self.trend_btn = QPushButton(t("cost_profit_run"))
         self.trend_btn.setObjectName("primaryBtn")
-        self.trend_btn.setMinimumHeight(36)
+        self.trend_btn.setMinimumHeight(40)
         self.trend_btn.clicked.connect(self.run_trend)
         layout.addWidget(self.trend_btn)
 

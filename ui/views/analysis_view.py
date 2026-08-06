@@ -44,7 +44,7 @@ class ChartWidget(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
 
         self.title_label = QLabel(title)
         self.title_label.setObjectName("sectionTitle")
@@ -361,7 +361,7 @@ class DuPontView(QWidget):
 
         layout = QVBoxLayout()
         layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
 
         # العنوان
         title_label = QLabel(title)

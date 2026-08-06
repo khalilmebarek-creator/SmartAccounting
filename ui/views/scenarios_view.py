@@ -41,7 +41,7 @@ class ScenarioChart(QFrame):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
 
         self.title_label = QLabel(title)
         self.title_label.setObjectName("sectionTitle")
@@ -216,7 +216,7 @@ class ScenariosView(QWidget):
         # ===== زر التشغيل =====
         self.run_btn = QPushButton(t("scn_run"))
         self.run_btn.setObjectName("primaryBtn")
-        self.run_btn.setMinimumHeight(42)
+        self.run_btn.setMinimumHeight(40)
         self.run_btn.clicked.connect(self.run_simulation)
         content_layout.addWidget(self.run_btn)
 
@@ -311,7 +311,7 @@ class ScenariosView(QWidget):
         steps_frame = QFrame()
         steps_frame.setObjectName("card")
         steps_layout = QVBoxLayout(steps_frame)
-        steps_layout.setContentsMargins(15, 15, 15, 15)
+        steps_layout.setContentsMargins(16, 12, 16, 12)
         steps_title = QLabel(t("scn_sensitivity_steps"))
         steps_title.setObjectName("sectionTitle")
         steps_layout.addWidget(steps_title)
@@ -358,7 +358,7 @@ class ScenariosView(QWidget):
 
         layout = QVBoxLayout()
         layout.setSpacing(8)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(16, 12, 16, 12)
         card.setLayout(layout)
 
         title_label = QLabel(title)

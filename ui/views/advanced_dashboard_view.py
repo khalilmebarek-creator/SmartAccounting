@@ -106,7 +106,7 @@ class AdvancedDashboardView(BaseView):
 
         self.sector_combo = QComboBox()
         self.sector_combo.setMinimumWidth(200)
-        self.sector_combo.setMinimumHeight(36)
+        self.sector_combo.setMinimumHeight(40)
         for s in benchmark_analyzer.get_sectors_list():
             self.sector_combo.addItem(s["name_ar"], s["code"])
         self.sector_combo.currentIndexChanged.connect(self._on_sector_changed)
@@ -116,13 +116,13 @@ class AdvancedDashboardView(BaseView):
 
         self.export_pdf_btn = QPushButton(t("advd_export_pdf"))
         self.export_pdf_btn.setObjectName("secondaryBtn")
-        self.export_pdf_btn.setMinimumHeight(36)
+        self.export_pdf_btn.setMinimumHeight(40)
         self.export_pdf_btn.clicked.connect(self._export_pdf)
         controls.addWidget(self.export_pdf_btn)
 
         self.export_excel_btn = QPushButton(t("advd_export_excel"))
         self.export_excel_btn.setObjectName("secondaryBtn")
-        self.export_excel_btn.setMinimumHeight(36)
+        self.export_excel_btn.setMinimumHeight(40)
         self.export_excel_btn.clicked.connect(self._export_excel)
         controls.addWidget(self.export_excel_btn)
 
@@ -151,7 +151,7 @@ class AdvancedDashboardView(BaseView):
         self.health_frame = QFrame()
         self.health_frame.setObjectName("card")
         hl = QHBoxLayout(self.health_frame)
-        hl.setContentsMargins(20, 15, 20, 15)
+        hl.setContentsMargins(16, 12, 16, 12)
 
         self.health_title = QLabel(t("advd_health_score"))
         self.health_title.setObjectName("cardTitle")
@@ -226,7 +226,7 @@ class AdvancedDashboardView(BaseView):
         self.revenue_box = QFrame()
         self.revenue_box.setObjectName("card")
         rl = QVBoxLayout(self.revenue_box)
-        rl.setContentsMargins(15, 15, 15, 15)
+        rl.setContentsMargins(16, 12, 16, 12)
 
         title_row = QHBoxLayout()
         self.chart_revenue_title = QLabel(t("advd_chart_revenue"))
@@ -273,7 +273,7 @@ class AdvancedDashboardView(BaseView):
         self.alerts_frame = QFrame()
         self.alerts_frame.setObjectName("card")
         al = QVBoxLayout(self.alerts_frame)
-        al.setContentsMargins(16, 16, 16, 16)
+        al.setContentsMargins(16, 12, 16, 12)
 
         self.alerts_title = QLabel(t("advd_alerts_title"))
         self.alerts_title.setObjectName("cardTitle")
@@ -291,7 +291,7 @@ class AdvancedDashboardView(BaseView):
         self.custom_frame = QFrame()
         self.custom_frame.setObjectName("card")
         cl = QVBoxLayout(self.custom_frame)
-        cl.setContentsMargins(16, 16, 16, 16)
+        cl.setContentsMargins(16, 12, 16, 12)
         cl.setSpacing(10)
 
         self.custom_title = QLabel(t("advd_custom_title"))

@@ -38,8 +38,8 @@ class SettingsView(QWidget):
 
         container = QWidget()
         self.main_layout = QVBoxLayout()
-        self.main_layout.setContentsMargins(40, 30, 40, 30)
-        self.main_layout.setSpacing(30)
+        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_layout.setSpacing(15)
 
         self._build_header()
         self._build_lang_group()
@@ -77,14 +77,14 @@ class SettingsView(QWidget):
         self.lang_group = QGroupBox(t("settings_language"))
         lang_layout = QHBoxLayout()
         lang_layout.setSpacing(15)
-        lang_layout.setContentsMargins(20, 25, 20, 20)
+        lang_layout.setContentsMargins(15, 20, 15, 15)
 
         self.lang_combo_label = QLabel(t("settings_language"))
         self.lang_combo_label.setMinimumWidth(140)
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["العربية", "English", "Français"])
         self.lang_combo.setMinimumWidth(200)
-        self.lang_combo.setMinimumHeight(36)
+        self.lang_combo.setMinimumHeight(40)
         self.lang_combo.currentIndexChanged.connect(self.on_language_changed)
         lang_layout.addWidget(self.lang_combo_label)
         lang_layout.addWidget(self.lang_combo)
@@ -100,14 +100,14 @@ class SettingsView(QWidget):
         self.theme_group = QGroupBox(t("settings_theme"))
         theme_layout = QHBoxLayout()
         theme_layout.setSpacing(15)
-        theme_layout.setContentsMargins(20, 25, 20, 20)
+        theme_layout.setContentsMargins(15, 20, 15, 15)
 
         self.theme_combo_label = QLabel(t("settings_theme"))
         self.theme_combo_label.setMinimumWidth(140)
         self.theme_combo = QComboBox()
         self.theme_combo.addItems([t("settings_theme_light"), t("settings_theme_dark")])
         self.theme_combo.setMinimumWidth(200)
-        self.theme_combo.setMinimumHeight(36)
+        self.theme_combo.setMinimumHeight(40)
         theme_layout.addWidget(self.theme_combo_label)
         theme_layout.addWidget(self.theme_combo)
         theme_layout.addStretch()
@@ -121,8 +121,8 @@ class SettingsView(QWidget):
         # === AI Settings Group ===
         self.ai_group = QGroupBox(t("settings_ai"))
         ai_layout = QVBoxLayout()
-        ai_layout.setSpacing(18)
-        ai_layout.setContentsMargins(20, 25, 20, 20)
+        ai_layout.setSpacing(15)
+        ai_layout.setContentsMargins(15, 20, 15, 15)
 
         # API Key
         api_key_layout = QHBoxLayout()
@@ -132,7 +132,7 @@ class SettingsView(QWidget):
         self.api_key_input = QLineEdit()
         self.api_key_input.setPlaceholderText("sk-...")
         self.api_key_input.setEchoMode(QLineEdit.Password)
-        self.api_key_input.setMinimumHeight(36)
+        self.api_key_input.setMinimumHeight(40)
         api_key_layout.addWidget(self.api_key_label)
         api_key_layout.addWidget(self.api_key_input, 1)
         ai_layout.addLayout(api_key_layout)
@@ -144,7 +144,7 @@ class SettingsView(QWidget):
         self.api_url_label.setMinimumWidth(140)
         self.api_url_input = QLineEdit()
         self.api_url_input.setPlaceholderText("https://api.openai.com/v1/chat/completions")
-        self.api_url_input.setMinimumHeight(36)
+        self.api_url_input.setMinimumHeight(40)
         api_url_layout.addWidget(self.api_url_label)
         api_url_layout.addWidget(self.api_url_input, 1)
         ai_layout.addLayout(api_url_layout)
@@ -165,7 +165,7 @@ class SettingsView(QWidget):
             "claude-3-haiku-20240307",
             "deepseek-chat",
         ])
-        self.model_combo.setMinimumHeight(36)
+        self.model_combo.setMinimumHeight(40)
         model_layout.addWidget(self.model_label)
         model_layout.addWidget(self.model_combo, 1)
         ai_layout.addLayout(model_layout)
@@ -173,7 +173,7 @@ class SettingsView(QWidget):
         # Toggle show/hide key
         self.toggle_key_btn = QPushButton(t("settings_show_key"))
         self.toggle_key_btn.setFixedWidth(160)
-        self.toggle_key_btn.setMinimumHeight(36)
+        self.toggle_key_btn.setMinimumHeight(40)
         self.toggle_key_btn.clicked.connect(self.toggle_key_visibility)
         ai_layout.addWidget(self.toggle_key_btn)
 
@@ -195,34 +195,34 @@ class SettingsView(QWidget):
         # === Email Configuration ===
         self.email_group = QGroupBox(t("settings_email_config"))
         email_layout = QFormLayout()
-        email_layout.setSpacing(18)
-        email_layout.setContentsMargins(20, 25, 20, 20)
+        email_layout.setSpacing(15)
+        email_layout.setContentsMargins(15, 20, 15, 15)
         email_layout.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
         self.smtp_server_input = QLineEdit(email_notifier.smtp_server)
         self.smtp_server_input.setPlaceholderText("smtp.gmail.com")
-        self.smtp_server_input.setMinimumHeight(36)
+        self.smtp_server_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_smtp_server"), self.smtp_server_input)
 
         self.smtp_port_input = QLineEdit(str(email_notifier.smtp_port))
         self.smtp_port_input.setPlaceholderText("587")
-        self.smtp_port_input.setMinimumHeight(36)
+        self.smtp_port_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_smtp_port"), self.smtp_port_input)
 
         self.sender_email_input = QLineEdit(email_notifier.sender_email)
         self.sender_email_input.setPlaceholderText("alerts@company.com")
-        self.sender_email_input.setMinimumHeight(36)
+        self.sender_email_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_sender_email"), self.sender_email_input)
 
         self.sender_password_input = QLineEdit(email_notifier.sender_password)
         self.sender_password_input.setEchoMode(QLineEdit.Password)
         self.sender_password_input.setPlaceholderText("••••••••")
-        self.sender_password_input.setMinimumHeight(36)
+        self.sender_password_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_sender_password"), self.sender_password_input)
 
         self.manager_email_input = QLineEdit(email_notifier.manager_email)
         self.manager_email_input.setPlaceholderText("manager@company.com")
-        self.manager_email_input.setMinimumHeight(36)
+        self.manager_email_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_manager_email"), self.manager_email_input)
 
         self.email_group.setLayout(email_layout)
@@ -235,20 +235,20 @@ class SettingsView(QWidget):
         self.backup_group = QGroupBox(t("backup_title"))
         backup_layout = QVBoxLayout()
         backup_layout.setSpacing(15)
-        backup_layout.setContentsMargins(20, 25, 20, 20)
+        backup_layout.setContentsMargins(15, 20, 15, 15)
 
         backup_btn_layout = QHBoxLayout()
         backup_btn_layout.setSpacing(15)
 
         self.backup_btn = QPushButton(t("backup_create"))
         self.backup_btn.setObjectName("primaryBtn")
-        self.backup_btn.setMinimumHeight(42)
+        self.backup_btn.setMinimumHeight(40)
         self.backup_btn.clicked.connect(self._create_backup)
         backup_btn_layout.addWidget(self.backup_btn)
 
         self.restore_btn = QPushButton(t("backup_restore"))
         self.restore_btn.setObjectName("secondaryBtn")
-        self.restore_btn.setMinimumHeight(42)
+        self.restore_btn.setMinimumHeight(40)
         self.restore_btn.clicked.connect(self._restore_backup)
         backup_btn_layout.addWidget(self.restore_btn)
 
@@ -259,13 +259,13 @@ class SettingsView(QWidget):
 
         self.export_json_btn = QPushButton(t("backup_export_json"))
         self.export_json_btn.setObjectName("secondaryBtn")
-        self.export_json_btn.setMinimumHeight(42)
+        self.export_json_btn.setMinimumHeight(40)
         self.export_json_btn.clicked.connect(self._export_json)
         json_btn_layout.addWidget(self.export_json_btn)
 
         self.import_json_btn = QPushButton(t("backup_import_json"))
         self.import_json_btn.setObjectName("secondaryBtn")
-        self.import_json_btn.setMinimumHeight(42)
+        self.import_json_btn.setMinimumHeight(40)
         self.import_json_btn.clicked.connect(self._import_json)
         json_btn_layout.addWidget(self.import_json_btn)
 
@@ -289,11 +289,11 @@ class SettingsView(QWidget):
         self.reset_group = QGroupBox(t("settings_reset_all"))
         reset_layout = QHBoxLayout()
         reset_layout.setSpacing(15)
-        reset_layout.setContentsMargins(20, 25, 20, 20)
+        reset_layout.setContentsMargins(15, 20, 15, 15)
 
         self.reset_btn = QPushButton(t("settings_reset_all"))
         self.reset_btn.setObjectName("dangerBtn")
-        self.reset_btn.setMinimumHeight(42)
+        self.reset_btn.setMinimumHeight(40)
         self.reset_btn.clicked.connect(self._reset_all_data)
         reset_layout.addWidget(self.reset_btn)
         reset_layout.addStretch()
@@ -308,10 +308,10 @@ class SettingsView(QWidget):
         self.demo_group = QGroupBox(t("settings_load_demo"))
         demo_layout = QHBoxLayout()
         demo_layout.setSpacing(15)
-        demo_layout.setContentsMargins(20, 25, 20, 20)
+        demo_layout.setContentsMargins(15, 20, 15, 15)
 
         self.demo_btn = QPushButton(t("settings_load_demo"))
-        self.demo_btn.setMinimumHeight(42)
+        self.demo_btn.setMinimumHeight(40)
         self.demo_btn.clicked.connect(self._load_demo_data)
         demo_layout.addWidget(self.demo_btn)
         demo_layout.addStretch()
@@ -330,7 +330,7 @@ class SettingsView(QWidget):
         self.save_btn = QPushButton(t("settings_save"))
         self.save_btn.setObjectName("primaryBtn")
         self.save_btn.setMinimumWidth(200)
-        self.save_btn.setMinimumHeight(48)
+        self.save_btn.setMinimumHeight(40)
         self.save_btn.clicked.connect(self.save_settings)
         save_layout.addWidget(self.save_btn)
 

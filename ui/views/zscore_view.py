@@ -24,8 +24,8 @@ class ZScoreView(QWidget):
 
     def setup_ui(self):
         layout = QVBoxLayout()
-        layout.setContentsMargins(25, 25, 25, 25)
-        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
         title = QLabel(t("zs_title"))
         title.setObjectName("headerTitle")
@@ -38,7 +38,7 @@ class ZScoreView(QWidget):
         fields_group = QGroupBox(t("zs_components"))
         fields_layout = QGridLayout()
         fields_layout.setSpacing(12)
-        fields_layout.setContentsMargins(20, 25, 20, 20)
+        fields_layout.setContentsMargins(15, 20, 15, 15)
 
         self.inputs = {}
         self._labels = {}
@@ -59,7 +59,7 @@ class ZScoreView(QWidget):
             self._labels[label_key] = lbl
             inp = QLineEdit()
             inp.setPlaceholderText("0")
-            inp.setMinimumHeight(36)
+            inp.setMinimumHeight(40)
             inp.setMinimumWidth(180)
             self.inputs[key] = inp
             fields_layout.addWidget(lbl, row, col * 2)
@@ -73,7 +73,7 @@ class ZScoreView(QWidget):
         self.calc_btn = QPushButton(t("zs_calculate"))
         self.calc_btn.setObjectName("primaryBtn")
         self.calc_btn.setMinimumWidth(200)
-        self.calc_btn.setMinimumHeight(44)
+        self.calc_btn.setMinimumHeight(40)
         self.calc_btn.clicked.connect(self.calculate)
         btn_layout.addWidget(self.calc_btn)
         layout.addLayout(btn_layout)
@@ -92,7 +92,7 @@ class ZScoreView(QWidget):
         self.interp_label = QLabel("")
         self.interp_label.setObjectName("headerSubtitle")
         self.interp_label.setAlignment(Qt.AlignCenter)
-        self.interp_label.setMinimumHeight(36)
+        self.interp_label.setMinimumHeight(40)
         layout.addWidget(self.interp_label)
 
         self.chart_frame = QFrame()

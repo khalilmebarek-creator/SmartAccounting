@@ -93,6 +93,8 @@ class CloudSyncView(BaseView):
         self.dest_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.dest_table.setSelectionMode(QTableWidget.SingleSelection)
         self.dest_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.dest_table.verticalHeader().setDefaultSectionSize(44)
+        self.dest_table.setMinimumHeight(44 * 3 + 30)
         dest_card.layout().addWidget(self.dest_table)
 
         add_row = QHBoxLayout()
@@ -135,6 +137,8 @@ class CloudSyncView(BaseView):
         self.backup_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.backup_table.setSelectionMode(QTableWidget.SingleSelection)
         self.backup_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.backup_table.verticalHeader().setDefaultSectionSize(44)
+        self.backup_table.setMinimumHeight(44 * 3 + 30)
         backup_card.layout().addWidget(self.backup_table)
 
         row2 = QHBoxLayout()
@@ -227,8 +231,6 @@ class CloudSyncView(BaseView):
         self.history_table.setMinimumHeight(200)
         hist_card.layout().addWidget(self.history_table)
         self._main_layout.addWidget(hist_card)
-
-        self._main_layout.addStretch()
 
     # ===== التحديث =====
 

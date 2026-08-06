@@ -631,13 +631,13 @@ class ChatView(QWidget):
 
         self.send_btn = QPushButton(t("chat_send"))
         self.send_btn.setObjectName("primaryBtn")
-        self.send_btn.setMinimumHeight(38)
+        self.send_btn.setMinimumHeight(40)
         self.send_btn.clicked.connect(self.send_message)
         btn_col.addWidget(self.send_btn)
 
         self.clear_btn = QPushButton(t("chat_clear"))
         self.clear_btn.setObjectName("dangerBtn")
-        self.clear_btn.setMinimumHeight(38)
+        self.clear_btn.setMinimumHeight(40)
         self.clear_btn.clicked.connect(self.clear_chat)
         btn_col.addWidget(self.clear_btn)
 

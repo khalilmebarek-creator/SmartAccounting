@@ -6,7 +6,7 @@ from ui.views._path import _  # noqa: F401
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QDoubleSpinBox, QTableWidget, QTableWidgetItem,
-    QGroupBox, QHeaderView, QMessageBox
+    QGroupBox, QHeaderView, QMessageBox, QSizePolicy
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor
@@ -49,6 +49,8 @@ class BudgetView(QWidget):
         self.input_table.setColumnCount(2)
         self.input_table.setHorizontalHeaderLabels([t("budget_category"), t("budget_amount")])
         self.input_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.input_table.verticalHeader().setDefaultSectionSize(44)
+        self.input_table.setMinimumHeight(44 * 6 + 30)
 
         categories = [
             t("budget_cat_revenue"), t("budget_cat_cogs"),
@@ -74,7 +76,7 @@ class BudgetView(QWidget):
 
         self.run_btn = QPushButton(t("budget_run"))
         self.run_btn.setObjectName("primaryBtn")
-        self.run_btn.setMinimumHeight(42)
+        self.run_btn.setMinimumHeight(40)
         self.run_btn.clicked.connect(self.run_budget)
         main_layout.addWidget(self.run_btn)
 
@@ -110,6 +112,9 @@ class BudgetView(QWidget):
             t("budget_actual"), t("budget_variance"), t("budget_status")
         ])
         self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.verticalHeader().setDefaultSectionSize(44)
+        self.results_table.setMinimumHeight(44 * 6 + 30)
+        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         main_layout.addWidget(self.results_table)
 
         self.figure = Figure(figsize=(8, 4), dpi=100)
