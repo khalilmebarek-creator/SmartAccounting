@@ -85,7 +85,7 @@ class TestUatFullApp(unittest.TestCase):
         _pump(50)
         self.assertTrue(self.win.sidebar.isVisible())
         # الشاشات الـ35 تُبنى كسلاzy ولا تسقط
-        for vid in range(1, 36):
+        for vid in range(1, 37):
             self.win._go_to_view(vid)
             _pump(50)
             view = self.win.content.currentWidget()
@@ -94,16 +94,16 @@ class TestUatFullApp(unittest.TestCase):
 
     def test_all_screens_have_real_widgets_after_login(self):
         self._login()
-        for vid in range(1, 36):
+        for vid in range(1, 37):
             self.win._go_to_view(vid)
             view = self.win._get_or_create_view(vid)
             self.assertIsInstance(view, QWidget, f"screen {vid} not a widget")
 
-    def test_sidebar_has_35_items(self):
+    def test_sidebar_has_37_items(self):
         self._login()
-        self.assertEqual(len(self.win._sidebar_row_to_view), 35)
-        self.assertEqual(len(self.win.sidebar_items), 35)
-        self.assertGreater(self.win.sidebar.count(), 35)
+        self.assertEqual(len(self.win._sidebar_row_to_view), 37)
+        self.assertEqual(len(self.win.sidebar_items), 37)
+        self.assertGreater(self.win.sidebar.count(), 37)
 
     # ---------- السيناريو 2: إدخال بيانات + حساب + انتشار الحالة ----------
 
@@ -145,7 +145,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            self.assertEqual(len(self.win._sidebar_row_to_view), 35)
+            self.assertEqual(len(self.win._sidebar_row_to_view), 37)
             self.assertEqual(Translator.get_language(), lang)
             # لا تعرض أسماء مفاتيح خام في السايدبار
             for i in range(self.win.sidebar.count()):
@@ -159,7 +159,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            for vid in range(1, 36):
+            for vid in range(1, 37):
                 self.win._go_to_view(vid)
                 view = self.win._get_or_create_view(vid)
                 self.assertIsNotNone(view, f"lang={lang} screen {vid} broken")

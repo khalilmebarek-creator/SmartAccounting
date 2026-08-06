@@ -292,6 +292,8 @@ class MainWindow(QMainWindow):
             33: ("inventory", _lazy_view_factory("ui.views.inventory_view", "InventoryView")),
             34: ("payroll", _lazy_view_factory("ui.views.payroll_view", "PayrollView")),
             35: ("budgeting", _lazy_view_factory("ui.views.budgeting_view", "BudgetingView")),
+            36: ("procurement", _lazy_view_factory("ui.views.procurement_view", "ProcurementView")),
+            37: ("einvoicing", _lazy_view_factory("ui.views.einvoicing_view", "EInvoicingView")),
         }
 
         self.sidebar = QListWidget()
@@ -450,6 +452,8 @@ class MainWindow(QMainWindow):
             "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
             "F10", "F11", "F12",
             "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
+            "Ctrl+Shift+E",
+            "Ctrl+Shift+F",
         ]
         labels = getattr(self, "sidebar_items", [])
         for action, key in zip(labels, view_keys):
@@ -499,6 +503,8 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+B"), self, lambda: self._go_to_view(33))
         QShortcut(QKeySequence("Ctrl+Shift+C"), self, lambda: self._go_to_view(34))
         QShortcut(QKeySequence("Ctrl+Shift+D"), self, lambda: self._go_to_view(35))
+        QShortcut(QKeySequence("Ctrl+Shift+E"), self, lambda: self._go_to_view(36))
+        QShortcut(QKeySequence("Ctrl+Shift+F"), self, lambda: self._go_to_view(37))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -542,6 +548,8 @@ class MainWindow(QMainWindow):
             "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9",
             "F10", "F11", "F12",
             "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
+            "Ctrl+Shift+E",
+            "Ctrl+Shift+F",
         ]
         view_ids = getattr(self, "_sidebar_view_ids", list(range(1, 36)))
         for i, label in enumerate(getattr(self, "sidebar_items", [])):
@@ -617,7 +625,7 @@ class MainWindow(QMainWindow):
     # مجموعات الشريط الجانبي: (مفتاح i18n للمجموعة، [معرّفات الشاشات 1-35])
     _SIDEBAR_GROUPS = (
         ("nav_group_main", (1, 2, 23)),
-        ("nav_group_accounting", (30, 31, 32, 33, 34, 35)),
+        ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
         ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22)),
         ("nav_group_tax", (9, 19)),
         ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27)),

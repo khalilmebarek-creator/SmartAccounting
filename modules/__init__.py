@@ -31,6 +31,17 @@ _LAZY_IMPORTS = {
     "compute_salary": ("modules.payroll", "compute_salary"),
     "BudgetManager": ("modules.budgeting", "BudgetManager"),
     "budget_manager": ("modules.budgeting", "budget_manager"),
+    "ProcurementManager": ("modules.procurement", "ProcurementManager"),
+    "procurement_manager": ("modules.procurement", "procurement_manager"),
+    "EInvoiceManager": ("modules.einvoicing", "EInvoiceManager"),
+    "einvoice_manager": ("modules.einvoicing", "einvoice_manager"),
+    "IFRSReporter": ("modules.ifrs_reporting", "IFRSReporter"),
+    "BankSimulator": ("modules.bank_api", "BankSimulator"),
+    "BankReconciler": ("modules.bank_api", "BankReconciler"),
+    "MLForecaster": ("modules.ml_insights", "MLForecaster"),
+    "AnomalyDetector": ("modules.ml_insights", "AnomalyDetector"),
+    "RiskScorer": ("modules.ml_insights", "RiskScorer"),
+    "AIPlatform": ("modules.ai_platform", "AIPlatform"),
 }
 
 __all__ = [
@@ -63,6 +74,17 @@ __all__ = [
     'compute_salary',
     'BudgetManager',
     'budget_manager',
+    'ProcurementManager',
+    'procurement_manager',
+    'EInvoiceManager',
+    'einvoice_manager',
+    'IFRSReporter',
+    'BankSimulator',
+    'BankReconciler',
+    'MLForecaster',
+    'AnomalyDetector',
+    'RiskScorer',
+    'AIPlatform',
 ]
 
 
