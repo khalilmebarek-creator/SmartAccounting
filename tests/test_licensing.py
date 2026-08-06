@@ -304,16 +304,30 @@ class TestEmbeddedKeyAndSamples:
         assert key.key_size == 2048
 
     def test_sample_keys_verify_with_embedded_key(self):
-        path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        import os as _os
+        path = _os.path.join(
+            _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
             "commercial", "keys", "sample_keys.txt",
         )
-        if not os.path.exists(path):
-            import subprocess, sys
-            subprocess.run(
-                [sys.executable, "-m", "commercial.licensing.keygen", "--sample"],
-                check=True, timeout=30,
+        if not _os.path.exists(path):
+            from commercial.licensing.keygen import (
+                _load_or_create_private_key, issue_key, SAMPLE_HARDWARE_ID,
             )
+            from commercial.licensing.tier import Tier
+            private_pem = _load_or_create_private_key()
+            lines = []
+            for index in range(1, 6):
+                key = issue_key(
+                    SAMPLE_HARDWARE_ID,
+                    Tier.PRO if index % 2 else Tier.ENTERPRISE,
+                    days=90 * index,
+                    licensee=f"Demo Customer {index}",
+                    private_pem=private_pem,
+                )
+                lines.append(f"  [{index}] {key}")
+            _os.makedirs(_os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("\n".join(lines) + "\n")
         assert os.path.exists(path), "sample_keys.txt must exist (deliverable)"
         lines = open(path, encoding="utf-8").read().splitlines()
         keys = [line.split("] ", 1)[1].strip() for line in lines if "[1]" in line or "[2]" in line or "[3]" in line or "[4]" in line or "[5]" in line]
