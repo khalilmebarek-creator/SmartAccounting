@@ -2144,6 +2144,8 @@ LANGUAGES = {
         "license_success": "تم تفعيل الترخيص بنجاح.",
         "license_restart_note": "أعد تشغيل التطبيق ليُطبَّق الترخيص.",
         "license_file_corrupt": "ملف الترخيص تالف أو معدّل.",
+        "license_expiring_title": "الترخيص سينتهي قريباً",
+        "license_expiring_msg": "سينتهي ترخيصك خلال {0} أيام. يرجى تجديده من قائمة مساعدة ← الترخيص.",
         # Tier enforcement (Module 3)
         "ent_denied_title": "هذه الميزة تتطلب نسخة مدفوعة",
         "ent_denied_msg": "ميزة «{feature}» متاحة في نسخة {tier}.\nفعّل ترخيصك من قائمة مساعدة ← الترخيص.",
@@ -4292,6 +4294,8 @@ LANGUAGES = {
         "license_success": "License activated successfully.",
         "license_restart_note": "Restart the app for the license to apply.",
         "license_file_corrupt": "The license file is corrupted or modified.",
+        "license_expiring_title": "License Expiring Soon",
+        "license_expiring_msg": "Your license expires in {0} days. Please renew from Help → License.",
         # Tier enforcement (Module 3)
         "ent_denied_title": "This feature requires a paid plan",
         "ent_denied_msg": "The “{feature}” feature is available in {tier}.\nActivate your license from Help → License.",
@@ -6440,6 +6444,8 @@ LANGUAGES = {
         "license_success": "Licence activée avec succès.",
         "license_restart_note": "Redémarrez l'application pour appliquer la licence.",
         "license_file_corrupt": "Le fichier de licence est corrompu ou modifié.",
+        "license_expiring_title": "Licence expirant bientôt",
+        "license_expiring_msg": "Votre licence expire dans {0} jours. Veuillez la renouveler depuis Aide → Licence.",
         # Tier enforcement (Module 3)
         "ent_denied_title": "Cette fonctionnalité nécessite un plan payant",
         "ent_denied_msg": "La fonctionnalité « {feature} » est disponible dans {tier}.\nActivez votre licence depuis Aide → Licence.",

@@ -78,18 +78,30 @@ def main():
 
 
 def _nudge_license_check(window):
-    """Show the license dialog at startup only when the license is past grace.
+    """Show license dialog at expiration, or warning when expiring soon.
 
     Non-blocking and fully guarded: without a valid pub key or licensing
     package the app must start exactly as before (no regression).
     """
     try:
         from PyQt5.QtCore import QTimer
+        from PyQt5.QtWidgets import QMessageBox
         from commercial.licensing.activation import LicenseStore
+        from commercial.licensing.expiry import days_remaining
         store = LicenseStore()
         if store.is_read_only():
             from commercial.licensing.license_dialog import LicenseDialog
             QTimer.singleShot(800, lambda: LicenseDialog(window, store=store).exec_())
+            return
+        state = store.load()
+        if state is None or state.expiry is None:
+            return
+        remaining = days_remaining(state.expiry)
+        if 1 <= remaining <= 7:
+            from ui.resources.i18n import t
+            QTimer.singleShot(1000, lambda: QMessageBox.information(
+                window, t("license_expiring_title"),
+                t("license_expiring_msg").format(remaining)))
     except Exception:
         pass
 
