@@ -308,6 +308,12 @@ class TestEmbeddedKeyAndSamples:
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             "commercial", "keys", "sample_keys.txt",
         )
+        if not os.path.exists(path):
+            import subprocess, sys
+            subprocess.run(
+                [sys.executable, "-m", "commercial.licensing.keygen", "--sample"],
+                check=True, timeout=30,
+            )
         assert os.path.exists(path), "sample_keys.txt must exist (deliverable)"
         lines = open(path, encoding="utf-8").read().splitlines()
         keys = [line.split("] ", 1)[1].strip() for line in lines if "[1]" in line or "[2]" in line or "[3]" in line or "[4]" in line or "[5]" in line]

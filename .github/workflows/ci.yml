@@ -31,9 +31,6 @@ jobs:
           pip install -r requirements-dev.txt
           pip install pytest-qt
 
-      - name: Generate sample license keys (tested later)
-        run: python -m commercial.licensing.keygen --sample
-
       - name: Run full test suite
         run: |
           xvfb-run -a python -m pytest tests -q
