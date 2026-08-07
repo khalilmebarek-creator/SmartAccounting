@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton
 from PyQt5.QtCore import QEventLoop, QTimer
 
 app = QApplication.instance()
@@ -83,8 +83,8 @@ class TestUatFullApp(unittest.TestCase):
         self.assertIsNotNone(um.user_manager.get_current_user())
         self.win.show()
         _pump(50)
-        self.assertTrue(self.win.sidebar.isVisible())
-        # الشاشات الـ35 تُبنى كسلاzy ولا تسقط
+        self.assertTrue(self.win.ribbon_widget.isVisible())
+        # الشاشات الـ37 تُبنى كسلاzy ولا تسقط
         for vid in range(1, 37):
             self.win._go_to_view(vid)
             _pump(50)
@@ -99,11 +99,11 @@ class TestUatFullApp(unittest.TestCase):
             view = self.win._get_or_create_view(vid)
             self.assertIsInstance(view, QWidget, f"screen {vid} not a widget")
 
-    def test_sidebar_has_37_items(self):
+    def test_ribbon_has_37_views(self):
         self._login()
-        self.assertEqual(len(self.win._sidebar_row_to_view), 37)
-        self.assertEqual(len(self.win.sidebar_items), 37)
-        self.assertGreater(self.win.sidebar.count(), 37)
+        self.assertEqual(len(self.win.ribbon_view_to_tab), 37)
+        self.assertGreater(self.win.ribbon_panels.count(), 0)
+        self.assertGreater(self.win.ribbon_tabs.count(), 0)
 
     # ---------- السيناريو 2: إدخال بيانات + حساب + انتشار الحالة ----------
 
@@ -145,13 +145,17 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            self.assertEqual(len(self.win._sidebar_row_to_view), 37)
+            self.assertEqual(len(self.win.ribbon_view_to_tab), 37)
             self.assertEqual(Translator.get_language(), lang)
-            # لا تعرض أسماء مفاتيح خام في السايدبار
-            for i in range(self.win.sidebar.count()):
-                item_text = self.win.sidebar.item(i).text().strip()
-                self.assertFalse(item_text.startswith("sidebar_"), item_text)
-                self.assertFalse(item_text.startswith("nav_group_"), item_text)
+            # لا تعرض أسماء مفاتيح خام في الأزرار
+            for i in range(self.win.ribbon_panels.count()):
+                panel = self.win.ribbon_panels.widget(i)
+                for j in range(panel.layout().count()):
+                    w = panel.layout().itemAt(j).widget()
+                    if isinstance(w, QPushButton):
+                        t = w.text()
+                        self.assertFalse(t.startswith("sidebar_"), t)
+                        self.assertFalse(t.startswith("nav_group_"), t)
 
     def test_language_switch_preserves_all_views(self):
         self._login()
@@ -173,13 +177,13 @@ class TestUatFullApp(unittest.TestCase):
         self.win._do_logout()
         self.assertIsNone(um.user_manager.get_current_user())
         self.assertEqual(self.win.content.currentIndex(), 0)
-        self.assertFalse(self.win.sidebar.isVisible())
+        self.assertFalse(self.win.ribbon_widget.isVisible())
 
     # ---------- السيناريو 5: الوضع الافتراضي يبدأ بشاشة تسجيل الدخول ----------
 
     def test_app_starts_at_login_screen(self):
         self.assertEqual(self.win.content.currentIndex(), 0)
-        self.assertFalse(self.win.sidebar.isVisible())
+        self.assertFalse(self.win.ribbon_widget.isVisible())
 
 
 if __name__ == "__main__":

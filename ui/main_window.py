@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QStackedWidget, QLabel, QStatusBar,
     QMessageBox, QAction, QFileDialog, QShortcut,
     QDialog, QDialogButtonBox, QFormLayout, QPushButton,
-    QTableWidget,
+    QTableWidget, QTabBar,
     QApplication,
 )
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
@@ -245,12 +245,10 @@ class MainWindow(QMainWindow):
             Qt.RightToLeft if state.language == "ar" else Qt.LeftToRight
         )
 
-        self.create_menu_bar()
-
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        main_layout = QHBoxLayout(central_widget)
+        main_layout = QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
@@ -296,58 +294,67 @@ class MainWindow(QMainWindow):
             37: ("einvoicing", _lazy_view_factory("ui.views.einvoicing_view", "EInvoicingView")),
         }
 
-        self.sidebar = QListWidget()
-        self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(250)
-        self.sidebar.setIconSize(QSize(20, 20))
-        self._sidebar_row_to_view = {}
-        self.sidebar_items = []
-        self._populate_sidebar()
-        self.sidebar.currentRowChanged.connect(self.change_view)
+        self.create_menu_bar()
 
-        main_layout.addWidget(self.sidebar)
-
-        right_side = QWidget()
-        right_layout = QVBoxLayout()
-        right_layout.setContentsMargins(0, 0, 0, 0)
-        right_layout.setSpacing(0)
-
+        # --- Header Bar ---
         self.header_bar = QWidget()
         self.header_bar.setObjectName("headerBar")
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(16, 0, 16, 0)
+        self.ribbon_toggle = QPushButton("▲")
+        self.ribbon_toggle.setObjectName("ribbonToggleBtn")
+        self.ribbon_toggle.setFixedSize(28, 28)
+        self.ribbon_toggle.setToolTip("إظهار/إخفاء الشريط")
+        self.ribbon_toggle.clicked.connect(self._toggle_ribbon)
         self.header_title = QLabel(t("window_title"))
         self.header_title.setObjectName("headerTitle")
         self.header_section = QLabel("")
         self.header_section.setObjectName("headerSub")
+        header_layout.addWidget(self.ribbon_toggle)
         header_layout.addWidget(self.header_title)
         header_layout.addStretch()
         header_layout.addWidget(self.header_section)
         self.header_bar.setLayout(header_layout)
-        right_layout.addWidget(self.header_bar)
+        main_layout.addWidget(self.header_bar)
 
+        # --- Ribbon ---
+        self.ribbon_widget = QWidget()
+        self.ribbon_widget.setObjectName("ribbonWidget")
+        ribbon_layout = QVBoxLayout()
+        ribbon_layout.setContentsMargins(0, 0, 0, 0)
+        ribbon_layout.setSpacing(0)
+
+        self.ribbon_tabs = QTabBar()
+        self.ribbon_tabs.setObjectName("ribbonTabs")
+        self.ribbon_tabs.setDrawBase(True)
+        self.ribbon_tabs.setExpanding(False)
+
+        self.ribbon_panels = QStackedWidget()
+        self.ribbon_panels.setObjectName("ribbonPanels")
+
+        ribbon_layout.addWidget(self.ribbon_tabs)
+        ribbon_layout.addWidget(self.ribbon_panels)
+        self.ribbon_widget.setLayout(ribbon_layout)
+        self._build_ribbon()
+        self.ribbon_tabs.currentChanged.connect(self.ribbon_panels.setCurrentIndex)
+        self.ribbon_tabs.currentChanged.connect(self._on_ribbon_tab_changed)
+        main_layout.addWidget(self.ribbon_widget)
+
+        # --- Content ---
         self.content = QStackedWidget()
         self.content.setObjectName("contentStack")
 
-        content_wrapper = QVBoxLayout()
-        content_wrapper.setContentsMargins(0, 0, 0, 0)
-        content_wrapper.setSpacing(0)
-
         self.alert_banner = AlertBanner()
         self.alert_banner.view_clicked.connect(lambda: self._go_to_view(12))
-        content_wrapper.addWidget(self.alert_banner)
-        content_wrapper.addWidget(self.content, 1)
-
-        right_layout.addLayout(content_wrapper, 1)
-        right_side.setLayout(right_layout)
-        main_layout.addWidget(right_side, 1)
+        main_layout.addWidget(self.alert_banner)
+        main_layout.addWidget(self.content, 1)
 
         self.login_view = LoginView()
         self.login_view.login_success.connect(self._on_login_success)
 
         self.content.addWidget(self.login_view)
 
-        for i in range(1, 36):
+        for _ in range(1, 38):
             placeholder = QWidget()
             self.content.addWidget(placeholder)
 
@@ -363,13 +370,6 @@ class MainWindow(QMainWindow):
         self._setup_auto_save()
         self._setup_theme_toggle()
 
-        self.sidebar.blockSignals(True)
-        for row, vid in self._sidebar_row_to_view.items():
-            if vid == 1:
-                self.sidebar.setCurrentRow(row)
-                break
-        self.sidebar.blockSignals(False)
-        self.sidebar.hide()
         self.alert_banner.hide()
         self.content.setCurrentIndex(0)
 
@@ -403,7 +403,7 @@ class MainWindow(QMainWindow):
     def _on_login_success(self):
         """After successful login, show main content."""
         user = user_manager.get_current_user()
-        self.sidebar.show()
+        self.ribbon_widget.show()
         self.alert_banner.show()
         self.content.setCurrentIndex(1)
         self._get_or_create_view(1)
@@ -433,7 +433,7 @@ class MainWindow(QMainWindow):
         username = user["username"] if user else "unknown"
         user_manager.logout()
         clear_saved_password()
-        self.sidebar.hide()
+        self.ribbon_widget.hide()
         self.alert_banner.hide()
         self.content.setCurrentIndex(0)
         self.login_view.login_error.setText("")
@@ -476,7 +476,7 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
         ]
-        labels = getattr(self, "sidebar_items", [])
+        labels = [t(f"sidebar_{self._view_factories[vid][0]}") for vid in sorted(self._view_factories)]
         for action, key in zip(labels, view_keys):
             layout.addRow(action, QLabel(f"<b>{key}</b>"))
 
@@ -572,10 +572,10 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
         ]
-        view_ids = getattr(self, "_sidebar_view_ids", list(range(1, 36)))
-        for i, label in enumerate(getattr(self, "sidebar_items", [])):
+        view_ids = sorted(self._view_factories.keys())
+        for i, vid in enumerate(view_ids):
+            label = t(f"sidebar_{self._view_factories[vid][0]}")
             key = view_keys[i] if i < len(view_keys) else None
-            vid = view_ids[i] if i < len(view_ids) else (i + 1)
             view_menu.addAction(self._make_action(
                 label, key,
                 (lambda v: lambda: self._go_to_view(v))(vid)
@@ -644,7 +644,7 @@ class MainWindow(QMainWindow):
         return view
 
     # مجموعات الشريط الجانبي: (مفتاح i18n للمجموعة، [معرّفات الشاشات 1-35])
-    _SIDEBAR_GROUPS = (
+    _RIBBON_TABS = (
         ("nav_group_main", (1, 2, 23)),
         ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
         ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22)),
@@ -653,50 +653,58 @@ class MainWindow(QMainWindow):
         ("nav_group_system", (7, 12, 28, 29)),
     )
 
-    def _populate_sidebar(self):
-        """بناء الشريط الجانبي مجمّعاً — العناوين غير قابلة للنقر"""
-        self.sidebar.blockSignals(True)
-        self.sidebar.clear()
-        self._sidebar_row_to_view = {}
-        self.sidebar_items = []
-        self._sidebar_view_ids = []
-        header_color = QColor(ThemeColors.get("info"))
-        for group_key, view_ids in self._SIDEBAR_GROUPS:
-            header = QListWidgetItem(t(group_key))
-            header.setFlags(Qt.NoItemFlags)
-            font = QFont()
-            font.setBold(True)
-            font.setPointSize(9)
-            header.setFont(font)
-            header.setForeground(header_color)
-            header.setData(Qt.UserRole, None)
-            self.sidebar.addItem(header)
+    def _build_ribbon(self):
+        """بناء الشريط الأفقي — تبويبات + أزرار أيقونية"""
+        self.ribbon_tabs.blockSignals(True)
+        # مسح التبويبات القديمة
+        while self.ribbon_tabs.count():
+            self.ribbon_tabs.removeTab(0)
+        while self.ribbon_panels.count():
+            w = self.ribbon_panels.widget(0)
+            self.ribbon_panels.removeWidget(w)
+            w.deleteLater()
+        self.ribbon_view_to_tab = {}
+        for tab_idx, (group_key, view_ids) in enumerate(self._RIBBON_TABS):
+            self.ribbon_tabs.addTab(t(group_key))
+            panel = QWidget()
+            panel_layout = QHBoxLayout()
+            panel_layout.setContentsMargins(8, 4, 8, 4)
+            panel_layout.setSpacing(4)
             for vid in view_ids:
                 name = self._view_factories[vid][0]
                 label = t(f"sidebar_{name}")
-                item = QListWidgetItem(f"  {label}")
-                item.setData(Qt.UserRole, vid)
-                self.sidebar.addItem(item)
-                row = self.sidebar.count() - 1
-                self._sidebar_row_to_view[row] = vid
-                self.sidebar_items.append(label)
-                self._sidebar_view_ids.append(vid)
-        self.sidebar.blockSignals(False)
+                icon = label.split(" ", 1)[0] if " " in label else ""
+                text = label.split(" ", 1)[1] if " " in label else label
+                btn = QPushButton(f"{icon}\n{text}")
+                btn.setObjectName("ribbonBtn")
+                btn.setMinimumSize(72, 58)
+                btn.setMaximumSize(120, 64)
+                btn.setFlat(True)
+                btn.clicked.connect(lambda checked, v=vid: self._go_to_view(v))
+                panel_layout.addWidget(btn)
+                self.ribbon_view_to_tab[vid] = tab_idx
+            panel_layout.addStretch()
+            panel.setLayout(panel_layout)
+            self.ribbon_panels.addWidget(panel)
+        self.ribbon_tabs.blockSignals(False)
+
+    def _on_ribbon_tab_changed(self, index):
+        """عند تغيير التبويب — فعّل أول شاشة إن لم تكن هناك شاشة نشطة"""
+        for (group_key, view_ids) in self._RIBBON_TABS:
+            if self._RIBBON_TABS[index][1] == self._RIBBON_TABS[index][1]:
+                break
+
+    def _toggle_ribbon(self):
+        """إظهار/إخفاء الشريط"""
+        visible = self.ribbon_widget.isVisible()
+        self.ribbon_widget.setVisible(not visible)
+        self.ribbon_toggle.setText("▼" if visible else "▲")
 
     def _go_to_view(self, view_id):
-        """الانتقال لشاشة بمعرّفها (1-35) بغض النظر عن صف الشريط"""
-        for row, vid in self._sidebar_row_to_view.items():
-            if vid == view_id:
-                self.sidebar.setCurrentRow(row)
-                return
-
-    def change_view(self, index):
-        """تغيير الواجهة المعروضة — index = صف الشريط (يتجاوز العناوين)"""
-        if not hasattr(self, 'content') or self.content is None:
-            return
-        view_id = self._sidebar_row_to_view.get(index)
-        if view_id is None:
-            return
+        """الانتقال لشاشة بمعرّفها وتفعيل التبويب المناسب"""
+        tab_idx = self.ribbon_view_to_tab.get(view_id)
+        if tab_idx is not None:
+            self.ribbon_tabs.setCurrentIndex(tab_idx)
         self._get_or_create_view(view_id)
         self.content.setCurrentIndex(view_id)
         current = self.content.currentWidget()
@@ -800,7 +808,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(t("window_title"))
 
         current_view = self.content.currentIndex()
-        self._populate_sidebar()
+        self._build_ribbon()
         if current_view > 0:
             self._go_to_view(current_view)
 
@@ -840,12 +848,6 @@ class MainWindow(QMainWindow):
         if os.path.exists(style_path):
             with open(style_path, 'r', encoding='utf-8') as f:
                 self.setStyleSheet(f.read())
-        if hasattr(self, "sidebar") and self.sidebar is not None:
-            header_color = QColor(ThemeColors.get("info"))
-            for i in range(self.sidebar.count()):
-                item = self.sidebar.item(i)
-                if item is not None and item.data(Qt.UserRole) is None:
-                    item.setForeground(header_color)
 
     def apply_style(self):
         """تطبيق ملف الستايل"""
