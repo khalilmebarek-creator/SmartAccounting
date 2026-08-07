@@ -320,14 +320,15 @@ class MainWindow(QMainWindow):
         # --- Ribbon ---
         self.ribbon_widget = QWidget()
         self.ribbon_widget.setObjectName("ribbonWidget")
-        ribbon_layout = QVBoxLayout()
+        ribbon_layout = QHBoxLayout()
         ribbon_layout.setContentsMargins(0, 0, 0, 0)
         ribbon_layout.setSpacing(0)
 
         self.ribbon_tabs = QTabBar()
         self.ribbon_tabs.setObjectName("ribbonTabs")
         self.ribbon_tabs.setDrawBase(True)
-        self.ribbon_tabs.setExpanding(False)
+        self.ribbon_tabs.setExpanding(True)
+        self.ribbon_tabs.setUsesScrollButtons(False)
 
         self.ribbon_panels = QStackedWidget()
         self.ribbon_panels.setObjectName("ribbonPanels")
@@ -337,7 +338,6 @@ class MainWindow(QMainWindow):
         self.ribbon_widget.setLayout(ribbon_layout)
         self._build_ribbon()
         self.ribbon_tabs.currentChanged.connect(self.ribbon_panels.setCurrentIndex)
-        self.ribbon_tabs.currentChanged.connect(self._on_ribbon_tab_changed)
         main_layout.addWidget(self.ribbon_widget)
 
         # --- Content ---
@@ -677,8 +677,8 @@ class MainWindow(QMainWindow):
                 text = label.split(" ", 1)[1] if " " in label else label
                 btn = QPushButton(f"{icon}\n{text}")
                 btn.setObjectName("ribbonBtn")
-                btn.setMinimumSize(72, 58)
-                btn.setMaximumSize(120, 64)
+                btn.setMinimumSize(56, 40)
+                btn.setMaximumSize(96, 48)
                 btn.setFlat(True)
                 btn.clicked.connect(lambda checked, v=vid: self._go_to_view(v))
                 panel_layout.addWidget(btn)
@@ -687,12 +687,6 @@ class MainWindow(QMainWindow):
             panel.setLayout(panel_layout)
             self.ribbon_panels.addWidget(panel)
         self.ribbon_tabs.blockSignals(False)
-
-    def _on_ribbon_tab_changed(self, index):
-        """عند تغيير التبويب — فعّل أول شاشة إن لم تكن هناك شاشة نشطة"""
-        for (group_key, view_ids) in self._RIBBON_TABS:
-            if self._RIBBON_TABS[index][1] == self._RIBBON_TABS[index][1]:
-                break
 
     def _toggle_ribbon(self):
         """إظهار/إخفاء الشريط"""

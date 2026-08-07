@@ -57,6 +57,55 @@ QWidget {
     border-left: 3px solid #64B5F6;
 }
 
+/* ----- Ribbon (شريط واحد: تبويبات + أزرار) ----- */
+#ribbonWidget {
+    background-color: #181818;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    min-height: 48px;
+    max-height: 48px;
+}
+#ribbonTabs {
+    background: transparent;
+    border: none;
+    padding: 0 8px;
+    font-size: 12px;
+    outline: none;
+}
+#ribbonTabs::tab {
+    background: transparent;
+    color: #B0B0B0;
+    padding: 5px 14px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin: 2px 0;
+    min-height: 34px;
+}
+#ribbonTabs::tab:hover {
+    background-color: rgba(255,255,255,0.06);
+    color: #E0E0E0;
+}
+#ribbonTabs::tab:selected {
+    color: #90CAF9;
+    font-weight: bold;
+    border-bottom: 3px solid #64B5F6;
+}
+#ribbonBtn {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #B0B0B0;
+    font-size: 11px;
+    padding: 2px 8px;
+}
+#ribbonBtn:hover {
+    background-color: rgba(255,255,255,0.06);
+    color: #E0E0E0;
+}
+#ribbonBtn:pressed {
+    background-color: rgba(144,202,249,0.15);
+    color: #90CAF9;
+}
+
 /* ----- Content Area ----- */
 #contentStack {
     background-color: #121212;

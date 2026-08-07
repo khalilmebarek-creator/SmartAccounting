@@ -326,7 +326,16 @@ class ThemeColors:
     @classmethod
     def get(cls, key):
         palette = cls._PALETTES.get(state.theme, cls._LIGHT)
-        return palette.get(key, "#888888")
+        value = palette.get(key, "#888888")
+        # matplotlib لا يفهم صيغة CSS rgba(..) — حوّلها إلى hex
+        if isinstance(value, str) and value.startswith("rgba("):
+            parts = value[value.index("(") + 1: value.index(")")].split(",")
+            try:
+                r, g, b = (int(p.strip()) for p in parts[:3])
+                return "#%02X%02X%02X" % (r, g, b)
+            except (ValueError, IndexError):
+                return "#888888"
+        return value
 
     @classmethod
     def chart_palette(cls):

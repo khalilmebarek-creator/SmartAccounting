@@ -58,6 +58,55 @@ QWidget {
     border-left: 3px solid #7C4DFF;
 }
 
+/* ----- Ribbon (شريط واحد: تبويبات + أزرار) ----- */
+#ribbonWidget {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(15,15,35,0.95), stop:1 rgba(20,20,45,0.98));
+    border-bottom: 1px solid rgba(124,77,255,0.15);
+    min-height: 48px;
+    max-height: 48px;
+}
+#ribbonTabs {
+    background: transparent;
+    border: none;
+    padding: 0 8px;
+    font-size: 12px;
+    outline: none;
+}
+#ribbonTabs::tab {
+    background: transparent;
+    color: rgba(200,200,230,0.7);
+    padding: 5px 14px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    margin: 2px 0;
+    min-height: 34px;
+}
+#ribbonTabs::tab:hover {
+    background-color: rgba(124,77,255,0.1);
+    color: rgba(220,220,255,0.95);
+}
+#ribbonTabs::tab:selected {
+    color: #FFFFFF;
+    font-weight: bold;
+    border-bottom: 3px solid #7C4DFF;
+}
+#ribbonBtn {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: rgba(200,200,230,0.7);
+    font-size: 11px;
+    padding: 2px 8px;
+}
+#ribbonBtn:hover {
+    background-color: rgba(124,77,255,0.1);
+    color: rgba(220,220,255,0.95);
+}
+#ribbonBtn:pressed {
+    background-color: rgba(124,77,255,0.25);
+    color: #FFFFFF;
+}
+
 /* ----- Content Area ----- */
 #contentStack {
     background-color: #0A0A1A;
