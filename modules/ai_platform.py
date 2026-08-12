@@ -1,243 +1,191 @@
 # منصة الذكاء الاصطناعي المتكاملة
-# ================================
-# محرك توصيات موحّد + تحليل متعدد الأبعاد + تقارير ذكية + تنبيهات استباقية
+# =================================
+# تجمع كل محركات التحليل الذكي في طبقة تنسيق موحّدة
+# Health Score (0-100) • Risk Radar • Executive Summary • Recommendations
 
-from datetime import date, datetime
-from utils.app_logger import get_logger
-
-log = get_logger("ai_platform")
-
-
-class AIPlatform:
-    """المنصة الموحدة للذكاء الاصطناعي المالي."""
-
-    def __init__(self):
-        self._context = {}
-        self._alerts = []
-        self._insights = []
-
-    def analyze(self, financial_data, ratios=None, history=None):
-        """تحليل شامل متعدد الأبعاد. Returns: dict with all insights."""
-        ratios = ratios or {}
-        history = history or []
-        self._insights = []
-
-        self._analyze_profitability(financial_data, ratios)
-        self._analyze_liquidity(financial_data, ratios)
-        self._analyze_leverage(financial_data, ratios)
-        self._analyze_efficiency(financial_data, ratios)
-        if history:
-            self._analyze_trends(history)
-        self._analyze_tax_burden(financial_data, ratios)
-
-        return {
-            "timestamp": datetime.now().isoformat(timespec="seconds"),
-            "summary": self._summary(),
-            "insights": self._insights,
-            "alerts": self._alerts,
-            "recommendations": self._recommendations(),
-            "health_score": self._health_score(),
-        }
-
-    def _analyze_profitability(self, fd, ratios):
-        revenue = float(fd.get("revenue") or 0)
-        net = float(fd.get("net_income") or 0)
-        roe = float(ratios.get("roe") or 0)
-        npm = float(ratios.get("net_profit_margin") or 0)
-
-        if revenue > 0 and net > 0:
-            if npm > 15:
-                self._insights.append({
-                    "area": "profitability",
-                    "level": "excellent",
-                    "message": "ربحية ممتازة — هامش صافي أعلى من 15%",
-                })
-            elif npm > 5:
-                self._insights.append({
-                    "area": "profitability",
-                    "level": "good",
-                    "message": "ربحية جيدة — هامش صافي بين 5-15%",
-                })
-            else:
-                self._insights.append({
-                    "area": "profitability",
-                    "level": "warning",
-                    "message": "هامش ربح منخفض — أقل من 5%. راجع هيكل التكاليف.",
-                })
-                self._alerts.append({
-                    "area": "profitability",
-                    "severity": "warning",
-                    "message": "انخفاض هامش الربح",
-                })
-        if net < 0:
-            self._alerts.append({
-                "area": "profitability",
-                "severity": "danger",
-                "message": "خسارة صافية! تدخل فوري مطلوب.",
-            })
-
-    def _analyze_liquidity(self, fd, ratios):
-        cr = float(ratios.get("current_ratio") or 0)
-        qr = float(ratios.get("quick_ratio") or 0)
-        cash = float(fd.get("cash") or 0)
-        cl = float(fd.get("current_liabilities") or 0)
-
-        if cr > 0:
-            if cr > 2:
-                self._insights.append({
-                    "area": "liquidity",
-                    "level": "good",
-                    "message": f"سيولة قوية — نسبة التداول {cr:.1f}",
-                })
-            elif cr > 1:
-                self._insights.append({
-                    "area": "liquidity",
-                    "level": "ok",
-                    "message": f"سيولة مقبولة — نسبة التداول {cr:.1f}",
-                })
-            elif cr > 0.5:
-                self._alerts.append({
-                    "area": "liquidity",
-                    "severity": "warning",
-                    "message": f"سيولة ضعيفة — نسبة التداول {cr:.1f}",
-                })
-            else:
-                self._alerts.append({
-                    "area": "liquidity",
-                    "severity": "danger",
-                    "message": f"خطر سيولة — نسبة التداول {cr:.1f}",
-                })
-        if cash > 0 and cl > 0 and cash < cl * 0.3:
-            self._alerts.append({
-                "area": "liquidity",
-                "severity": "warning",
-                "message": "نقدية منخفضة مقارنة بالالتزامات الجارية",
-            })
-
-    def _analyze_leverage(self, fd, ratios):
-        de = float(ratios.get("debt_to_equity") or 0)
-        dr = float(ratios.get("debt_ratio") or 0)
-        if de > 0:
-            if de > 2:
-                self._insights.append({
-                    "area": "leverage",
-                    "level": "warning",
-                    "message": f"مديونية مرتفعة — الديون/حقوق الملكية {de:.1f}",
-                })
-            elif de < 1:
-                self._insights.append({
-                    "area": "leverage",
-                    "level": "good",
-                    "message": "هيكل تمويل متوازن",
-                })
-
-    def _analyze_efficiency(self, fd, ratios):
-        at = float(ratios.get("asset_turnover") or 0)
-        it = float(ratios.get("inventory_turnover") or 0)
-        if at > 0:
-            if at < 1:
-                self._insights.append({
-                    "area": "efficiency",
-                    "level": "warning",
-                    "message": "دوران أصول منخفض — أصول غير مستغلة",
-                })
-
-    def _analyze_trends(self, history):
-        if len(history) < 3:
-            return
-        revenues = [float(h.get("revenue") or 0) for h in history[-6:]]
-        if len(revenues) >= 3:
-            growth = sum(1 for i in range(1, len(revenues)) if revenues[i] > revenues[i-1])
-            trend = growth / (len(revenues) - 1) if len(revenues) > 1 else 0
-            if trend > 0.7:
-                self._insights.append({
-                    "area": "growth",
-                    "level": "good",
-                    "message": "اتجاه نمو تصاعدي في الإيرادات",
-                })
-            elif trend < 0.3:
-                self._alerts.append({
-                    "area": "growth",
-                    "severity": "warning",
-                    "message": "انخفاض متكرر في الإيرادات",
-                })
-
-    def _analyze_tax_burden(self, fd, ratios):
-        revenue = float(fd.get("revenue") or 0)
-        net = float(fd.get("net_income") or 0)
-        if revenue > 0 and net > 0:
-            burden = round((revenue - net) / revenue * 100, 1)
-            if burden > 40:
-                self._insights.append({
-                    "area": "tax",
-                    "level": "info",
-                    "message": f"العبء الإجمالي (ضرائب + تكاليف) مرتفع: {burden}%",
-                })
-
-    def _summary(self):
-        warnings = len(self._alerts)
-        insights = len(self._insights)
-        if warnings == 0:
-            return "الوضع المالي مستقر. لا توجد تحذيرات."
-        elif warnings <= 2:
-            return f"توجد {warnings} تحذيرات تستدعي الانتباه."
-        else:
-            return f"توجد {warnings} تحذيرات. يوصى بمراجعة فورية."
-
-    def _recommendations(self):
-        recs = []
-        for a in self._alerts:
-            area = a.get("area", "")
-            sev = a.get("severity", "")
-            tips = {
-                ("profitability", "danger"): "خفض المصاريف التشغيلية فوراً ومراجعة الأسعار",
-                ("profitability", "warning"): "تحليل هيكل التكاليف وتحسين الهوامش",
-                ("liquidity", "danger"): "تأمين تمويل قصير الأجل فوراً",
-                ("liquidity", "warning"): "تحسين إدارة الذمم المدينة والنقدية",
-                ("growth", "warning"): "تنويع المنتجات وفتح أسواق جديدة",
-            }
-            tip = tips.get((area, sev))
-            if tip and tip not in recs:
-                recs.append(tip)
-        if not recs:
-            recs.append("مواصلة الاستراتيجية الحالية مع المراقبة الدورية")
-        return recs
-
-    def _health_score(self):
-        """صحة مالية 0-100."""
-        score = 100
-        for a in self._alerts:
-            sev = a.get("severity")
-            if sev == "danger":
-                score -= 25
-            elif sev == "warning":
-                score -= 10
-        return max(score, 0)
-
-    def generate_alert_report(self):
-        """تقرير تنبيهات نصي."""
-        if not self._alerts:
-            return "لا توجد تنبيهات حالية."
-        lines = ["=" * 60, "  تقرير التنبيهات الذكية", "=" * 60, ""]
-        for a in self._alerts:
-            sev_icon = {"danger": "🔴", "warning": "🟡", "info": "🔵"}.get(
-                a.get("severity"), "⚪")
-            lines.append(f"  {sev_icon} {a['message']}")
-        lines.append("")
-        lines.append(f"  درجة الصحة المالية: {self._health_score()}/100")
-        return "\n".join(lines)
-
-    def generate_insight_report(self):
-        """تقرير الرؤى الذكية نصي."""
-        if not self._insights:
-            return "لا توجد رؤى جديدة."
-        lines = ["=" * 60, "  تقرير الرؤى الذكية", "=" * 60, ""]
-        for ins in self._insights:
-            level_icon = {"excellent": "⭐", "good": "✅", "ok": "✔️",
-                          "info": "ℹ️", "warning": "⚠️"}.get(
-                ins.get("level"), "•")
-            lines.append(f"  {level_icon} [{ins['area']}] {ins['message']}")
-        return "\n".join(lines)
+from typing import Dict, List, Any, Optional
+from ui.app_state import state
 
 
-ai_platform = AIPlatform()
+def _f(key, default=0.0):
+    v = (state.financial_data or {}).get(key) or (state.ratios or {}).get(key)
+    return float(v) if v else default
+
+
+def _r(key, default=0.0):
+    return float((state.ratios or {}).get(key, default)) or default
+
+
+# ── Health Score (0-100) ────────────────────────────────────────────────────
+
+
+def compute_health_score() -> Dict[str, Any]:
+    """درجة الصحة المالية من 0-100 مبنية على 6 محاور."""
+    scores = {}
+
+    # 1. الربحية (30 نقطة)
+    roe = _r("roe")
+    npm = _r("net_profit_margin")
+    scores["profitability"] = min(30, max(0, (min(roe, 40) / 40) * 15 + (min(npm, 30) / 30) * 15))
+
+    # 2. السيولة (20 نقطة)
+    cr = _r("current_ratio")
+    qr = _r("quick_ratio")
+    scores["liquidity"] = min(20, max(0, (min(cr, 3) / 3) * 10 + (min(qr, 2) / 2) * 10))
+
+    # 3. المديونية (15 نقطة)
+    de = _r("debt_to_equity")
+    dar = _r("debt_ratio")
+    scores["leverage"] = min(15, max(0, 15 - (min(de, 3) / 3) * 8 - (min(dar, 1) / 1) * 7))
+
+    # 4. الكفاءة (15 نقطة)
+    inv_turn = _r("inventory_turnover")
+    ar_turn = _r("receivables_turnover")
+    scores["efficiency"] = min(15, max(0, (min(inv_turn, 12) / 12) * 7 + (min(ar_turn, 12) / 12) * 8))
+
+    # 5. النمو (10 نقطة)
+    gp = _f("gross_profit")
+    rev = _f("revenue")
+    ni = _f("net_income")
+    gpm = (gp / rev * 100) if rev > 0 else 0
+    nim = (ni / rev * 100) if rev > 0 else 0
+    scores["growth"] = min(10, max(0, (min(gpm, 50) / 50) * 5 + (min(nim, 20) / 20) * 5))
+
+    # 6. الاستقرار (10 نقطة) — Z-Score
+    zs = _r("z_score")
+    scores["stability"] = min(10, max(0, (max(0, min(zs, 4)) / 4) * 10))
+
+    total = sum(scores.values())
+    return {
+        "total": round(total, 1),
+        "grade": _grade(total),
+        "breakdown": {k: round(v, 1) for k, v in scores.items()},
+    }
+
+
+def _grade(score):
+    if score >= 80:
+        return ("A", "ai_grade_excellent", "#22C55E")
+    if score >= 60:
+        return ("B", "ai_grade_good", "#3B82F6")
+    if score >= 40:
+        return ("C", "ai_grade_fair", "#F59E0B")
+    if score >= 20:
+        return ("D", "ai_grade_poor", "#EF4444")
+    return ("E", "ai_grade_critical", "#DC2626")
+
+
+# ── Risk Radar ──────────────────────────────────────────────────────────────
+
+
+def compute_risk_radar() -> Dict[str, Any]:
+    """رادار مخاطر 6 أبعاد بقيم 0-100."""
+    return {
+        "liquidity_risk": round(min(100, max(0, 100 - (_r("current_ratio") / 2) * 100)), 1),
+        "leverage_risk": round(min(100, max(0, (_r("debt_to_equity") / 3) * 100)), 1),
+        "profitability_risk": round(min(100, max(0, 100 - (_r("roe") / 30) * 100)), 1),
+        "efficiency_risk": round(min(100, max(0, 100 - (_r("inventory_turnover") / 8) * 100)), 1),
+        "growth_risk": round(min(100, max(0, 100 - (_r("net_profit_margin") / 20) * 100)), 1),
+        "solvency_risk": round(min(100, max(0, (1 - min(_r("z_score"), 3) / 3) * 100)), 1),
+    }
+
+
+# ── Executive Summary ───────────────────────────────────────────────────────
+
+
+def executive_summary() -> List[str]:
+    """ملخص تنفيذي بالعربية من 5-8 نقاط."""
+    hs = compute_health_score()
+    points = []
+
+    roe = _r("roe")
+    npm = _r("net_profit_margin")
+    cr = _r("current_ratio")
+    de = _r("debt_to_equity")
+    zs = _r("z_score")
+    rev = _f("revenue")
+    ni = _f("net_income")
+    oe = _f("operating_expenses")
+
+    points.append(f"درجة الصحة المالية: {hs['total']}/100 — تقييم {hs['grade'][0]}")
+
+    if roe > 20:
+        points.append(f"عائد قوي على حقوق الملكية ({roe:.1f}%) يفوق المعايير القطاعية.")
+    elif roe > 10:
+        points.append(f"عائد مقبول على حقوق الملكية ({roe:.1f}%) — مجال للتحسين في التحكم بالتكاليف.")
+    else:
+        points.append(f"عائد ضعيف على حقوق الملكية ({roe:.1f}%) — ينصح بمراجعة هيكل التكاليف والإيرادات.")
+
+    if cr >= 2:
+        points.append(f"سيولة مريحة ({cr:.1f}x) — الأصول المتداولة تغطي الخصوم المتداولة بأمان.")
+    elif cr >= 1:
+        points.append(f"سيولة حرجة ({cr:.1f}x) — ينصح بتحسين دورة التحصيل وتقليل الذمم المدينة.")
+    else:
+        points.append(f"⚠️ خطر سيولة ({cr:.1f}x) — الأصول المتداولة لا تغطي الخصوم المتداولة.")
+
+    if de <= 1:
+        points.append(f"هيكل تمويل متوازن (الدين/حقوق الملكية = {de:.2f}).")
+    elif de <= 2:
+        points.append(f"مديونية معتدلة ({de:.2f}) — تراقب عن كثب.")
+    else:
+        points.append(f"⚠️ مديونية مرتفعة ({de:.2f}) — خطر مالي يستوجب خفض الديون.")
+
+    if zs >= 3:
+        points.append(f"Z-Score آمن ({zs:.2f}) — الشركة في المنطقة الآمنة وبعيدة عن خطر الإفلاس.")
+    elif zs >= 1.8:
+        points.append(f"Z-Score في المنطقة الرمادية ({zs:.2f}) — ينصح بتحليل أعمق.")
+    else:
+        points.append(f"⚠️ Z-Score حرج ({zs:.2f}) — مؤشرات إنذار مبكر للإفلاس.")
+
+    if ni > 0 and oe > 0:
+        margin = (ni / rev * 100) if rev > 0 else 0
+        points.append(f"هامش صافي الربح {margin:.1f}% — {'فوق' if margin > 10 else 'دون'} المتوسط.")
+
+    return points
+
+
+# ── Recommendations ─────────────────────────────────────────────────────────
+
+
+def strategic_recommendations() -> List[Dict[str, Any]]:
+    """توصيات استراتيجية مصنفة حسب الأولوية."""
+    recs = []
+    cr = _r("current_ratio")
+    de = _r("debt_to_equity")
+    roe = _r("roe")
+    zs = _r("z_score")
+    inv_turn = _r("inventory_turnover")
+
+    if cr < 1.5:
+        recs.append({"priority": "high", "action": "تحسين السيولة عبر تسريع تحصيل الذمم المدينة وتمديد آجال الدفع للموردين.",
+                      "impact": "يخفض مخاطر العجز النقدي بنسبة تصل إلى 40%."})
+    if de > 2:
+        recs.append({"priority": "high", "action": "تخفيض المديونية عبر إعادة هيكلة القروض أو زيادة رأس المال.",
+                      "impact": "يخفّض مصاريف الفوائد ويحسن التصنيف الائتماني."})
+    if zs < 2.5:
+        recs.append({"priority": "high", "action": "مراجعة شاملة للهيكل المالي — الشركة قريبة من المنطقة الحرجة.",
+                      "impact": "يمنح فرصة للتدخل المبكر قبل تفاقم الأزمة."})
+    if roe < 10:
+        recs.append({"priority": "medium", "action": "تحسين الربحية عبر خفض التكاليف التشغيلية أو رفع الأسعار الانتقائي.",
+                      "impact": "يرفع العائد على حقوق الملكية ويحسن التدفقات النقدية."})
+    if inv_turn < 4:
+        recs.append({"priority": "medium", "action": "تحسين إدارة المخزون — تصفية الأصناف بطيئة الحركة وتطبيق نظام JIT.",
+                      "impact": "يحرر سيولة ويخفض تكاليف التخزين."})
+    if not recs:
+        recs.append({"priority": "low", "action": "الوضع المالي مستقر — استمر في مراقبة المؤشرات شهرياً.",
+                      "impact": "يحافظ على الصحة المالية ويكتشف التغيرات مبكراً."})
+    return recs
+
+
+# ── Aggregate ───────────────────────────────────────────────────────────────
+
+
+def platform_analysis() -> Dict[str, Any]:
+    """التحليل الشامل للمنصة — جميع المؤشرات في مخرج واحد."""
+    return {
+        "health_score": compute_health_score(),
+        "risk_radar": compute_risk_radar(),
+        "executive_summary": executive_summary(),
+        "recommendations": strategic_recommendations(),
+        "company_name": state.company_name or "",
+    }

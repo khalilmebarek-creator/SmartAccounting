@@ -293,6 +293,7 @@ class MainWindow(QMainWindow):
             36: ("procurement", _lazy_view_factory("ui.views.procurement_view", "ProcurementView")),
             37: ("einvoicing", _lazy_view_factory("ui.views.einvoicing_view", "EInvoicingView")),
             38: ("ias", _lazy_view_factory("ui.views.ias_reports_view", "IASReportsView")),
+            39: ("ai_platform", _lazy_view_factory("ui.views.ai_platform_view", "AIPlatformView")),
         }
 
         self.create_menu_bar()
@@ -477,6 +478,7 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
             "Ctrl+Shift+G",
+            "Ctrl+Shift+H",
         ]
         labels = [t(f"sidebar_{self._view_factories[vid][0]}") for vid in sorted(self._view_factories)]
         for action, key in zip(labels, view_keys):
@@ -529,6 +531,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+E"), self, lambda: self._go_to_view(36))
         QShortcut(QKeySequence("Ctrl+Shift+F"), self, lambda: self._go_to_view(37))
         QShortcut(QKeySequence("Ctrl+Shift+G"), self, lambda: self._go_to_view(38))
+        QShortcut(QKeySequence("Ctrl+Shift+H"), self, lambda: self._go_to_view(39))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -575,6 +578,7 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
             "Ctrl+Shift+G",
+            "Ctrl+Shift+H",
         ]
         view_ids = sorted(self._view_factories.keys())
         for i, vid in enumerate(view_ids):
@@ -653,7 +657,7 @@ class MainWindow(QMainWindow):
         ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
         ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22, 38)),
         ("nav_group_tax", (9, 19)),
-        ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27)),
+        ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27, 39)),
         ("nav_group_system", (7, 12, 28, 29)),
     )
 
