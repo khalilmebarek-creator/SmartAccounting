@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -60,12 +60,10 @@ class InventoryView(BaseView):
         f3, self.stat_low = self._make_stat(t("inventory_stat_low"))
         for w in (f1, f2, f3):
             stats.addWidget(w)
-        stats.addStretch()
         self._main_layout.addLayout(stats)
 
         # إضافة عنصر
         add_card = self._make_card("inventory_add_item")
-        form = QHBoxLayout()
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText(t("inventory_name"))
         self.sku_edit = QLineEdit()
@@ -88,11 +86,21 @@ class InventoryView(BaseView):
         self.min_spin.setDecimals(2)
         add_btn = QPushButton(t("inventory_add_btn"))
         add_btn.clicked.connect(self._add_item)
-        for w in (self.name_edit, self.sku_edit, self.category_edit,
-                  self.unit_edit, self.qty_spin, self.cost_spin,
-                  self.price_spin, self.min_spin, add_btn):
-            form.addWidget(w)
-        add_card.layout().addLayout(form)
+        row1 = QHBoxLayout()
+        for lbl_key, w in (("inventory_name", self.name_edit),
+                           ("inventory_sku", self.sku_edit),
+                           ("inventory_category", self.category_edit),
+                           ("inventory_unit", self.unit_edit)):
+            row1.addLayout(self._labeled_field(lbl_key, w))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
+        for lbl_key, w in (("inventory_col_qty", self.qty_spin),
+                           ("inventory_col_cost", self.cost_spin),
+                           ("inventory_price", self.price_spin),
+                           ("inventory_min_qty", self.min_spin)):
+            row2.addLayout(self._labeled_field(lbl_key, w))
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         # جدول العناصر
@@ -151,9 +159,13 @@ class InventoryView(BaseView):
         self.mov_ref.setPlaceholderText(t("inventory_ref"))
         mov_add_btn = QPushButton(t("inventory_mov_add"))
         mov_add_btn.clicked.connect(self._add_movement)
-        for w in (self.mov_date, self.mov_type, self.mov_qty, self.mov_cost,
-                  self.mov_ref, mov_add_btn):
-            mov_form.addWidget(w)
+        for lbl_key, w in (("inventory_col_date", self.mov_date),
+                           ("inventory_col_type", self.mov_type),
+                           ("inventory_col_qty", self.mov_qty),
+                           ("inventory_col_cost", self.mov_cost),
+                           ("inventory_ref", self.mov_ref)):
+            mov_form.addLayout(self._labeled_field(lbl_key, w))
+        mov_form.addWidget(mov_add_btn, 0, Qt.AlignBottom)
         mov_card.layout().addLayout(mov_form)
 
         self.mov_table = QTableWidget()

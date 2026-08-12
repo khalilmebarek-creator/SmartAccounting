@@ -485,6 +485,15 @@ class TestPartnersView(unittest.TestCase):
         self.view.refresh()
         self.assertIsNone(self.view._selected_partner_id())
 
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("partners_col_type", "partners_name", "partners_phone",
+                    "partners_email", "partners_tax_id", "partners_col_date",
+                    "partners_col_amount", "partners_tx_reference"):
+            self.assertIn(_t(key), texts, key)
+
 
 class TestInvoicingView(unittest.TestCase):
 
@@ -520,6 +529,16 @@ class TestInvoicingView(unittest.TestCase):
     def test_status_combo_exists(self):
         self.assertGreaterEqual(self.view.status_combo.count(), 6)
 
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("invoicing_col_type", "invoicing_col_partner",
+                    "invoicing_col_date", "invoicing_col_tva",
+                    "invoicing_item_desc", "invoicing_col_qty",
+                    "invoicing_col_price"):
+            self.assertIn(_t(key), texts, key)
+
 
 class TestInventoryView(unittest.TestCase):
 
@@ -548,6 +567,17 @@ class TestInventoryView(unittest.TestCase):
     def test_add_movement_requires_selection(self):
         self.view.refresh()
         self.assertIsNone(self.view._selected_item_id())
+
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("inventory_name", "inventory_sku", "inventory_category",
+                    "inventory_unit", "inventory_col_qty", "inventory_col_cost",
+                    "inventory_price", "inventory_min_qty",
+                    "inventory_col_date", "inventory_col_type",
+                    "inventory_ref"):
+            self.assertIn(_t(key), texts, key)
 
 
 class TestPayrollView(unittest.TestCase):

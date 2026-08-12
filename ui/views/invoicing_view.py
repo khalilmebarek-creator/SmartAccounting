@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -79,9 +79,12 @@ class InvoicingView(BaseView):
         self.tva_combo.addItems(["19%", "9%", "6%", "0%"])
         create_btn = QPushButton(t("invoicing_create_btn"))
         create_btn.clicked.connect(self._create_invoice)
-        for w in (self.type_combo, self.partner_combo, self.date_edit,
-                  self.tva_combo, create_btn):
-            form.addWidget(w)
+        for lbl_key, w in (("invoicing_col_type", self.type_combo),
+                           ("invoicing_col_partner", self.partner_combo),
+                           ("invoicing_col_date", self.date_edit),
+                           ("invoicing_col_tva", self.tva_combo)):
+            form.addLayout(self._labeled_field(lbl_key, w))
+        form.addWidget(create_btn, 0, Qt.AlignBottom)
         create_card.layout().addLayout(form)
         self._main_layout.addWidget(create_card)
 
@@ -99,8 +102,11 @@ class InvoicingView(BaseView):
         self.item_price.setDecimals(2)
         add_item_btn = QPushButton(t("invoicing_add_item"))
         add_item_btn.clicked.connect(self._add_pending_item)
-        for w in (self.item_desc, self.item_qty, self.item_price, add_item_btn):
-            item_form.addWidget(w)
+        for lbl_key, w in (("invoicing_item_desc", self.item_desc),
+                           ("invoicing_col_qty", self.item_qty),
+                           ("invoicing_col_price", self.item_price)):
+            item_form.addLayout(self._labeled_field(lbl_key, w))
+        item_form.addWidget(add_item_btn, 0, Qt.AlignBottom)
         items_card.layout().addLayout(item_form)
 
         self.pending_table = QTableWidget()

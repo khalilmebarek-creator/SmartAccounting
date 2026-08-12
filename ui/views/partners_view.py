@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -80,9 +80,13 @@ class PartnersView(BaseView):
         self.tax_edit.setPlaceholderText(t("partners_tax_id"))
         add_btn = QPushButton(t("partners_add_btn"))
         add_btn.clicked.connect(self._add_partner)
-        for w in (self.type_combo, self.name_edit, self.phone_edit,
-                  self.email_edit, self.tax_edit, add_btn):
-            form.addWidget(w)
+        for lbl_key, w in (("partners_col_type", self.type_combo),
+                           ("partners_name", self.name_edit),
+                           ("partners_phone", self.phone_edit),
+                           ("partners_email", self.email_edit),
+                           ("partners_tax_id", self.tax_edit)):
+            form.addLayout(self._labeled_field(lbl_key, w))
+        form.addWidget(add_btn, 0, Qt.AlignBottom)
         add_card.layout().addLayout(form)
         self._main_layout.addWidget(add_card)
 
@@ -135,9 +139,12 @@ class PartnersView(BaseView):
         self.tx_ref.setPlaceholderText(t("partners_tx_reference"))
         tx_add_btn = QPushButton(t("partners_tx_add"))
         tx_add_btn.clicked.connect(self._add_transaction)
-        for w in (self.tx_date, self.tx_type, self.tx_amount, self.tx_ref,
-                  tx_add_btn):
-            tx_form.addWidget(w)
+        for lbl_key, w in (("partners_col_date", self.tx_date),
+                           ("partners_col_type", self.tx_type),
+                           ("partners_col_amount", self.tx_amount),
+                           ("partners_tx_reference", self.tx_ref)):
+            tx_form.addLayout(self._labeled_field(lbl_key, w))
+        tx_form.addWidget(tx_add_btn, 0, Qt.AlignBottom)
         tx_card.layout().addLayout(tx_form)
 
         self.tx_table = QTableWidget()

@@ -87,6 +87,18 @@ class BaseView(QWidget):
         frame.setLayout(layout)
         return frame
 
+    @staticmethod
+    def _labeled_field(label_key: str, widget) -> QVBoxLayout:
+        """حقل بعنوان صغير فوقه — لقراءة أوضح داخل النماذج."""
+        box = QVBoxLayout()
+        box.setContentsMargins(0, 0, 0, 0)
+        box.setSpacing(4)
+        lbl = QLabel(t(label_key))
+        lbl.setStyleSheet("font-size: 11px; color: #888;")
+        box.addWidget(lbl)
+        box.addWidget(widget)
+        return box
+
     def _clear_layout(self):
         """أزل كل العناصر من _main_layout لإعادة بنائها (تُستخدم عند retranslate)."""
         layout = self._main_layout
