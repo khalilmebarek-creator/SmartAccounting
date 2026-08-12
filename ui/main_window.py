@@ -292,6 +292,7 @@ class MainWindow(QMainWindow):
             35: ("budgeting", _lazy_view_factory("ui.views.budgeting_view", "BudgetingView")),
             36: ("procurement", _lazy_view_factory("ui.views.procurement_view", "ProcurementView")),
             37: ("einvoicing", _lazy_view_factory("ui.views.einvoicing_view", "EInvoicingView")),
+            38: ("ias", _lazy_view_factory("ui.views.ias_reports_view", "IASReportsView")),
         }
 
         self.create_menu_bar()
@@ -320,7 +321,7 @@ class MainWindow(QMainWindow):
         # --- Ribbon ---
         self.ribbon_widget = QWidget()
         self.ribbon_widget.setObjectName("ribbonWidget")
-        ribbon_layout = QHBoxLayout()
+        ribbon_layout = QVBoxLayout()
         ribbon_layout.setContentsMargins(0, 0, 0, 0)
         ribbon_layout.setSpacing(0)
 
@@ -475,6 +476,7 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
+            "Ctrl+Shift+G",
         ]
         labels = [t(f"sidebar_{self._view_factories[vid][0]}") for vid in sorted(self._view_factories)]
         for action, key in zip(labels, view_keys):
@@ -526,6 +528,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+D"), self, lambda: self._go_to_view(35))
         QShortcut(QKeySequence("Ctrl+Shift+E"), self, lambda: self._go_to_view(36))
         QShortcut(QKeySequence("Ctrl+Shift+F"), self, lambda: self._go_to_view(37))
+        QShortcut(QKeySequence("Ctrl+Shift+G"), self, lambda: self._go_to_view(38))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -571,6 +574,7 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+B", "Ctrl+Shift+C", "Ctrl+Shift+D",
             "Ctrl+Shift+E",
             "Ctrl+Shift+F",
+            "Ctrl+Shift+G",
         ]
         view_ids = sorted(self._view_factories.keys())
         for i, vid in enumerate(view_ids):
@@ -647,7 +651,7 @@ class MainWindow(QMainWindow):
     _RIBBON_TABS = (
         ("nav_group_main", (1, 2, 23)),
         ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
-        ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22)),
+        ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22, 38)),
         ("nav_group_tax", (9, 19)),
         ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27)),
         ("nav_group_system", (7, 12, 28, 29)),
@@ -677,8 +681,8 @@ class MainWindow(QMainWindow):
                 text = label.split(" ", 1)[1] if " " in label else label
                 btn = QPushButton(f"{icon}\n{text}")
                 btn.setObjectName("ribbonBtn")
-                btn.setMinimumSize(56, 40)
-                btn.setMaximumSize(96, 48)
+                btn.setMinimumSize(72, 58)
+                btn.setMaximumSize(120, 64)
                 btn.setFlat(True)
                 btn.clicked.connect(lambda checked, v=vid: self._go_to_view(v))
                 panel_layout.addWidget(btn)

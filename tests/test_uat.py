@@ -85,7 +85,7 @@ class TestUatFullApp(unittest.TestCase):
         _pump(50)
         self.assertTrue(self.win.ribbon_widget.isVisible())
         # الشاشات الـ37 تُبنى كسلاzy ولا تسقط
-        for vid in range(1, 37):
+        for vid in range(1, 39):
             self.win._go_to_view(vid)
             _pump(50)
             view = self.win.content.currentWidget()
@@ -94,14 +94,14 @@ class TestUatFullApp(unittest.TestCase):
 
     def test_all_screens_have_real_widgets_after_login(self):
         self._login()
-        for vid in range(1, 37):
+        for vid in range(1, 39):
             self.win._go_to_view(vid)
             view = self.win._get_or_create_view(vid)
             self.assertIsInstance(view, QWidget, f"screen {vid} not a widget")
 
     def test_ribbon_has_37_views(self):
         self._login()
-        self.assertEqual(len(self.win.ribbon_view_to_tab), 37)
+        self.assertEqual(len(self.win.ribbon_view_to_tab), 38)
         self.assertGreater(self.win.ribbon_panels.count(), 0)
         self.assertGreater(self.win.ribbon_tabs.count(), 0)
 
@@ -145,7 +145,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            self.assertEqual(len(self.win.ribbon_view_to_tab), 37)
+            self.assertEqual(len(self.win.ribbon_view_to_tab), 38)
             self.assertEqual(Translator.get_language(), lang)
             # لا تعرض أسماء مفاتيح خام في الأزرار
             for i in range(self.win.ribbon_panels.count()):
@@ -163,7 +163,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            for vid in range(1, 37):
+            for vid in range(1, 39):
                 self.win._go_to_view(vid)
                 view = self.win._get_or_create_view(vid)
                 self.assertIsNotNone(view, f"lang={lang} screen {vid} broken")
