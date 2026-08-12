@@ -13,18 +13,22 @@ class AppState extends InheritedWidget {
     required this.language,
     required this.darkMode,
     required this.snapshot,
+    required this.prevSnapshot,
     required this.onLanguageChanged,
     required this.onThemeChanged,
     required this.onSnapshotLoaded,
+    required this.onPrevSnapshotLoaded,
     required super.child,
   });
 
   final String language;
   final bool darkMode;
   final SnapshotData? snapshot;
+  final SnapshotData? prevSnapshot;
   final ValueChanged<String> onLanguageChanged;
   final ValueChanged<bool> onThemeChanged;
   final ValueChanged<SnapshotData> onSnapshotLoaded;
+  final ValueChanged<SnapshotData> onPrevSnapshotLoaded;
 
   bool get isRtl => language == 'ar';
 
@@ -38,7 +42,8 @@ class AppState extends InheritedWidget {
   bool updateShouldNotify(AppState oldWidget) =>
       language != oldWidget.language ||
       darkMode != oldWidget.darkMode ||
-      snapshot != oldWidget.snapshot;
+      snapshot != oldWidget.snapshot ||
+      prevSnapshot != oldWidget.prevSnapshot;
 }
 
 /// Root controller owning the mutable state; rebuilds [AppState] on change.
@@ -60,6 +65,7 @@ class _AppControllerState extends State<AppController> {
   late String _language;
   bool _darkMode = false;
   SnapshotData? _snapshot;
+  SnapshotData? _prevSnapshot;
 
   @override
   void initState() {
@@ -81,9 +87,19 @@ class _AppControllerState extends State<AppController> {
   }
 
   void _setSnapshot(SnapshotData snap) {
-    setState(() => _snapshot = snap);
+    setState(() {
+      // In-session comparison: only shift when a current snapshot exists;
+      // otherwise keep the prev snapshot restored from disk.
+      if (_snapshot != null) _prevSnapshot = _snapshot;
+      _snapshot = snap;
+    });
     AppLogger.log.info(
         'app', 'snapshot loaded: ${snap.companyName} (fy ${snap.fiscalYear})');
+  }
+
+  void _setPrevSnapshot(SnapshotData snap) {
+    setState(() => _prevSnapshot = snap);
+    AppLogger.log.info('app', 'prev snapshot restored');
   }
 
   @override
@@ -92,9 +108,11 @@ class _AppControllerState extends State<AppController> {
       language: _language,
       darkMode: _darkMode,
       snapshot: _snapshot,
+      prevSnapshot: _prevSnapshot,
       onLanguageChanged: _setLanguage,
       onThemeChanged: _setTheme,
       onSnapshotLoaded: _setSnapshot,
+      onPrevSnapshotLoaded: _setPrevSnapshot,
       child: widget.child,
     );
   }

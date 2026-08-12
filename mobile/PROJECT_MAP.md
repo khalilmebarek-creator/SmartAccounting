@@ -1,6 +1,6 @@
 # PROJECT_MAP.md — SmartAccounting Mobile (تطبيق الجوال)
 
-> آخر تحديث: 2026-08-12 | الإصدار: 1.0.0
+> آخر تحديث: 2026-08-12 | الإصدار: 1.1.0
 
 ## TECH_STACK
 
@@ -56,10 +56,13 @@ lib/
 - [x] ~~M2 تحميل JSON + فك AES-GCM~~ — 12 اختباراً (fixture حقيقي من سطح المكتب)
 - [x] ~~M3 الشاشات الخمس + parity~~ — 6 اختبارات (مطابقة desktop engine)
 - [x] ~~M4 تنبيهات التقويم~~ — 7 اختبارات
-- [x] ~~M5 APK~~ — arm64 18.0MB / v7a 15.6MB / x86_64 19.4MB
-- [ ] iOS build — يتطلب macOS/Xcode (موثّق: Flutter يتيحه دون إعادة كتابة)
-- [ ] توقيع release رسمي (keystore مستقل) — حالياً debug signing للـ release
-- [ ] دفع تنبيهات خادم (FCM) — إن أُضيف Backend لاحقاً
+- [x] ~~M5 APK~~ — arm64 18.2MB / v7a 15.7MB / x86_64 19.6MB
+- [x] ~~M6 لوحة قيادة مطوّرة~~ — رسم أعمدة CustomPainter + بطاقة Z-Score + أسهم اتجاه vs الملف السابق + بطاقة معلومات الشركة (4 widget tests)
+- [x] ~~M7 ملخص تنفيذي + توصيات~~ — ai_summary.dart بمطابقة حرفية مع ai_platform.py (4 parity tests: سلاسل عربية مطابقة fixture سطح المكتب)
+- [x] ~~M8 صور شاشات للدفاع~~ — 10 golden PNG (ar/en) بخط Amiri في mobile/screenshots/
+- [ ] iOS build — يتطلب macOS/Xcode
+- [ ] توقيع release رسمي (keystore مستقل) — حالياً debug signing
+- [ ] دفع تنبيهات خادم (FCM) — التنبيهات حالياً محلية
 - [ ] تزامن ثنائي الاتجاه (إدخال من الجوال) — خارج النطاق المقصود (عرض فقط)
 
 ## ملاحظات البناء

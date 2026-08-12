@@ -182,4 +182,81 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Aucune donnée'), findsOneWidget);
   });
+
+  testWidgets('dashboard shows z-score card and trend chart after load',
+      (tester) async {
+    await tester.pumpWidget(_harness('en'));
+    await tester.pumpAndSettle();
+
+    _load(AppState.of(tester.element(find.byType(MainShell))), _demoSnapshot());
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Z-Score status'), 150);
+    expect(find.text('Z-Score status'), findsOneWidget);
+    expect(find.text('Revenue, expenses and profit'), findsOneWidget);
+  });
+
+  testWidgets('dashboard shows company information card', (tester) async {
+    await tester.pumpWidget(_harness('en'));
+    await tester.pumpAndSettle();
+
+    final snap = SnapshotData(
+      companyName: 'Mobile Test Co',
+      fiscalYear: 2024,
+      companyNif: '1234567890',
+      companyRc: '01/00-123456',
+      companyAddress: 'Test street',
+      financialData: const {'revenue': 250000.0},
+      ratios: const {'z_score': 3.2},
+    );
+    _load(AppState.of(tester.element(find.byType(MainShell))), snap);
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('Company information'), 150);
+    expect(find.text('Company information'), findsOneWidget);
+    await tester.tap(find.text('Company information'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('1234567890'), 150);
+    expect(find.text('1234567890'), findsOneWidget);
+    expect(find.text('01/00-123456'), findsOneWidget);
+  });
+
+  testWidgets('kpi shows trend arrow when prev snapshot present',
+      (tester) async {
+    await tester.pumpWidget(_harness('en'));
+    await tester.pumpAndSettle();
+
+    final state = AppState.of(tester.element(find.byType(MainShell)));
+    final prev = SnapshotData(
+      companyName: 'Old',
+      fiscalYear: 2023,
+      financialData: const {'revenue': 200000.0},
+      ratios: const {},
+    );
+    state.onPrevSnapshotLoaded(prev);
+    await tester.pumpAndSettle();
+    _load(state, _demoSnapshot());
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('▲'), findsWidgets);
+    expect(find.textContaining('25.0%'), findsOneWidget);
+  });
+
+  testWidgets('ai health shows executive summary after load',
+      (tester) async {
+    await tester.pumpWidget(_harness('en'));
+    await tester.pumpAndSettle();
+
+    _load(AppState.of(tester.element(find.byType(MainShell))), _demoSnapshot());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('AI Health'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(find.text('📋 Executive summary'), 150);
+    expect(find.text('📋 Executive summary'), findsOneWidget);
+    expect(find.textContaining('Financial health score'), findsWidgets);
+    await tester.scrollUntilVisible(find.text('💡 Strategic recommendations'), 150);
+    expect(find.text('💡 Strategic recommendations'), findsOneWidget);
+  });
 }

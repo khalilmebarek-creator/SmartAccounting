@@ -33,6 +33,7 @@ class _SmartAccountingAppState extends State<SmartAccountingApp> {
   String? _initialLanguage;
   bool? _initialDarkMode;
   String? _cachedSnapshot;
+  String? _prevSnapshot;
 
   @override
   void initState() {
@@ -44,12 +45,15 @@ class _SmartAccountingAppState extends State<SmartAccountingApp> {
     final lang = await LocalStore.loadLanguage();
     final dark = await LocalStore.loadDarkMode();
     final cached = await LocalStore.loadLastSnapshot();
-    AppLogger.log.info('app', 'bootstrap lang=$lang dark=$dark cached=${cached != null}');
+    final prev = await LocalStore.loadPrevSnapshot();
+    AppLogger.log.info('app',
+        'bootstrap lang=$lang dark=$dark cached=${cached != null} prev=${prev != null}');
     if (!mounted) return;
     setState(() {
       _initialLanguage = lang;
       _initialDarkMode = dark;
       _cachedSnapshot = cached;
+      _prevSnapshot = prev;
     });
   }
 
@@ -66,6 +70,7 @@ class _SmartAccountingAppState extends State<SmartAccountingApp> {
       child: _ThemedApp(
         initialDark: _initialDarkMode ?? false,
         cachedSnapshot: _cachedSnapshot,
+        prevSnapshot: _prevSnapshot,
       ),
     );
   }
@@ -74,10 +79,15 @@ class _SmartAccountingAppState extends State<SmartAccountingApp> {
 /// Reads [AppState] for live language/theme values; applies the theme and
 /// localizations delegates.
 class _ThemedApp extends StatefulWidget {
-  const _ThemedApp({required this.initialDark, required this.cachedSnapshot});
+  const _ThemedApp({
+    required this.initialDark,
+    required this.cachedSnapshot,
+    required this.prevSnapshot,
+  });
 
   final bool initialDark;
   final String? cachedSnapshot;
+  final String? prevSnapshot;
 
   @override
   State<_ThemedApp> createState() => _ThemedAppState();
@@ -92,9 +102,28 @@ class _ThemedAppState extends State<_ThemedApp> {
     if (!_restored && widget.cachedSnapshot != null) {
       _restored = true;
       final state = AppState.of(context);
-      if (state.snapshot == null) {
-        _restoreCached(widget.cachedSnapshot!, state);
-      }
+      _restoreAll(state);
+    }
+  }
+
+  Future<void> _restoreAll(AppState state) async {
+    // Prev first, then current: the current restore must not shift away
+    // the disk-restored prev (shift only happens when a current exists).
+    if (widget.prevSnapshot != null && state.prevSnapshot == null) {
+      await _restorePrev(widget.prevSnapshot!, state);
+    }
+    if (state.snapshot == null) {
+      await _restoreCached(widget.cachedSnapshot!, state);
+    }
+  }
+
+  Future<void> _restorePrev(String text, AppState state) async {
+    final loader = SnapshotLoader();
+    try {
+      final snap = await loader.load(text);
+      if (mounted) state.onPrevSnapshotLoaded(snap);
+    } catch (err) {
+      AppLogger.log.warn('app', 'prev snapshot unusable: $err');
     }
   }
 

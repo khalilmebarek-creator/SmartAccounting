@@ -61,10 +61,12 @@ wrapper_encrypted = {
     "data": cloud_sync.encrypt_payload(payload, "test-pass"),
 }
 
-from modules.ai_platform import compute_health_score, compute_risk_radar
+from modules.ai_platform import compute_health_score, compute_risk_radar, platform_analysis
 health_expected = {
     "health": compute_health_score(),
     "radar": compute_risk_radar(),
+    "summary": platform_analysis()["executive_summary"],
+    "recommendations": platform_analysis()["recommendations"],
 }
 
 out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

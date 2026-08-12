@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/app_state.dart';
 import '../../core/i18n.dart';
 import '../../data/ai_health.dart';
+import '../../data/ai_summary.dart';
 import '../../widgets/risk_radar.dart';
 
 class AIHealthScreen extends StatelessWidget {
@@ -104,6 +105,14 @@ class AIHealthScreen extends StatelessWidget {
             ),
           ),
         ),
+        _SummaryCard(
+          points: executiveSummary(snap, health, lang),
+          lang: lang,
+        ),
+        _RecommendationsCard(
+          recommendations: strategicRecommendations(snap),
+          lang: lang,
+        ),
       ],
     );
   }
@@ -115,6 +124,107 @@ class AIHealthScreen extends StatelessWidget {
         'efficiency' => 15,
         _ => 10,
       };
+}
+
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.points, required this.lang});
+
+  final List<String> points;
+  final String lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(I18n.t(lang, 'ai_platform_summary'),
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            for (final point in points)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text('• $point', style: theme.textTheme.bodyMedium),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecommendationsCard extends StatelessWidget {
+  const _RecommendationsCard({required this.recommendations, required this.lang});
+
+  final List<Recommendation> recommendations;
+  final String lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(I18n.t(lang, 'ai_platform_recommendations'),
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            for (final rec in recommendations)
+              _RecommendationTile(rec: rec, lang: lang),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecommendationTile extends StatelessWidget {
+  const _RecommendationTile({required this.rec, required this.lang});
+
+  final Recommendation rec;
+  final String lang;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final Color color = switch (rec.priority) {
+      'high' => const Color(0xFFEF4444),
+      'medium' => const Color(0xFFF59E0B),
+      _ => const Color(0xFF22C55E),
+    };
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border(
+          left: BorderSide(color: color, width: 4),
+        ),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            renderAction(rec, lang),
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '💡 ${renderImpact(rec, lang)}',
+            style: theme.textTheme.bodySmall
+                ?.copyWith(color: theme.colorScheme.outline),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ScoreHeader extends StatelessWidget {
