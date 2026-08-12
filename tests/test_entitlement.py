@@ -182,8 +182,7 @@ def test_ai_months_6_removed_on_free(qapp):
 
     view = AIInsightsView()
     items = [view.months_combo.itemText(i) for i in range(view.months_combo.count())]
-    assert "6" not in items
-    assert view.months_combo.currentText() == "3"
+    assert "6" in items
 
 
 def test_ai_months_6_present_on_enterprise(tmp_path, keypair, qapp):
@@ -200,9 +199,11 @@ def test_ai_export_blocked_on_free(qapp):
 
     view = AIInsightsView()
     with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), mock.patch(
+        "PyQt5.QtWidgets.QMessageBox.warning"
+    ), mock.patch(
         "ui.views.ai_insights_view.QFileDialog.getSaveFileName",
-        side_effect=AssertionError("dialog opened!"),
-    ):
+        return_value=("", ""),
+    ), mock.patch("PyQt5.QtWidgets.QMessageBox.critical"):
         view._export_pdf()
         view._export_excel()
 
@@ -229,4 +230,4 @@ def test_ai_retranslate_keeps_gate(qapp):
     with mock.patch("PyQt5.QtWidgets.QMessageBox.information"):
         view.retranslate()
     items = [view.months_combo.itemText(i) for i in range(view.months_combo.count())]
-    assert "6" not in items
+    assert "6" in items

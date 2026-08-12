@@ -19,8 +19,6 @@ from ui.views._base import BaseView
 from ui.views.dashboard import ChartWidget, _chart_text_color
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
-from ui.widgets.messages import show_feature_denied
-from commercial.entitlement import feature_allowed
 from modules.ai_insights import ai_insights_engine
 from modules.advanced_dashboard import _MONTHLY_WEIGHTS
 
@@ -135,17 +133,10 @@ class AIInsightsView(BaseView):
         self._enforce_gates()
 
     def _enforce_gates(self):
-        """Module 3: ai_unlimited (Enterprise) يفتح التنبؤ 6 أشهر."""
-        allowed = feature_allowed("ai_unlimited")
+        """التنبؤ متاح كاملاً (6 أشهر) لجميع المستخدمين."""
         self.months_combo.blockSignals(True)
-        if allowed:
-            if self.months_combo.findText("6") < 0:
-                self.months_combo.addItem("6")
-        else:
-            if self.months_combo.findText("6") >= 0:
-                self.months_combo.removeItem(self.months_combo.findText("6"))
-            if self.months_combo.currentText() not in ("3",):
-                self.months_combo.setCurrentIndex(0)
+        if self.months_combo.findText("6") < 0:
+            self.months_combo.addItem("6")
         self.months_combo.blockSignals(False)
 
     def _set_headers(self):
@@ -528,9 +519,6 @@ class AIInsightsView(BaseView):
     # ===== export =====
 
     def _export_pdf(self):
-        if not feature_allowed("ai_unlimited"):
-            show_feature_denied(self, "ai_unlimited")
-            return
         if self._result is None:
             QMessageBox.warning(self, t("warning"), t("ai_no_data"))
             return
@@ -551,9 +539,6 @@ class AIInsightsView(BaseView):
             QMessageBox.critical(self, t("error"), str(e))
 
     def _export_excel(self):
-        if not feature_allowed("ai_unlimited"):
-            show_feature_denied(self, "ai_unlimited")
-            return
         if self._result is None:
             QMessageBox.warning(self, t("warning"), t("ai_no_data"))
             return
