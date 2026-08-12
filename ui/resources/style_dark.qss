@@ -57,12 +57,10 @@ QWidget {
     border-left: 3px solid #64B5F6;
 }
 
-/* ----- Ribbon (شريط واحد: تبويبات + أزرار) ----- */
+/* ----- Ribbon (تبويبات فوق + أزرار تحتها) ----- */
 #ribbonWidget {
     background-color: #181818;
     border-bottom: 1px solid rgba(255,255,255,0.06);
-    min-height: 48px;
-    max-height: 48px;
 }
 #ribbonTabs {
     background: transparent;

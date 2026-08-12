@@ -655,7 +655,8 @@ class MainWindow(QMainWindow):
     _RIBBON_TABS = (
         ("nav_group_main", (1, 2, 23)),
         ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
-        ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25, 17, 18, 22, 38)),
+        ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25)),
+        ("nav_group_reports", (17, 18, 22, 38)),
         ("nav_group_tax", (9, 19)),
         ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27, 39)),
         ("nav_group_system", (7, 12, 28, 29)),

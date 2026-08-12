@@ -33,7 +33,7 @@ class BaseView(QWidget):
         self._main_layout.setSpacing(PAGE_SPACING)
         self.setLayout(self._main_layout)
 
-    def _make_header(self, title_key: str, subtitle_key: str = None):
+    def _make_header(self, title_key: str, subtitle_key: str = None) -> QLabel:
         """Add a standard title + optional subtitle to the layout."""
         title = QLabel(t(title_key))
         title.setObjectName("headerTitle")
@@ -86,6 +86,25 @@ class BaseView(QWidget):
 
         frame.setLayout(layout)
         return frame
+
+    def _make_stat(self, title: str) -> tuple:
+        """بطاقة إحصائية مدمجة (15pt) — ترجع (الإطار, ملصق القيمة)."""
+        frame = QFrame()
+        frame.setObjectName("card")
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+        lbl_title = QLabel(title)
+        lbl_title.setStyleSheet("font-size: 11px; color: #888;")
+        lbl_value = QLabel("0")
+        lbl_value.setObjectName("statValue")
+        font = QFont()
+        font.setBold(True)
+        font.setPointSize(15)
+        lbl_value.setFont(font)
+        layout.addWidget(lbl_title)
+        layout.addWidget(lbl_value)
+        frame.setLayout(layout)
+        return frame, lbl_value
 
     @staticmethod
     def _labeled_field(label_key: str, widget) -> QVBoxLayout:

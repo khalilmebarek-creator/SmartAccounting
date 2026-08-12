@@ -44,26 +44,6 @@ class CloudSyncView(BaseView):
         self.setup_ui()
         self.refresh()
 
-    @staticmethod
-    def _make_stat(title):
-        """كارت إحصائية مع مرجع لملصق القيمة."""
-        frame = QFrame()
-        frame.setObjectName("card")
-        layout = QVBoxLayout()
-        layout.setContentsMargins(16, 12, 16, 12)
-        lbl_title = QLabel(title)
-        lbl_title.setStyleSheet("font-size: 11px; color: #888;")
-        lbl_value = QLabel("0")
-        lbl_value.setObjectName("statValue")
-        font = QFont()
-        font.setBold(True)
-        font.setPointSize(15)
-        lbl_value.setFont(font)
-        layout.addWidget(lbl_title)
-        layout.addWidget(lbl_value)
-        frame.setLayout(layout)
-        return frame, lbl_value
-
     # ===== البناء =====
 
     def setup_ui(self):
