@@ -2,11 +2,11 @@
 ; =====================================================
 
 #define MyAppName "Smart Accounting Platform"
-#define MyAppVersion "3.1.8"
+#define MyAppVersion "3.2.0"
 #define MyAppPublisher "Smart Accounting Team"
 #define MyAppURL "https://github.com/accounting-platform"
 #define MyAppExeName "SmartAccounting.exe"
-#define MyAppDescription "منصة المحاسبة الذكية - Smart Accounting Platform"
+#define MyAppDescription "Ù…Ù†ØµØ© Ø§Ù„Ù…Ø­Ø§Ø³Ø¨Ø© Ø§Ù„Ø°ÙƒÙŠØ© - Smart Accounting Platform"
 
 [Setup]
 AppId={{B3A7F4E2-9C1D-4A5F-8E2B-6D9F3C7A1E5B}
@@ -53,8 +53,8 @@ Name: "associatefiles"; Description: "Associate .sap files with Smart Accounting
 
 [Files]
 Source: "dist_nuitka\run_ui.dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-; ملاحظة: ملفات الحالة (users/settings/accounting_data/...) مستثناة من المثبّت حتى لا تُستبدل
-; بيانات المستخدم الحقيقية عند الترقية (كان هذا سبب طلب تغيير السرّية بعد التحديث)
+; Ù…Ù„Ø§Ø­Ø¸Ø©: Ù…Ù„ÙØ§Øª Ø§Ù„Ø­Ø§Ù„Ø© (users/settings/accounting_data/...) Ù…Ø³ØªØ«Ù†Ø§Ø© Ù…Ù† Ø§Ù„Ù…Ø«Ø¨Ù‘Øª Ø­ØªÙ‰ Ù„Ø§ ØªÙØ³ØªØ¨Ø¯Ù„
+; Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ© Ø¹Ù†Ø¯ Ø§Ù„ØªØ±Ù‚ÙŠØ© (ÙƒØ§Ù† Ù‡Ø°Ø§ Ø³Ø¨Ø¨ Ø·Ù„Ø¨ ØªØºÙŠÙŠØ± Ø§Ù„Ø³Ø±Ù‘ÙŠØ© Ø¨Ø¹Ø¯ Ø§Ù„ØªØ­Ø¯ÙŠØ«)
 Source: "dist_nuitka\run_ui.dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "users.json,settings.json,accounting_data.json,chat_history.json,login_session.json,activity_log.json,accounting_platform.db,templates\custom_templates.json,logs\*,logs,data\*,data,backups\*,backups"
 
 [Icons]

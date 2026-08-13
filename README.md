@@ -1,7 +1,7 @@
 # المنصة المحاسبية الذكية
 # The Smart Accounting Platform
 
-![Version](https://img.shields.io/badge/version-3.1.8-blue)
+![Version](https://img.shields.io/badge/version-3.2.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11+-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
 ![Tests](https://img.shields.io/badge/tests-1862-green)
@@ -29,7 +29,7 @@
 ```
 Accounting_Platform/
 ├── main.py                          # نقطة الدخول CLI
-├── config.py                        # الإصدار والإعدادات (v3.1.8)
+├── config.py                        # الإصدار والإعدادات (v3.2.0)
 ├── requirements.txt                 # المكتبات المطلوبة (إنتاج)
 ├── requirements-dev.txt             # مكتبات التطوير/الاختبار
 ├── ui/
