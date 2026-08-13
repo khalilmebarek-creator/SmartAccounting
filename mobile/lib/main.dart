@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -192,15 +193,27 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> _loadFile(AppState state, String lang) async {
-    final result = await FilePicker.pickFiles();
+    // withData=true: cloud providers (Gmail/Drive) expose content URIs that
+    // cannot be read via dart:io — requesting bytes avoids path issues.
+    final result = await FilePicker.pickFiles(withData: true);
     if (result == null || result.files.isEmpty) return;
-    final path = result.files.single.path;
-    if (path == null) return;
-    AppLogger.log.info('loader', 'picked file $path');
+    final file = result.files.single;
 
     String fileText;
     try {
-      fileText = await _readFile(path);
+      final bytes = file.bytes;
+      if (bytes != null && bytes.isNotEmpty) {
+        fileText = utf8.decode(bytes);
+      } else {
+        final path = file.path;
+        if (path == null) {
+          AppLogger.log.warn('loader', 'picked file has no path and no bytes');
+          if (mounted) _toast(context, I18n.t(lang, 'load_fail'));
+          return;
+        }
+        fileText = await _readFile(path);
+      }
+      AppLogger.log.info('loader', 'picked file ${file.name}');
     } catch (err) {
       AppLogger.log.warn('loader', 'read failed: $err');
       if (mounted) _toast(context, I18n.t(lang, 'load_fail'));
@@ -270,7 +283,7 @@ class _MainShellState extends State<MainShell> {
 
   Future<String> _readFile(String path) async {
     final bytes = await File(path).readAsBytes();
-    return String.fromCharCodes(bytes);
+    return utf8.decode(bytes);
   }
 
   void _toast(BuildContext context, String message) {

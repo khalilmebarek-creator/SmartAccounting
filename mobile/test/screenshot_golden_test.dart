@@ -47,7 +47,7 @@ Future<void> main() async {
     await shot(const DashboardScreen(), 'dashboard_ar');
     await shot(const RatiosScreen(), 'ratios_ar');
     await shot(const AIHealthScreen(), 'ai_ar');
-    await shot(const TaxCalendarScreen(), 'tax_ar');
+    await shot(TaxCalendarScreen(now: DateTime(2026, 8, 1)), 'tax_ar');
     await shot(const IASScreen(), 'ias_ar');
   });
 
@@ -65,7 +65,7 @@ Future<void> main() async {
     await shot(const DashboardScreen(), 'dashboard_en');
     await shot(const RatiosScreen(), 'ratios_en');
     await shot(const AIHealthScreen(), 'ai_en');
-    await shot(const TaxCalendarScreen(), 'tax_en');
+    await shot(TaxCalendarScreen(now: DateTime(2026, 8, 1)), 'tax_en');
     await shot(const IASScreen(), 'ias_en');
   });
 }

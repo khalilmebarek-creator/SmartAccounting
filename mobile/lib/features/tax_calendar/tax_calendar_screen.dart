@@ -4,7 +4,10 @@ import '../../core/app_state.dart';
 import '../../core/i18n.dart';
 
 class TaxCalendarScreen extends StatelessWidget {
-  const TaxCalendarScreen({super.key});
+  const TaxCalendarScreen({super.key, this.now});
+
+  /// Injectable clock (golden tests pass a fixed date for determinism).
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +33,23 @@ class TaxCalendarScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),
-        ...items.map((o) => _ObligationTile(obligation: o, lang: lang)),
+        ...items
+            .map((o) => _ObligationTile(obligation: o, lang: lang, now: now)),
       ],
     );
   }
 }
 
 class _ObligationTile extends StatelessWidget {
-  const _ObligationTile({required this.obligation, required this.lang});
+  const _ObligationTile({
+    required this.obligation,
+    required this.lang,
+    required this.now,
+  });
 
   final Map<String, dynamic> obligation;
   final String lang;
+  final DateTime? now;
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +65,11 @@ class _ObligationTile extends StatelessWidget {
         ? (obligation['amount'] as num).toDouble()
         : 0.0;
 
-    final now = DateTime.now();
-    final due = DateTime(now.year, month, dueDay);
-    final delta = due.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final current = now ?? DateTime.now();
+    final due = DateTime(current.year, month, dueDay);
+    final delta =
+        due.difference(DateTime(current.year, current.month, current.day))
+            .inDays;
     final String when = delta >= 0
         ? I18n.format(I18n.t(lang, 'tax_days_left'), ['$delta'])
         : I18n.format(I18n.t(lang, 'tax_days_overdue'), ['${-delta}']);
