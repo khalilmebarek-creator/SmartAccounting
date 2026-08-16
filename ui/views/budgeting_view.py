@@ -4,6 +4,7 @@
 
 from ui.views._path import _  # noqa: F401
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
@@ -44,25 +45,28 @@ class BudgetingView(BaseView):
 
         # إضافة بند
         add_card = self._make_card("budgeting_add")
-        form = QHBoxLayout()
+        row1 = QHBoxLayout()
         self.year_spin = QSpinBox()
         self.year_spin.setRange(2000, 2100)
         self.year_spin.setValue(2026)
+        row1.addLayout(self._labeled_field("budgeting_year", self.year_spin))
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText(t("budgeting_item_name"))
+        row1.addLayout(self._labeled_field("budgeting_item_name", self.name_edit))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
         self.category_combo = QComboBox()
         self.category_combo.addItems([
             t("budgeting_cat_expense"), t("budgeting_cat_revenue"),
             t("budgeting_cat_investment")])
+        row2.addLayout(self._labeled_field("budgeting_col_category", self.category_combo))
         self.amount_spin = QDoubleSpinBox()
         self.amount_spin.setRange(-1e12, 1e12)
         self.amount_spin.setDecimals(2)
+        row2.addLayout(self._labeled_field("budgeting_col_amount", self.amount_spin))
         add_btn = QPushButton(t("budgeting_add_btn"))
         add_btn.clicked.connect(self._add_item)
-        for w in (self.year_spin, self.name_edit, self.category_combo,
-                  self.amount_spin, add_btn):
-            form.addWidget(w)
-        add_card.layout().addLayout(form)
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         # جدول البنود

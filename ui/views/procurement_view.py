@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -39,23 +39,25 @@ class ProcurementView(BaseView):
         f3, self.stat_pending = self._make_stat(t("procurement_stat_pending"))
         for w in (f1, f2, f3):
             stats.addWidget(w)
-        stats.addStretch()
         self._main_layout.addLayout(stats)
 
         add_card = self._make_card("procurement_add_order")
-        form = QHBoxLayout()
+        row1 = QHBoxLayout()
         self.supplier_edit = QLineEdit()
-        self.supplier_edit.setPlaceholderText(t("procurement_supplier"))
+        row1.addLayout(self._labeled_field("procurement_supplier", self.supplier_edit))
         self.date_edit = QDateEdit(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDisplayFormat("yyyy-MM-dd")
+        row1.addLayout(self._labeled_field("procurement_col_date", self.date_edit))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
         self.ref_edit = QLineEdit()
-        self.ref_edit.setPlaceholderText(t("procurement_reference"))
+        row2.addLayout(self._labeled_field("procurement_reference", self.ref_edit))
         add_btn = QPushButton(t("procurement_add_btn"))
         add_btn.clicked.connect(self._add_order)
-        for w in (self.supplier_edit, self.date_edit, self.ref_edit, add_btn):
-            form.addWidget(w)
-        add_card.layout().addLayout(form)
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addStretch()
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         list_card = self._make_card("procurement_orders_list")

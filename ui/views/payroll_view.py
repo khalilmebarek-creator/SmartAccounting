@@ -4,6 +4,7 @@
 
 from ui.views._path import _  # noqa: F401
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QLineEdit, QComboBox,
@@ -45,22 +46,23 @@ class PayrollView(BaseView):
 
         # إضافة موظف
         add_card = self._make_card("payroll_add_employee")
-        form = QHBoxLayout()
+        row1 = QHBoxLayout()
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText(t("payroll_name"))
+        row1.addLayout(self._labeled_field("payroll_name", self.name_edit))
         self.position_edit = QLineEdit()
-        self.position_edit.setPlaceholderText(t("payroll_position"))
+        row1.addLayout(self._labeled_field("payroll_position", self.position_edit))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
         self.department_edit = QLineEdit()
-        self.department_edit.setPlaceholderText(t("payroll_department"))
+        row2.addLayout(self._labeled_field("payroll_department", self.department_edit))
         self.salary_spin = QDoubleSpinBox()
         self.salary_spin.setRange(0, 1e12)
         self.salary_spin.setDecimals(2)
+        row2.addLayout(self._labeled_field("payroll_col_salary", self.salary_spin))
         add_btn = QPushButton(t("payroll_add_btn"))
         add_btn.clicked.connect(self._add_employee)
-        for w in (self.name_edit, self.position_edit, self.department_edit,
-                  self.salary_spin, add_btn):
-            form.addWidget(w)
-        add_card.layout().addLayout(form)
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         # جدول الموظفين
@@ -91,13 +93,17 @@ class PayrollView(BaseView):
 
         # تشغيل الرواتب
         run_card = self._make_card("payroll_run")
-        run_form = QHBoxLayout()
+        run_row = QHBoxLayout()
         self.month_spin = QSpinBox()
         self.month_spin.setRange(1, 12)
         self.month_spin.setValue(8)
+        run_row.addLayout(self._labeled_field("payroll_month", self.month_spin))
         self.year_spin = QSpinBox()
         self.year_spin.setRange(2000, 2100)
         self.year_spin.setValue(2026)
+        run_row.addLayout(self._labeled_field("payroll_year", self.year_spin))
+        run_card.layout().addLayout(run_row)
+        btns = QHBoxLayout()
         run_btn = QPushButton(t("payroll_run_btn"))
         run_btn.clicked.connect(self._run_payroll)
         export_btn = QPushButton(t("payroll_export_csv"))
@@ -106,12 +112,10 @@ class PayrollView(BaseView):
         save_btn.clicked.connect(self._save_db)
         clear_btn = QPushButton(t("payroll_clear"))
         clear_btn.clicked.connect(self._clear_all)
-        for w in (QLabel(t("payroll_month")), self.month_spin,
-                  QLabel(t("payroll_year")), self.year_spin,
-                  run_btn, export_btn, save_btn, clear_btn):
-            run_form.addWidget(w)
-        run_form.addStretch()
-        run_card.layout().addLayout(run_form)
+        for w in (run_btn, export_btn, save_btn, clear_btn):
+            btns.addWidget(w)
+        btns.addStretch()
+        run_card.layout().addLayout(btns)
 
         self.payslips_table = QTableWidget()
         self.payslips_table.setColumnCount(6)

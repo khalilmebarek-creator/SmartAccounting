@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem, QLineEdit, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame, QTextEdit
 )
-from PyQt5.QtCore import QDate
+from PyQt5.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -39,23 +39,25 @@ class EInvoicingView(BaseView):
         f3, self.stat_verified = self._make_stat(t("einvoice_stat_verified"))
         for w in (f1, f2, f3):
             stats.addWidget(w)
-        stats.addStretch()
         self._main_layout.addLayout(stats)
 
         add_card = self._make_card("einvoice_add")
-        form = QHBoxLayout()
+        row1 = QHBoxLayout()
         self.customer_edit = QLineEdit()
-        self.customer_edit.setPlaceholderText(t("einvoice_customer"))
+        row1.addLayout(self._labeled_field("einvoice_customer", self.customer_edit))
         self.taxid_edit = QLineEdit()
-        self.taxid_edit.setPlaceholderText(t("einvoice_customer_tax_id"))
+        row1.addLayout(self._labeled_field("einvoice_customer_tax_id", self.taxid_edit))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
         self.date_edit = QDateEdit(QDate.currentDate())
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDisplayFormat("yyyy-MM-dd")
+        row2.addLayout(self._labeled_field("einvoice_col_date", self.date_edit))
         add_btn = QPushButton(t("einvoice_add_btn"))
         add_btn.clicked.connect(self._add_invoice)
-        for w in (self.customer_edit, self.taxid_edit, self.date_edit, add_btn):
-            form.addWidget(w)
-        add_card.layout().addLayout(form)
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addStretch()
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         list_card = self._make_card("einvoice_list")

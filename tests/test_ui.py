@@ -611,6 +611,14 @@ class TestPayrollView(unittest.TestCase):
         self.assertEqual(self.view.month_spin.value(), 8)
         self.assertEqual(self.view.year_spin.value(), 2026)
 
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("payroll_name", "payroll_position",
+                    "payroll_department", "payroll_col_salary"):
+            self.assertIn(_t(key), texts, key)
+
 
 class TestBudgetingView(unittest.TestCase):
 
@@ -646,6 +654,68 @@ class TestBudgetingView(unittest.TestCase):
 
     def test_category_combo_has_items(self):
         self.assertGreaterEqual(self.view.category_combo.count(), 3)
+
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("budgeting_year", "budgeting_item_name",
+                    "budgeting_col_category", "budgeting_col_amount"):
+            self.assertIn(_t(key), texts, key)
+
+
+class TestProcurementView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.procurement_view import ProcurementView
+        self.view = ProcurementView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_orders_table_columns(self):
+        self.assertEqual(self.view.orders_table.columnCount(), 5)
+
+    def test_add_requires_supplier(self):
+        from unittest import mock
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view._add_order()
+        self.assertEqual(self.view.orders_table.rowCount(), 0)
+
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("procurement_supplier", "procurement_col_date",
+                    "procurement_reference"):
+            self.assertIn(_t(key), texts, key)
+
+
+class TestEInvoicingView(unittest.TestCase):
+
+    def setUp(self):
+        from ui.views.einvoicing_view import EInvoicingView
+        self.view = EInvoicingView()
+
+    def test_view_creation(self):
+        self.assertIsNotNone(self.view)
+
+    def test_invoice_table_columns(self):
+        self.assertEqual(self.view.invoice_table.columnCount(), 6)
+
+    def test_add_requires_customer(self):
+        from unittest import mock
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view._add_invoice()
+        self.assertEqual(self.view.invoice_table.rowCount(), 0)
+
+    def test_form_fields_have_labels(self):
+        from PyQt5.QtWidgets import QLabel
+        from ui.resources.i18n import t as _t
+        texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
+        for key in ("einvoice_customer", "einvoice_customer_tax_id",
+                    "einvoice_col_date"):
+            self.assertIn(_t(key), texts, key)
 
 
 class TestFadeInSafety(unittest.TestCase):
