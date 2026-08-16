@@ -185,6 +185,8 @@ class _MainShellState extends State<MainShell> {
       snap.taxObligations,
       titleTemplate: (taxType, daysLeft) =>
           '$taxType — ${I18n.format(I18n.t(lang, 'tax_days_left'), ['$daysLeft'])}',
+      dueTitleTemplate: (taxType) =>
+          I18n.formatMap(I18n.t(lang, 'tax_due_today'), {'n': taxType}),
       bodyTemplate: (taxType, amount) => amount == 0
           ? taxType
           : '$taxType: ${amount.toStringAsFixed(2)} DA',

@@ -221,6 +221,24 @@ class TestSettingsView(unittest.TestCase):
         self.assertTrue(hasattr(self.view, "api_url_input"))
         self.assertTrue(hasattr(self.view, "model_combo"))
 
+    def test_api_url_rejects_non_http_schemes(self):
+        from unittest import mock
+        from ui.app_state import state
+        before = state.api_url
+        self.view.api_url_input.setText("file:///C:/Windows/system32")
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view.save_settings()
+        self.assertEqual(state.api_url, before)
+
+    def test_api_url_accepts_https(self):
+        from unittest import mock
+        from ui.app_state import state
+        self.view.api_url_input.setText("https://api.example.com/v1")
+        with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), \
+                mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            self.view.save_settings()
+        self.assertEqual(state.api_url, "https://api.example.com/v1")
+
     def test_backup_buttons_exist(self):
         for name in ("backup_btn", "restore_btn", "export_json_btn",
                      "import_json_btn", "save_btn"):

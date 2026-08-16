@@ -1,6 +1,7 @@
 # إدارة الطباعة المباشرة
 # =======================
 
+import html as _html
 import os
 import tempfile
 from datetime import datetime
@@ -86,14 +87,17 @@ class PrintManager:
 
     def generate_report_html(self, title: str, sections: list,
                              company_name: str = "", fiscal_year: str = "") -> str:
-        """توليد تقرير HTML جاهز للطباعة"""
+        """توليد تقرير HTML جاهز للطباعة (كل المدخلات مؤمّنة ضد XSS)."""
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        safe_title = _html.escape(str(title))
+        safe_company = _html.escape(str(company_name))
+        safe_year = _html.escape(str(fiscal_year))
 
         html = f"""<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>{title}</title>
+<title>{safe_title}</title>
 <style>
   body {{ font-family: 'Amiri', Arial, sans-serif; margin: 40px; color: #333; direction: rtl; }}
   .header {{ text-align: center; border-bottom: 3px solid #2980B9; padding-bottom: 15px; margin-bottom: 25px; }}
@@ -117,22 +121,23 @@ class PrintManager:
 </head>
 <body>
 <div class="header">
-  <h1>{title}</h1>
-  {"<div class='meta'>الشركة: " + company_name + "</div>" if company_name else ""}
-  {"<div class='meta'>السنة المالية: " + fiscal_year + "</div>" if fiscal_year else ""}
+  <h1>{safe_title}</h1>
+  {"<div class='meta'>الشركة: " + safe_company + "</div>" if company_name else ""}
+  {"<div class='meta'>السنة المالية: " + safe_year + "</div>" if fiscal_year else ""}
   <div class="meta">تاريخ الطباعة: {now}</div>
 </div>
 """
 
         for section in sections:
-            html += f'<div class="section">\n<h2>{section.get("title", "")}</h2>\n'
+            safe_section_title = _html.escape(str(section.get("title", "")))
+            html += f'<div class="section">\n<h2>{safe_section_title}</h2>\n'
             rows = section.get("rows", [])
             if rows:
                 headers = section.get("headers", [])
                 if headers:
                     html += "<table><thead><tr>"
                     for h in headers:
-                        html += f"<th>{h}</th>"
+                        html += f"<th>{_html.escape(str(h))}</th>"
                     html += "</tr></thead><tbody>\n"
                 for row in rows:
                     html += "<tr>"
@@ -144,13 +149,13 @@ class PrintManager:
                             elif cell < 0:
                                 css_class = ' class="negative"'
                             cell = f"{cell:,.2f}"
-                        html += f"<td{css_class}>{cell}</td>"
+                        html += f"<td{css_class}>{_html.escape(str(cell))}</td>"
                     html += "</tr>\n"
                 if headers:
                     html += "</tbody></table>\n"
             content = section.get("content", "")
             if content:
-                html += f"<p>{content}</p>\n"
+                html += f"<p>{_html.escape(str(content))}</p>\n"
             html += "</div>\n"
 
         html += f"""

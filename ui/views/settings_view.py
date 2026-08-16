@@ -381,7 +381,11 @@ class SettingsView(QWidget):
             state.theme = "dark"
 
         state.api_key = self.api_key_input.text().strip()
-        state.api_url = self.api_url_input.text().strip() or "https://api.openai.com/v1/chat/completions"
+        api_url = self.api_url_input.text().strip() or "https://api.openai.com/v1/chat/completions"
+        if not (api_url.startswith("https://") or api_url.startswith("http://")):
+            QMessageBox.warning(self, t("settings_title"), t("settings_api_url_invalid"))
+            return
+        state.api_url = api_url
         state.model = self.model_combo.currentText().strip() or "gpt-4o-mini"
 
         email_notifier.configure(
