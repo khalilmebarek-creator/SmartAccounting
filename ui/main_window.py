@@ -254,46 +254,11 @@ class MainWindow(QMainWindow):
 
         self._lazy_views = {}
         self._view_anims = {}
+        self._current_allowed_screens = None
+        from ui.views.view_registry import VIEW_REGISTRY
         self._view_factories = {
-            1: ("data_entry", _lazy_view_factory("ui.views.data_entry", "DataEntryView")),
-            2: ("dashboard", _lazy_view_factory("ui.views.dashboard", "DashboardView")),
-            3: ("ratios", _lazy_view_factory("ui.views.ratios_view", "RatiosView")),
-            4: ("dupont", _lazy_view_factory("ui.views.analysis_view", "DuPontView")),
-            5: ("audit", _lazy_view_factory("ui.views.audit_view", "AuditView")),
-            6: ("reports", _lazy_view_factory("ui.views.reports_view", "ReportsView")),
-            7: ("settings", _lazy_view_factory("ui.views.settings_view", "SettingsView")),
-            8: ("chat", _lazy_view_factory("ui.views.chat_view", "ChatView")),
-            9: ("tax", _lazy_view_factory("ui.views.tax_view", "TaxView")),
-            10: ("comparative", _lazy_view_factory("ui.views.comparative_view", "ComparativeView")),
-            11: ("cashflow", _lazy_view_factory("ui.views.cashflow_view", "CashFlowView")),
-            12: ("security", _lazy_view_factory("ui.views.security_view", "SecurityView")),
-            13: ("zscore", _lazy_view_factory("ui.views.zscore_view", "ZScoreView")),
-            14: ("forecast", _lazy_view_factory("ui.views.forecasting_view", "ForecastingView")),
-            15: ("budget", _lazy_view_factory("ui.views.budget_view", "BudgetView")),
-            16: ("cost_center", _lazy_view_factory("ui.views.cost_center_view", "CostCenterView")),
-            17: ("breakeven", _lazy_view_factory("ui.views.breakeven_view", "BreakEvenView")),
-            18: ("benchmarks", _lazy_view_factory("ui.views.benchmarks_view", "BenchmarkView")),
-            19: ("tax_calendar", _lazy_view_factory("ui.views.tax_calendar_view", "TaxCalendarView")),
-            20: ("data_import", _lazy_view_factory("ui.views.data_import_view", "DataImportView")),
-            21: ("bank_sync", _lazy_view_factory("ui.views.bank_sync_view", "BankSyncView")),
-            22: ("scenarios", _lazy_view_factory("ui.views.scenarios_view", "ScenariosView")),
-            23: ("advanced_dashboard", _lazy_view_factory("ui.views.advanced_dashboard_view", "AdvancedDashboardView")),
-            24: ("ai_insights", _lazy_view_factory("ui.views.ai_insights_view", "AIInsightsView")),
-            25: ("cost_profit", _lazy_view_factory("ui.views.cost_center_profitability_view", "CostCenterProfitabilityView")),
-            26: ("currency", _lazy_view_factory("ui.views.currency_view", "CurrencyView")),
-            27: ("cloud_sync", _lazy_view_factory("ui.views.cloud_sync_view", "CloudSyncView")),
-            28: ("demo_data", _lazy_view_factory("ui.views.demo_data_view", "DemoDataView")),
-            29: ("user_testing", _lazy_view_factory("ui.views.user_testing_view", "UserTestingView")),
-            30: ("ledger", _lazy_view_factory("ui.views.ledger_view", "LedgerView")),
-            31: ("partners", _lazy_view_factory("ui.views.partners_view", "PartnersView")),
-            32: ("invoicing", _lazy_view_factory("ui.views.invoicing_view", "InvoicingView")),
-            33: ("inventory", _lazy_view_factory("ui.views.inventory_view", "InventoryView")),
-            34: ("payroll", _lazy_view_factory("ui.views.payroll_view", "PayrollView")),
-            35: ("budgeting", _lazy_view_factory("ui.views.budgeting_view", "BudgetingView")),
-            36: ("procurement", _lazy_view_factory("ui.views.procurement_view", "ProcurementView")),
-            37: ("einvoicing", _lazy_view_factory("ui.views.einvoicing_view", "EInvoicingView")),
-            38: ("ias", _lazy_view_factory("ui.views.ias_reports_view", "IASReportsView")),
-            39: ("ai_platform", _lazy_view_factory("ui.views.ai_platform_view", "AIPlatformView")),
+            vid: (name, _lazy_view_factory(module, cls))
+            for vid, (name, module, cls) in VIEW_REGISTRY.items()
         }
 
         self.create_menu_bar()
@@ -405,6 +370,9 @@ class MainWindow(QMainWindow):
     def _on_login_success(self):
         """After successful login, show main content."""
         user = user_manager.get_current_user()
+        self._current_allowed_screens = user_manager.get_allowed_screens(
+            user["username"]) if user else None
+        self._build_ribbon()
         self.ribbon_widget.show()
         self.alert_banner.show()
         self.content.setCurrentIndex(1)
@@ -414,6 +382,12 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(f"{welcome}: {user['display_name']} ({user['role']})")
         self.log.info(f"User logged in: {user['username']} ({user['role']})")
         activity_log.log("login", f"user={user['username']}, role={user['role']}")
+
+    def _is_view_allowed(self, view_id: int) -> bool:
+        """هل الشاشة مسموحة للمستخدم الحالي (None = كل الشاشات)؟"""
+        if self._current_allowed_screens is None:
+            return True
+        return view_id in self._current_allowed_screens
 
     def _try_auto_login(self):
         """Skip the login screen when a valid remember-me session exists."""
@@ -435,6 +409,7 @@ class MainWindow(QMainWindow):
         username = user["username"] if user else "unknown"
         user_manager.logout()
         clear_saved_password()
+        self._current_allowed_screens = None
         self.ribbon_widget.hide()
         self.alert_banner.hide()
         self.content.setCurrentIndex(0)
@@ -598,6 +573,7 @@ class MainWindow(QMainWindow):
         ))
 
         help_menu = menubar.addMenu(t("menu_help"))
+        help_menu.addAction(self._make_action(t("menu_guide"), slot=self.show_guide_dialog))
         help_menu.addAction(self._make_action(t("menu_license"), slot=self.show_license_dialog))
         help_menu.addAction(self._make_action(t("menu_about"), slot=self.show_about))
         help_menu.addAction(self._make_action(t("menu_tests"), slot=self.run_tests))
@@ -607,6 +583,13 @@ class MainWindow(QMainWindow):
         """فتح حوار تفعيل الترخيص (Module 1 - Licensing)."""
         from commercial.licensing.license_dialog import LicenseDialog
         LicenseDialog(self).exec_()
+
+    def show_guide_dialog(self):
+        """فتح دليل الاستخدام التفاعلي (بدون كود/بنية — للمستخدم النهائي)."""
+        from ui.views.guide_view import GuideDialog
+        dialog = GuideDialog(self)
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.show()
 
     def create_menu_bar(self):
         """إنشاء شريط القوائم"""
@@ -663,7 +646,7 @@ class MainWindow(QMainWindow):
     )
 
     def _build_ribbon(self):
-        """بناء الشريط الأفقي — تبويبات + أزرار أيقونية"""
+        """بناء الشريط الأفقي — تبويبات + أزرار أيقونية (تُرشّح حسب صلاحيات المستخدم)"""
         self.ribbon_tabs.blockSignals(True)
         # مسح التبويبات القديمة
         while self.ribbon_tabs.count():
@@ -674,12 +657,15 @@ class MainWindow(QMainWindow):
             w.deleteLater()
         self.ribbon_view_to_tab = {}
         for tab_idx, (group_key, view_ids) in enumerate(self._RIBBON_TABS):
+            allowed_ids = [vid for vid in view_ids if self._is_view_allowed(vid)]
+            if not allowed_ids:
+                continue
             self.ribbon_tabs.addTab(t(group_key))
             panel = QWidget()
             panel_layout = QHBoxLayout()
             panel_layout.setContentsMargins(8, 4, 8, 4)
             panel_layout.setSpacing(4)
-            for vid in view_ids:
+            for vid in allowed_ids:
                 name = self._view_factories[vid][0]
                 label = t(f"sidebar_{name}")
                 icon = label.split(" ", 1)[0] if " " in label else ""
@@ -705,6 +691,9 @@ class MainWindow(QMainWindow):
 
     def _go_to_view(self, view_id):
         """الانتقال لشاشة بمعرّفها وتفعيل التبويب المناسب"""
+        if not self._is_view_allowed(view_id):
+            self.log.warning("Blocked view %d (not allowed for current user)", view_id)
+            return
         tab_idx = self.ribbon_view_to_tab.get(view_id)
         if tab_idx is not None:
             self.ribbon_tabs.setCurrentIndex(tab_idx)

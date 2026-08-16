@@ -48,6 +48,7 @@ class SettingsView(QWidget):
         self._build_separator()
         self._build_email_group()
         self._build_backup_group()
+        self._build_users_group()
         self._build_separator2()
         self._build_reset_group()
         self._build_demo_group()
@@ -227,6 +228,59 @@ class SettingsView(QWidget):
 
         self.email_group.setLayout(email_layout)
         self.main_layout.addWidget(self.email_group)
+
+    def _build_users_group(self):
+        """المستخدمون والشاشات — ظاهرة للمدير فقط: توزيع الشاشات على الأعضاء"""
+        from modules.user_manager import user_manager, ROLE_ADMIN
+        self.users_group = QGroupBox(t("settings_users_group"))
+        users_layout = QHBoxLayout()
+        users_layout.setSpacing(15)
+        users_layout.setContentsMargins(15, 20, 15, 15)
+
+        self.users_combo = QComboBox()
+        self.users_combo.setMinimumWidth(220)
+        self.users_combo.setMinimumHeight(40)
+        self.refresh_users_combo()
+
+        self.assign_screens_btn = QPushButton(t("settings_screens_assign"))
+        self.assign_screens_btn.setMinimumHeight(40)
+        self.assign_screens_btn.clicked.connect(self._open_screens_assignment)
+
+        users_layout.addWidget(self.users_combo)
+        users_layout.addWidget(self.assign_screens_btn)
+        users_layout.addStretch()
+
+        self.users_group.setLayout(users_layout)
+        self.main_layout.addWidget(self.users_group)
+
+        current = user_manager.get_current_user()
+        if not current or current.get("role") != ROLE_ADMIN:
+            self.users_group.hide()
+
+    def refresh_users_combo(self):
+        """إعادة تعبئة قائمة المستخدمين (بدون المدير)."""
+        from modules.user_manager import user_manager, ROLE_ADMIN
+        if not hasattr(self, "users_combo"):
+            return
+        self.users_combo.blockSignals(True)
+        self.users_combo.clear()
+        for u in user_manager.list_users():
+            if u["role"] == ROLE_ADMIN:
+                continue
+            self.users_combo.addItem(
+                f"{u['display_name']} ({u['username']})", u["username"])
+        self.users_combo.blockSignals(False)
+
+    def _open_screens_assignment(self):
+        """فتح حوار توزيع الشاشات للعضو المختار."""
+        username = self.users_combo.currentData()
+        if not username:
+            QMessageBox.warning(self, t("settings_users_group"),
+                                t("settings_users_none_selected"))
+            return
+        from ui.views.screens_assignment_view import ScreensAssignmentDialog
+        dialog = ScreensAssignmentDialog(username, self)
+        dialog.show()
 
     def _build_backup_group(self):
         """النسخ الاحتياطي"""

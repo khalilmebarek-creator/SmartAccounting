@@ -265,6 +265,50 @@ class UserManager:
             logger.info(f"User logged out: {user['username']}")
         self._current_user = None
 
+    # ==================== توزيع الشاشات (ميزة الفريق) ====================
+
+    def list_users(self) -> list:
+        """قائمة المستخدمين المسجلين (نسخ دون كلمة المرور)."""
+        users = []
+        for username, data in self._users.items():
+            users.append({
+                "username": username,
+                "display_name": data.get("display_name", username),
+                "role": data.get("role", ROLE_VIEWER),
+                "email": data.get("email", ""),
+            })
+        return users
+
+    def get_allowed_screens(self, username: str):
+        """شاشات المستخدم المسموحة: قائمة معرّفات أو None (= كل الشاشات).
+
+        المدير دائماً None (كل الشاشات). المستخدم بلا حقل مخصص → None.
+        الشاشات الحرجة 1 (إدخال) و2 (لوحة) تُضمن دائماً.
+        """
+        if not username:
+            return None
+        user = self._users.get(username.strip().lower())
+        if not user:
+            return None
+        if user.get("role") == ROLE_ADMIN:
+            return None
+        allowed = user.get("allowed_screens")
+        if not isinstance(allowed, list):
+            return None
+        result = sorted({1, 2} | {int(v) for v in allowed if isinstance(v, int)})
+        return result
+
+    def set_allowed_screens(self, username: str, screen_ids: list) -> bool:
+        """المدير يحدد شاشات عضو (قائمة معرّفات؛ 1 و2 تُضمنان تلقائياً)."""
+        username = username.strip().lower()
+        if username not in self._users:
+            return False
+        clean = sorted({1, 2} | {int(v) for v in screen_ids if isinstance(v, int)})
+        self._users[username]["allowed_screens"] = clean
+        self._save()
+        logger.info(f"Screens assigned to {username}: {clean}")
+        return True
+
     def register(self, email: str, password: str, display_name: str = "", role: str = ROLE_VIEWER) -> tuple:
         email = email.strip().lower()
         if not email or not password:
