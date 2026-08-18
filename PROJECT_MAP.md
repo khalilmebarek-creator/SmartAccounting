@@ -1,5 +1,5 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-05 | الإصدار: v3.1.8
+> آخر تحديث: 2026-08-18 | الإصدار: v3.2.0
 
 ---
 
@@ -535,3 +535,11 @@ Accounting_Platform/
 | كلمة مرور المسؤول الافتراضية (config) | ✅ قابلة للتجاوز عبر متغير البيئة `SAP_ADMIN_PASSWORD` + إجبار تغييرها عند أول دخول (`must_change_password`) |
 | روابط التحديثات (update_checker) | ✅ HTTPS فقط (GitHub Pages) |
 | حقن SQL | ✅ استعلامات مُعاملات + أسماء جداول مُنقّاة/مرفوضة المحجوزة |
+
+---
+
+## SESSION LOG
+
+| الجلسة | التاريخ | الإصدار | الملفات | المحتوى |
+|--------|---------|---------|---------|---------|
+| 97c | 2026-08-18 | v3.2.0 | config.py, modules/bank_api.py, modules/backup.py, modules/bank_sync.py, modules/cloud_sync.py, modules/excel_export.py, modules/print_manager.py, modules/tax_reminders.py, modules/update_checker.py, modules/user_testing.py, modules/data_import.py, ui/app_state.py, ui/login_session.py, .bandit, .github/workflows/codeql.yml | **تخفيف أثر Bandit + CodeQL**: إصلاح MD5→SHA-256 في bank_api.py + إزالة كلمة المرور الافتراضية في config.py + إضافة logging لـ 14 try/except pass + ملف .bandit لـ false positives + CodeQL workflow مجاني على GitHub → **0 HIGH** (كان 1) + **183 إجمالي** (117 LOW مقبول + 66 MEDIUM B608 SQL مُعاملات/جداول ثابتة false positive) — **2075 اختباراً أخضر** + push `e806f75` |
