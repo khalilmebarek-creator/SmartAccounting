@@ -1,7 +1,8 @@
 # Base view class with common layout helpers
 # ===========================================
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel, QScrollArea
+from PyQt5.QtGui import QFont
 from PyQt5.QtGui import QFont
 
 from ui.resources.i18n import t
@@ -23,15 +24,36 @@ def _clear_nested(layout):
             _clear_nested(child)
 
 
+def wrap_in_scroll(widget):
+    """لفّ أي widget في QScrollArea — للشاشات التي لا ترث BaseView."""
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setFrameShape(QFrame.NoFrame)
+    scroll.setWidget(widget)
+    scroll._wrapped_view = widget
+    return scroll
+
+
 class BaseView(QWidget):
     """Base class for all views — provides common layout and helper methods."""
 
     def __init__(self):
         super().__init__()
-        self._main_layout = QVBoxLayout()
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setFrameShape(QFrame.NoFrame)
+
+        container = QWidget()
+        self._main_layout = QVBoxLayout(container)
         self._main_layout.setContentsMargins(*PAGE_MARGINS)
         self._main_layout.setSpacing(PAGE_SPACING)
-        self.setLayout(self._main_layout)
+
+        self._scroll.setWidget(container)
+        outer.addWidget(self._scroll)
 
     def _make_header(self, title_key: str, subtitle_key: str = None) -> QLabel:
         """Add a standard title + optional subtitle to the layout."""

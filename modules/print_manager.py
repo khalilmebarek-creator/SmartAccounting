@@ -240,7 +240,7 @@ class PrintManager:
             if os.path.exists(self.temp_dir):
                 shutil.rmtree(self.temp_dir, ignore_errors=True)
         except Exception:
-            pass
+            logger.debug("Failed to cleanup temp dir", exc_info=True)
 
 
 print_manager = PrintManager()

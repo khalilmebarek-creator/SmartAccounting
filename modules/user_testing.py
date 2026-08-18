@@ -61,7 +61,7 @@ def _atomic_write(path, text):
         try:
             os.remove(tmp_path)
         except OSError:
-            pass
+            log.debug("Failed to remove temp file during atomic write cleanup", exc_info=True)
         raise
 
 

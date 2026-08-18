@@ -35,7 +35,7 @@ class BankSimulator:
             raise BankAPIError(f"unknown bank: {bank_code}")
         self.bank_code = bank_code
         self.bank_info = self._templates[bank_code]
-        self.account = account_number or f"DZ{hashlib.md5(str(date.today()).encode()).hexdigest()[:14].upper()}"
+        self.account = account_number or f"DZ{hashlib.sha256(str(date.today()).encode()).hexdigest()[:14].upper()}"
 
     def fetch_transactions(self, from_date=None, to_date=None, count=20):
         """محاكاة جلب كشف حساب. Returns: list of transaction dicts."""

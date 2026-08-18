@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (
     QPushButton, QLineEdit, QMessageBox, QStackedWidget,
     QFormLayout, QToolButton, QCheckBox,
 )
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFont
+from PyQt5.QtCore import Qt, pyqtSignal, QSize
+from PyQt5.QtGui import QFont, QPixmap, QIcon
 
 from ui.resources.i18n import t
 from ui.app_state import ThemeColors
@@ -116,6 +116,18 @@ class LoginView(QWidget):
         container_layout = QVBoxLayout()
         container_layout.setContentsMargins(40, 40, 40, 40)
         container_layout.setSpacing(20)
+
+        import os
+        base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        icon_path = os.path.join(base, 'resources', 'app_icon_hq.png')
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(base, 'resources', 'app_icon.ico')
+        if os.path.exists(icon_path):
+            logo = QLabel()
+            pixmap = QPixmap(icon_path)
+            logo.setPixmap(pixmap.scaled(QSize(120, 120), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            logo.setAlignment(Qt.AlignCenter)
+            container_layout.addWidget(logo)
 
         title = QLabel(t("login_title"))
         title.setObjectName("headerTitle")

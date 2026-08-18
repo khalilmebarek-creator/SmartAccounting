@@ -48,6 +48,31 @@ class TestBaseViewHelpers(unittest.TestCase):
         self.assertEqual(view._main_layout.count(), 0)
 
 
+class TestBaseViewScrollArea(unittest.TestCase):
+    """BaseView must wrap _main_layout inside a scroll area."""
+
+    def setUp(self):
+        from ui.views._base import BaseView
+        self.view = BaseView()
+
+    def test_scroll_area_exists(self):
+        from PyQt5.QtWidgets import QScrollArea
+        self.assertTrue(hasattr(self.view, "_scroll"))
+        self.assertIsInstance(self.view._scroll, QScrollArea)
+
+    def test_scroll_area_resizable(self):
+        self.assertTrue(self.view._scroll.widgetResizable())
+
+    def test_scroll_area_no_frame(self):
+        from PyQt5.QtWidgets import QFrame
+        self.assertEqual(self.view._scroll.frameShape(), QFrame.NoFrame)
+
+    def test_main_layout_inside_scroll_widget(self):
+        scroll_widget = self.view._scroll.widget()
+        self.assertIsNotNone(scroll_widget)
+        self.assertEqual(scroll_widget.layout(), self.view._main_layout)
+
+
 class TestDashboardView(unittest.TestCase):
 
     def setUp(self):

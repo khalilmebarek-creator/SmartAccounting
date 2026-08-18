@@ -124,6 +124,7 @@ class CostCenterView(QWidget):
             t("cost_center_margin"), t("cost_center_efficiency")
         ])
         self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.setMinimumHeight(44 * 5 + 30)
         main_layout.addWidget(self.results_table)
 
         self.figure = Figure(figsize=(8, 4), dpi=100)

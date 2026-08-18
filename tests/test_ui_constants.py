@@ -101,7 +101,7 @@ class TestBaseViewStandard(unittest.TestCase):
         from ui.views._base import BaseView
         from ui.constants import PAGE_MARGINS, PAGE_SPACING
         view = BaseView()
-        lyt = view.layout()
+        lyt = view._main_layout
         self.assertEqual(lyt.spacing(), PAGE_SPACING)
         self.assertEqual(lyt.getContentsMargins()[0:4], PAGE_MARGINS)
 

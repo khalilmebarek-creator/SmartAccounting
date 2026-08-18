@@ -250,7 +250,7 @@ class ExcelExporter:
                 chart.height = 10
                 ws.add_chart(chart, "D4")
             except Exception:
-                pass
+                logger.debug("Failed to add chart", exc_info=True)
 
     def _add_ratios_sheet(self, wb, ratios: Dict):
         ws = wb.create_sheet("Financial Ratios")

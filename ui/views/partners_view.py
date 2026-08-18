@@ -47,27 +47,28 @@ class PartnersView(BaseView):
 
         # إضافة شريك
         add_card = self._make_card("partners_add")
-        form = QHBoxLayout()
+        row1 = QHBoxLayout()
         self.type_combo = QComboBox()
         self.type_combo.addItems([t("partners_customer"), t("partners_supplier")])
         self.name_edit = QLineEdit()
         self.name_edit.setPlaceholderText(t("partners_name"))
         self.phone_edit = QLineEdit()
         self.phone_edit.setPlaceholderText(t("partners_phone"))
+        row1.addLayout(self._labeled_field("partners_col_type", self.type_combo))
+        row1.addLayout(self._labeled_field("partners_name", self.name_edit))
+        row1.addLayout(self._labeled_field("partners_phone", self.phone_edit))
+        add_card.layout().addLayout(row1)
+        row2 = QHBoxLayout()
         self.email_edit = QLineEdit()
         self.email_edit.setPlaceholderText(t("partners_email"))
         self.tax_edit = QLineEdit()
         self.tax_edit.setPlaceholderText(t("partners_tax_id"))
         add_btn = QPushButton(t("partners_add_btn"))
         add_btn.clicked.connect(self._add_partner)
-        for lbl_key, w in (("partners_col_type", self.type_combo),
-                           ("partners_name", self.name_edit),
-                           ("partners_phone", self.phone_edit),
-                           ("partners_email", self.email_edit),
-                           ("partners_tax_id", self.tax_edit)):
-            form.addLayout(self._labeled_field(lbl_key, w))
-        form.addWidget(add_btn, 0, Qt.AlignBottom)
-        add_card.layout().addLayout(form)
+        row2.addLayout(self._labeled_field("partners_email", self.email_edit))
+        row2.addLayout(self._labeled_field("partners_tax_id", self.tax_edit))
+        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
         # جدول الشركاء
@@ -100,18 +101,23 @@ class PartnersView(BaseView):
         self.partners_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.partners_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.partners_table.itemSelectionChanged.connect(self._on_select_partner)
+        self.partners_table.setMinimumHeight(44 * 6 + 30)
         list_card.layout().addWidget(self.partners_table)
         self._main_layout.addWidget(list_card)
 
         # معاملة + تقادم
         row = QHBoxLayout()
         tx_card = self._make_card("partners_tx")
-        tx_form = QHBoxLayout()
+        tx_row1 = QHBoxLayout()
         self.tx_date = QDateEdit(QDate.currentDate())
         self.tx_date.setCalendarPopup(True)
         self.tx_date.setDisplayFormat("yyyy-MM-dd")
         self.tx_type = QComboBox()
         self.tx_type.addItems([t("partners_tx_%s" % tx) for tx in _TX_TYPES])
+        tx_row1.addLayout(self._labeled_field("partners_col_date", self.tx_date))
+        tx_row1.addLayout(self._labeled_field("partners_col_type", self.tx_type))
+        tx_card.layout().addLayout(tx_row1)
+        tx_row2 = QHBoxLayout()
         self.tx_amount = QDoubleSpinBox()
         self.tx_amount.setRange(-1e12, 1e12)
         self.tx_amount.setDecimals(2)
@@ -119,13 +125,10 @@ class PartnersView(BaseView):
         self.tx_ref.setPlaceholderText(t("partners_tx_reference"))
         tx_add_btn = QPushButton(t("partners_tx_add"))
         tx_add_btn.clicked.connect(self._add_transaction)
-        for lbl_key, w in (("partners_col_date", self.tx_date),
-                           ("partners_col_type", self.tx_type),
-                           ("partners_col_amount", self.tx_amount),
-                           ("partners_tx_reference", self.tx_ref)):
-            tx_form.addLayout(self._labeled_field(lbl_key, w))
-        tx_form.addWidget(tx_add_btn, 0, Qt.AlignBottom)
-        tx_card.layout().addLayout(tx_form)
+        tx_row2.addLayout(self._labeled_field("partners_col_amount", self.tx_amount))
+        tx_row2.addLayout(self._labeled_field("partners_tx_reference", self.tx_ref))
+        tx_row2.addWidget(tx_add_btn, 0, Qt.AlignBottom)
+        tx_card.layout().addLayout(tx_row2)
 
         self.tx_table = QTableWidget()
         self.tx_table.setColumnCount(5)
@@ -136,6 +139,7 @@ class PartnersView(BaseView):
         ])
         self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tx_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tx_table.setMinimumHeight(44 * 5 + 30)
         tx_card.layout().addWidget(self.tx_table)
         row.addWidget(tx_card)
 
@@ -149,6 +153,7 @@ class PartnersView(BaseView):
         ])
         self.aging_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.aging_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.aging_table.setMinimumHeight(44 * 5 + 30)
         aging_card.layout().addWidget(self.aging_table)
         row.addWidget(aging_card)
         self._main_layout.addLayout(row)

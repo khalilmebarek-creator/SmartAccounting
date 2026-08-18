@@ -269,7 +269,7 @@ class BankSyncManager:
                         tx["amount"] = tx["credit"] - tx["debit"] if tx["credit"] > 0 else -tx["debit"]
                         transactions.append(tx)
                     except Exception:
-                        pass
+                        logger.debug("Failed to parse transaction", exc_info=True)
 
             return {
                 "bank": "Generic",

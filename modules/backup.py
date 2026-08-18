@@ -190,7 +190,7 @@ class BackupManager:
                 try:
                     conn.rollback()
                 except Exception:
-                    pass
+                    logger.debug("Rollback also failed during import", exc_info=True)
             logger.error(f"Import from JSON failed: {e}")
             return (False, str(e))
         finally:

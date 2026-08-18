@@ -1,0 +1,3 @@
+[bandit]
+exclude = tests,tools,mobile,thesis,.git,__pycache__
+skips = B101

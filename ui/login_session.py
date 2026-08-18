@@ -36,7 +36,8 @@ def save_login_email(email: str):
         with open(SESSION_FILE, "w", encoding="utf-8") as f:
             json.dump({"last_email": email}, f)
     except Exception:
-        pass
+        import logging
+        logging.getLogger("login_session").debug("Failed to save login email", exc_info=True)
 
 
 def save_login_session(email: str, password: str, remember: bool):
@@ -100,7 +101,8 @@ def clear_saved_password():
         with open(SESSION_FILE, "w", encoding="utf-8") as f:
             json.dump({"last_email": email}, f)
     except Exception:
-        pass
+        import logging
+        logging.getLogger("login_session").debug("Failed to clear saved password", exc_info=True)
 
 
 def load_login_email() -> str:
@@ -110,7 +112,8 @@ def load_login_email() -> str:
                 data = json.load(f)
             return data.get("last_email", "")
     except Exception:
-        pass
+        import logging
+        logging.getLogger("login_session").debug("Failed to load login email", exc_info=True)
     return ""
 
 
@@ -119,4 +122,5 @@ def clear_login_email():
         if os.path.exists(SESSION_FILE):
             os.remove(SESSION_FILE)
     except Exception:
-        pass
+        import logging
+        logging.getLogger("login_session").debug("Failed to clear login email", exc_info=True)

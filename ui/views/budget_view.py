@@ -94,6 +94,8 @@ class BudgetView(QWidget):
         for card_label, card_val in cards:
             frame = QGroupBox(card_label)
             frame.setObjectName("card")
+            frame.setMinimumHeight(60)
+            frame.setMinimumWidth(150)
             vl = QVBoxLayout()
             font = QFont()
             font.setPointSize(16)

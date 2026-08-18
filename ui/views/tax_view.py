@@ -185,6 +185,7 @@ class TaxView(QWidget):
         self.results_table.setAlternatingRowColors(True)
         self.results_table.verticalHeader().setVisible(False)
         self.results_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.results_table.setMinimumHeight(44 * 8 + 30)
         results_layout.addWidget(self.results_table)
 
         results_group.setLayout(results_layout)
@@ -425,6 +426,7 @@ class TaxView(QWidget):
         self.oblig_table.setAlternatingRowColors(True)
         self.oblig_table.verticalHeader().setVisible(False)
         self.oblig_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.oblig_table.setMinimumHeight(44 * 6 + 30)
         layout.addWidget(self.oblig_table)
 
         from ui.widgets.table_filter import TableFilterWidget
@@ -533,6 +535,7 @@ class TaxView(QWidget):
             spin.setDecimals(0)
             spin.setGroupSeparatorShown(True)
             spin.setSuffix(" DZD")
+            spin.setMinimumHeight(40)
             return spin
 
         self.decl_turnover_lbl = QLabel(t("taxdecl_turnover"))

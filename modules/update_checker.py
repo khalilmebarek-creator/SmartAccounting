@@ -219,12 +219,12 @@ def download_installer(
             try:
                 f.close()
             except Exception:
-                pass
+                log.debug("Failed to close download file", exc_info=True)
             if not ok and path and os.path.exists(path):
                 try:
                     os.remove(path)
                 except Exception:
-                    pass
+                    log.debug("Failed to remove incomplete download", exc_info=True)
 
 
 def _default_executable() -> Optional[str]:

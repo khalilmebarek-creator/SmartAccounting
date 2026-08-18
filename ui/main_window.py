@@ -5,6 +5,7 @@ import sys
 import os
 
 from ui.views._path import _  # noqa: F401
+from ui.views._base import wrap_in_scroll
 
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -84,7 +85,7 @@ class MainWindow(QMainWindow):
             if msg.exec_() == QMessageBox.Yes:
                 self._perform_update(info)
         except Exception:
-            pass
+            self.log.debug("Update dialog dismissed or failed", exc_info=True)
 
     def _perform_update(self, info: dict):
         """تحميل التحديث → تشغيل المثبت → إعادة التشغيل تلقائياً"""
@@ -231,7 +232,11 @@ class MainWindow(QMainWindow):
         """إنشاء الواجهة الرئيسية"""
         self.setWindowTitle(t("window_title"))
         screen = QApplication.primaryScreen().availableGeometry()
-        self.setGeometry(screen)
+        w = min(1440, screen.width())
+        h = min(900, screen.height())
+        x = screen.x() + (screen.width() - w) // 2
+        y = screen.y() + (screen.height() - h) // 2
+        self.setGeometry(x, y, w, h)
         self.setMinimumSize(
             min(1200, screen.width()),
             min(800, screen.height()),
@@ -630,7 +635,7 @@ class MainWindow(QMainWindow):
             view.data_changed.connect(self.on_tax_data_changed)
 
         self.content.removeWidget(self.content.widget(index))
-        self.content.insertWidget(index, view)
+        self.content.insertWidget(index, wrap_in_scroll(view))
         self.log.info(f"Lazy-loaded view: {name} (index={index})")
         return view
 
@@ -700,8 +705,9 @@ class MainWindow(QMainWindow):
         self._get_or_create_view(view_id)
         self.content.setCurrentIndex(view_id)
         current = self.content.currentWidget()
-        if current and hasattr(current, 'refresh'):
-            current.refresh()
+        wrapped_view = getattr(current, '_wrapped_view', current)
+        if wrapped_view and hasattr(wrapped_view, 'refresh'):
+            wrapped_view.refresh()
         self._fade_in_view(current)
         if hasattr(self, 'header_section'):
             name = self._view_factories.get(view_id, ("",))[0]
@@ -855,7 +861,9 @@ class MainWindow(QMainWindow):
             try:
                 from PyQt5.QtGui import QPainter
                 painter = QPainter(printer)
-                self.content.currentWidget().render(painter)
+                _view = getattr(self.content.currentWidget(), '_wrapped_view',
+                                self.content.currentWidget())
+                _view.render(painter)
                 painter.end()
                 self.status_bar.showMessage(t("print_success"))
             except Exception as e:

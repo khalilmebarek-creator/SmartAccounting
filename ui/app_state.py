@@ -120,7 +120,7 @@ class AppState:
                     "rates": self.exchange_rates,
                 })
             except Exception:
-                pass
+                get_logger("app_state").debug("Failed to sync currency engine", exc_info=True)
 
     def save_settings(self):
         try:
@@ -128,7 +128,7 @@ class AppState:
             self.base_currency = currency_engine.base_currency
             self.exchange_rates = dict(currency_engine.rates)
         except Exception:
-            pass
+            get_logger("app_state").debug("Failed to read currency rates", exc_info=True)
         data = {
             "language": self.language,
             "theme": self.theme,

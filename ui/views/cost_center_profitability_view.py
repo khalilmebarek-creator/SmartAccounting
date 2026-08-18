@@ -161,17 +161,20 @@ class CostCenterProfitabilityView(BaseView):
 
     def _build_allocate_group(self):
         group = QGroupBox(t("cost_profit_group_allocate"))
-        row = QHBoxLayout(group)
-        row.setSpacing(10)
+        vlayout = QVBoxLayout(group)
+        vlayout.setSpacing(10)
+
+        row1 = QHBoxLayout()
+        row1.setSpacing(10)
 
         self.indirect_label = QLabel(t("cost_profit_indirect_total"))
-        row.addWidget(self.indirect_label)
+        row1.addWidget(self.indirect_label)
         self.indirect_spin = self._spin()
         self.indirect_spin.setMaximumWidth(180)
-        row.addWidget(self.indirect_spin)
+        row1.addWidget(self.indirect_spin)
 
         self.method_label = QLabel(t("cost_profit_method"))
-        row.addWidget(self.method_label)
+        row1.addWidget(self.method_label)
         self.method_combo = QComboBox()
         self.method_combo.addItems([
             t("cost_profit_method_revenue"),
@@ -179,23 +182,28 @@ class CostCenterProfitabilityView(BaseView):
             t("cost_profit_method_area"),
             t("cost_profit_method_equal"),
         ])
-        row.addWidget(self.method_combo)
+        row1.addWidget(self.method_combo)
 
         self.target_label = QLabel(t("cost_profit_target_margin"))
-        row.addWidget(self.target_label)
+        row1.addWidget(self.target_label)
         self.target_spin = QDoubleSpinBox()
         self.target_spin.setRange(0, 100)
         self.target_spin.setDecimals(1)
         self.target_spin.setValue(10.0)
         self.target_spin.setMaximumWidth(90)
-        row.addWidget(self.target_spin)
+        row1.addWidget(self.target_spin)
 
-        row.addStretch()
+        row1.addStretch()
+        vlayout.addLayout(row1)
+
+        row2 = QHBoxLayout()
         self.run_btn = QPushButton(t("cost_profit_run"))
         self.run_btn.setObjectName("primaryBtn")
         self.run_btn.setMinimumHeight(40)
         self.run_btn.clicked.connect(self.run_analysis)
-        row.addWidget(self.run_btn)
+        row2.addStretch()
+        row2.addWidget(self.run_btn)
+        vlayout.addLayout(row2)
 
         self._main_layout.addWidget(group)
 
@@ -221,6 +229,7 @@ class CostCenterProfitabilityView(BaseView):
         self.analysis_table = QTableWidget(0, 10)
         self.analysis_table.setObjectName("dataTable")
         self.analysis_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.analysis_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.analysis_table)
 
         self.chart_profitability = ChartWidget("")
@@ -261,6 +270,7 @@ class CostCenterProfitabilityView(BaseView):
         prev_layout = QVBoxLayout(prev_group)
         self.prev_table = QTableWidget(0, 3)
         self.prev_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.prev_table.setMinimumHeight(44 * 4 + 30)
         self._prev_data = []
         prev_layout.addWidget(self.prev_table)
         top_row.addWidget(prev_group, 1)
@@ -269,6 +279,7 @@ class CostCenterProfitabilityView(BaseView):
         budget_layout = QVBoxLayout(budget_group)
         self.budget_table = QTableWidget(0, 3)
         self.budget_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.budget_table.setMinimumHeight(44 * 4 + 30)
         self._budget_data = []
         budget_layout.addWidget(self.budget_table)
         top_row.addWidget(budget_group, 1)
@@ -284,11 +295,13 @@ class CostCenterProfitabilityView(BaseView):
         self.comparison_table = QTableWidget(0, 8)
         self.comparison_table.setObjectName("dataTable")
         self.comparison_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.comparison_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.comparison_table)
 
         self.standards_table = QTableWidget(0, 4)
         self.standards_table.setObjectName("dataTable")
         self.standards_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.standards_table.setMinimumHeight(44 * 4 + 30)
         layout.addWidget(self.standards_table)
 
         self.tabs.addTab(tab, t("cost_profit_tab_comparison"))
@@ -345,6 +358,7 @@ class CostCenterProfitabilityView(BaseView):
         self.ranking_table = QTableWidget(0, 7)
         self.ranking_table.setObjectName("dataTable")
         self.ranking_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ranking_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.ranking_table)
 
         self.variance_title = QLabel(t("cost_profit_variance_report"))
@@ -353,6 +367,7 @@ class CostCenterProfitabilityView(BaseView):
         self.variance_table = QTableWidget(0, 6)
         self.variance_table.setObjectName("dataTable")
         self.variance_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.variance_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.variance_table)
 
         layout.addStretch()

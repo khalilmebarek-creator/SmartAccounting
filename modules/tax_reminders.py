@@ -123,7 +123,7 @@ class TaxReminderManager:
                 with open(REMINDERS_FILE, "r", encoding="utf-8") as f:
                     return json.load(f)
             except Exception:
-                pass
+                logger.debug("Failed to load reminders, using defaults", exc_info=True)
         return {"custom": [], "acknowledged": []}
 
     def _save_reminders(self):

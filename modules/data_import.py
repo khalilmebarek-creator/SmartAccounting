@@ -176,7 +176,7 @@ class DataImporter:
                 try:
                     db_connection.disconnect()
                 except Exception:
-                    pass
+                    pass  # noqa: B110 — best-effort disconnect in error path
                 return False
             
             try:
