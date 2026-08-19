@@ -3,13 +3,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QComboBox, QGroupBox,
     QMessageBox, QFrame, QFileDialog, QFormLayout,
     QScrollArea,
 )
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from ui.app_state import state
 from ui.resources.i18n import t
@@ -34,7 +34,7 @@ class SettingsView(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
 
         container = QWidget()
         self.main_layout = QVBoxLayout()
@@ -132,7 +132,7 @@ class SettingsView(QWidget):
         self.api_key_label.setMinimumWidth(140)
         self.api_key_input = QLineEdit()
         self.api_key_input.setPlaceholderText("sk-...")
-        self.api_key_input.setEchoMode(QLineEdit.Password)
+        self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.api_key_input.setMinimumHeight(40)
         api_key_layout.addWidget(self.api_key_label)
         api_key_layout.addWidget(self.api_key_input, 1)
@@ -186,7 +186,7 @@ class SettingsView(QWidget):
 
         # === Separator ===
         self.separator = QFrame()
-        self.separator.setFrameShape(QFrame.HLine)
+        self.separator.setFrameShape(QFrame.Shape.HLine)
         self.separator.setObjectName("separator")
         self.main_layout.addWidget(self.separator)
 
@@ -198,7 +198,7 @@ class SettingsView(QWidget):
         email_layout = QFormLayout()
         email_layout.setSpacing(15)
         email_layout.setContentsMargins(15, 20, 15, 15)
-        email_layout.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        email_layout.setLabelAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         self.smtp_server_input = QLineEdit(email_notifier.smtp_server)
         self.smtp_server_input.setPlaceholderText("smtp.gmail.com")
@@ -216,7 +216,7 @@ class SettingsView(QWidget):
         email_layout.addRow(t("settings_sender_email"), self.sender_email_input)
 
         self.sender_password_input = QLineEdit(email_notifier.sender_password)
-        self.sender_password_input.setEchoMode(QLineEdit.Password)
+        self.sender_password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.sender_password_input.setPlaceholderText("••••••••")
         self.sender_password_input.setMinimumHeight(40)
         email_layout.addRow(t("settings_sender_password"), self.sender_password_input)
@@ -332,7 +332,7 @@ class SettingsView(QWidget):
 
         # === Separator 2 ===
         self.separator2 = QFrame()
-        self.separator2.setFrameShape(QFrame.HLine)
+        self.separator2.setFrameShape(QFrame.Shape.HLine)
         self.separator2.setObjectName("separator")
         self.main_layout.addWidget(self.separator2)
 
@@ -456,11 +456,11 @@ class SettingsView(QWidget):
         toast_success(self, f"✅ {t('settings_save')}")
 
     def toggle_key_visibility(self):
-        if self.api_key_input.echoMode() == QLineEdit.Password:
-            self.api_key_input.setEchoMode(QLineEdit.Normal)
+        if self.api_key_input.echoMode() == QLineEdit.EchoMode.Password:
+            self.api_key_input.setEchoMode(QLineEdit.EchoMode.Normal)
             self.toggle_key_btn.setText(t("settings_hide_key"))
         else:
-            self.api_key_input.setEchoMode(QLineEdit.Password)
+            self.api_key_input.setEchoMode(QLineEdit.EchoMode.Password)
             self.toggle_key_btn.setText(t("settings_show_key"))
 
     def retranslate(self):
@@ -476,7 +476,7 @@ class SettingsView(QWidget):
         self.model_label.setText(t("settings_model"))
         self.save_btn.setText(t("settings_save"))
 
-        is_key_visible = self.api_key_input.echoMode() == QLineEdit.Normal
+        is_key_visible = self.api_key_input.echoMode() == QLineEdit.EchoMode.Normal
         self.toggle_key_btn.setText(
             t("settings_hide_key") if is_key_visible else t("settings_show_key")
         )
@@ -503,8 +503,8 @@ class SettingsView(QWidget):
     def _restore_backup(self):
         reply = QMessageBox.question(
             self, t("confirm"), t("backup_restore_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply != QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
             return
         path, _ = QFileDialog.getOpenFileName(
             self, t("backup_restore"), "", "Database Files (*.db)")
@@ -546,8 +546,8 @@ class SettingsView(QWidget):
     def _reset_all_data(self):
         reply = QMessageBox.question(
             self, t("confirm"), t("settings_reset_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply != QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
             return
         from modules.backup import BackupManager
         bm = BackupManager()
@@ -558,8 +558,8 @@ class SettingsView(QWidget):
     def _load_demo_data(self):
         reply = QMessageBox.question(
             self, t("confirm"), t("settings_demo_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply != QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
             return
         from modules.demo_data import DemoData
         demo = DemoData.get_data()

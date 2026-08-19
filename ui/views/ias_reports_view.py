@@ -4,11 +4,11 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QTabWidget, QMessageBox, QFileDialog, QHeaderView,
 )
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -35,9 +35,9 @@ class IASReportsView(BaseView):
         self._eq_table = QTableWidget()
 
         for tbl in (self._bs_table, self._is_table, self._cf_table, self._eq_table):
-            tbl.setEditTriggers(QTableWidget.NoEditTriggers)
-            tbl.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-            tbl.setSelectionBehavior(QTableWidget.SelectRows)
+            tbl.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+            tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+            tbl.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
 
         self.tabs.addTab(self._bs_table, t("ias_tab_balance_sheet"))
         self.tabs.addTab(self._is_table, t("ias_tab_income"))
@@ -76,9 +76,9 @@ class IASReportsView(BaseView):
     def _add_row(self, table, row, label, amount, bold=False):
         lbl = QTableWidgetItem(label)
         val = QTableWidgetItem(f"{amount:,.2f}")
-        val.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        val.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         if bold:
-            from PyQt5.QtGui import QFont
+            from PyQt6.QtGui import QFont
             f = QFont()
             f.setBold(True)
             lbl.setFont(f)
@@ -132,7 +132,7 @@ class IASReportsView(BaseView):
         for i, (rtype, content) in enumerate(rows):
             if rtype == "H":
                 lbl = QTableWidgetItem(content)
-                from PyQt5.QtGui import QFont
+                from PyQt6.QtGui import QFont
                 f = QFont()
                 f.setBold(True)
                 f.setPointSize(12)
@@ -141,7 +141,7 @@ class IASReportsView(BaseView):
                 table.setItem(i, 1, QTableWidgetItem(""))
             elif rtype == "SH":
                 lbl = QTableWidgetItem(content)
-                from PyQt5.QtGui import QFont
+                from PyQt6.QtGui import QFont
                 f = QFont()
                 f.setBold(True)
                 f.setPointSize(10)
@@ -210,7 +210,7 @@ class IASReportsView(BaseView):
         for i, (rtype, content) in enumerate(rows):
             if rtype == "H":
                 lbl = QTableWidgetItem(content)
-                from PyQt5.QtGui import QFont
+                from PyQt6.QtGui import QFont
                 f = QFont()
                 f.setBold(True)
                 f.setPointSize(11)

@@ -5,16 +5,16 @@ import re
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QDoubleSpinBox, QSpinBox,
     QPushButton, QGroupBox, QMessageBox, QFileDialog,
     QComboBox, QScrollArea,
 )
-from PyQt5.QtCore import (
+from PyQt6.QtCore import (
     Qt, pyqtSignal, QSize, QThread,
 )
-from PyQt5.QtGui import (QDragEnterEvent, QDropEvent)
+from PyQt6.QtGui import (QDragEnterEvent, QDropEvent)
 
 from modules import CalculationEngine, DataValidator
 from modules.fraud_detection import fraud_detector
@@ -102,7 +102,7 @@ class DataEntryView(QWidget):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.NoFrame)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
         inner = QWidget()
         inner.setLayout(main_layout)
         scroll.setWidget(inner)
@@ -161,7 +161,7 @@ class DataEntryView(QWidget):
         self.fiscal_year.setRange(2000, 2100)
         self.fiscal_year.setValue(2024)
         self.fiscal_year.setMinimumWidth(160)
-        self.fiscal_year.setAlignment(Qt.AlignLeft)
+        self.fiscal_year.setAlignment(Qt.AlignmentFlag.AlignLeft)
         company_layout.addWidget(self.fiscal_year, 1, 1)
 
         self.company_nif_label = QLabel(t("company_nif"))
@@ -476,7 +476,7 @@ class DataEntryView(QWidget):
         spin.setRange(0, 1_000_000_000)
         spin.setDecimals(2)
         spin.setSingleStep(1000)
-        spin.setAlignment(Qt.AlignLeft)
+        spin.setAlignment(Qt.AlignmentFlag.AlignLeft)
         spin.setGroupSeparatorShown(True)
         # لا تُعرض "0.00" قبل أن يدخل المستخدم رقماً (تُعرض تسمية الإدخال مكانها)
         spin.setSpecialValueText(t("de_enter_amount"))
@@ -631,7 +631,7 @@ class DataEntryView(QWidget):
 
     def showEvent(self, event):
         super().showEvent(event)
-        from PyQt5.QtCore import QTimer
+        from PyQt6.QtCore import QTimer
         QTimer.singleShot(50, self.refresh)
 
     def refresh(self):
@@ -840,9 +840,9 @@ class DataEntryView(QWidget):
         reply = QMessageBox.question(
             self, t("de_clear_confirm_title"),
             t("de_clear_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
         )
-        if reply != QMessageBox.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
             return
         self.company_name.clear()
         self.company_name_fr.clear()

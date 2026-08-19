@@ -4,12 +4,12 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame, QTextEdit
 )
-from PyQt5.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -55,7 +55,7 @@ class EInvoicingView(BaseView):
         row2.addLayout(self._labeled_field("einvoice_col_date", self.date_edit))
         add_btn = QPushButton(t("einvoice_add_btn"))
         add_btn.clicked.connect(self._add_invoice)
-        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addWidget(add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         row2.addStretch()
         add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
@@ -85,9 +85,9 @@ class EInvoicingView(BaseView):
             t("einvoice_col_status"),
             t("einvoice_col_hash"),
         ])
-        self.invoice_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.invoice_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.invoice_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.invoice_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.invoice_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.invoice_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.invoice_table.itemSelectionChanged.connect(self._on_selection)
         list_card.layout().addWidget(self.invoice_table)
 
@@ -187,7 +187,7 @@ class EInvoicingView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("einvoice_title"),
-                t("einvoice_clear_confirm")) != QMessageBox.Yes:
+                t("einvoice_clear_confirm")) != QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self._detail_text.clear()

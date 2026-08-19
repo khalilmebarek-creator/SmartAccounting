@@ -1,11 +1,11 @@
 # Toast notification widget
 # =========================
 
-from PyQt5.QtWidgets import QLabel, QWidget, QHBoxLayout, QGraphicsOpacityEffect
-from PyQt5.QtCore import (
+from PyQt6.QtWidgets import QLabel, QWidget, QHBoxLayout, QGraphicsOpacityEffect
+from PyQt6.QtCore import (
     Qt, QTimer, QPropertyAnimation, QEasingCurve,
 )
-from PyQt5.QtGui import QFont
+from PyQt6.QtGui import QFont
 
 
 class Toast(QWidget):
@@ -15,9 +15,9 @@ class Toast(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Tool | Qt.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAttribute(Qt.WA_ShowWithoutActivating)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setFixedHeight(48)
         self.setMinimumWidth(300)
         self.setMaximumWidth(500)
@@ -39,13 +39,13 @@ class Toast(QWidget):
         self._fade_in.setDuration(200)
         self._fade_in.setStartValue(0.0)
         self._fade_in.setEndValue(1.0)
-        self._fade_in.setEasingCurve(QEasingCurve.OutCubic)
+        self._fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
 
         self._fade_out = QPropertyAnimation(self._opacity, b"opacity")
         self._fade_out.setDuration(350)
         self._fade_out.setStartValue(1.0)
         self._fade_out.setEndValue(0.0)
-        self._fade_out.setEasingCurve(QEasingCurve.InCubic)
+        self._fade_out.setEasingCurve(QEasingCurve.Type.InCubic)
         self._fade_out.finished.connect(self.hide)
 
         self._timer = QTimer(self)

@@ -4,12 +4,12 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -64,7 +64,7 @@ class InvoicingView(BaseView):
                            ("invoicing_col_date", self.date_edit),
                            ("invoicing_col_tva", self.tva_combo)):
             form.addLayout(self._labeled_field(lbl_key, w))
-        form.addWidget(create_btn, 0, Qt.AlignBottom)
+        form.addWidget(create_btn, 0, Qt.AlignmentFlag.AlignBottom)
         create_card.layout().addLayout(form)
         self._main_layout.addWidget(create_card)
 
@@ -86,7 +86,7 @@ class InvoicingView(BaseView):
                            ("invoicing_col_qty", self.item_qty),
                            ("invoicing_col_price", self.item_price)):
             item_form.addLayout(self._labeled_field(lbl_key, w))
-        item_form.addWidget(add_item_btn, 0, Qt.AlignBottom)
+        item_form.addWidget(add_item_btn, 0, Qt.AlignmentFlag.AlignBottom)
         items_card.layout().addLayout(item_form)
 
         self.pending_table = QTableWidget()
@@ -95,8 +95,8 @@ class InvoicingView(BaseView):
             t("invoicing_col_desc"), t("invoicing_col_qty"),
             t("invoicing_col_price"), t("invoicing_col_amount"),
         ])
-        self.pending_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.pending_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.pending_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.pending_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         items_card.layout().addWidget(self.pending_table)
         self._main_layout.addWidget(items_card)
 
@@ -136,9 +136,9 @@ class InvoicingView(BaseView):
             t("invoicing_col_status"), t("invoicing_col_tva"),
             t("invoicing_col_total"),
         ])
-        self.invoices_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.invoices_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.invoices_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.invoices_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.invoices_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.invoices_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         list_card.layout().addWidget(self.invoices_table)
         self._main_layout.addWidget(list_card)
 
@@ -235,7 +235,7 @@ class InvoicingView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("invoicing_title"), t("invoicing_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

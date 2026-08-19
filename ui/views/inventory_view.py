@@ -4,12 +4,12 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -79,7 +79,7 @@ class InventoryView(BaseView):
                            ("inventory_price", self.price_spin),
                            ("inventory_min_qty", self.min_spin)):
             row2.addLayout(self._labeled_field(lbl_key, w))
-        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addWidget(add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
@@ -114,9 +114,9 @@ class InventoryView(BaseView):
             t("inventory_col_qty"), t("inventory_col_avg_cost"),
             t("inventory_col_value"),
         ])
-        self.items_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.items_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.items_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.items_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.items_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.items_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.items_table.itemSelectionChanged.connect(self._on_select_item)
         list_card.layout().addWidget(self.items_table)
         self._main_layout.addWidget(list_card)
@@ -145,7 +145,7 @@ class InventoryView(BaseView):
                            ("inventory_col_cost", self.mov_cost),
                            ("inventory_ref", self.mov_ref)):
             mov_form.addLayout(self._labeled_field(lbl_key, w))
-        mov_form.addWidget(mov_add_btn, 0, Qt.AlignBottom)
+        mov_form.addWidget(mov_add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         mov_card.layout().addLayout(mov_form)
 
         self.mov_table = QTableWidget()
@@ -155,8 +155,8 @@ class InventoryView(BaseView):
             t("inventory_col_qty"), t("inventory_col_cost"),
             t("inventory_col_ref"),
         ])
-        self.mov_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.mov_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.mov_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.mov_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         mov_card.layout().addWidget(self.mov_table)
         self._main_layout.addWidget(mov_card)
 
@@ -244,7 +244,7 @@ class InventoryView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("inventory_title"), t("inventory_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

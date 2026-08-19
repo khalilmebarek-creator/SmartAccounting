@@ -4,8 +4,8 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QLineEdit, QComboBox,
     QDoubleSpinBox, QSpinBox, QMessageBox, QFileDialog,
@@ -61,7 +61,7 @@ class PayrollView(BaseView):
         row2.addLayout(self._labeled_field("payroll_col_salary", self.salary_spin))
         add_btn = QPushButton(t("payroll_add_btn"))
         add_btn.clicked.connect(self._add_employee)
-        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addWidget(add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
@@ -85,9 +85,9 @@ class PayrollView(BaseView):
             t("payroll_col_position"), t("payroll_col_department"),
             t("payroll_col_salary"),
         ])
-        self.employees_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.employees_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.employees_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.employees_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.employees_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.employees_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         list_card.layout().addWidget(self.employees_table)
         self._main_layout.addWidget(list_card)
 
@@ -124,8 +124,8 @@ class PayrollView(BaseView):
             t("payroll_col_cnas"), t("payroll_col_irg"),
             t("payroll_col_net"), t("payroll_col_status"),
         ])
-        self.payslips_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.payslips_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.payslips_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.payslips_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         run_card.layout().addWidget(self.payslips_table)
         self._main_layout.addWidget(run_card)
 
@@ -165,7 +165,7 @@ class PayrollView(BaseView):
             return
         if QMessageBox.question(
                 self, t("payroll_title"), t("payroll_delete_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.delete_employee(emp_id)
         self.refresh()
@@ -201,7 +201,7 @@ class PayrollView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("payroll_title"), t("payroll_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

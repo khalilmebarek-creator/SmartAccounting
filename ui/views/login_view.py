@@ -2,13 +2,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QMessageBox, QStackedWidget,
     QFormLayout, QToolButton, QCheckBox,
 )
-from PyQt5.QtCore import Qt, pyqtSignal, QSize
-from PyQt5.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtCore import Qt, pyqtSignal, QSize
+from PyQt6.QtGui import QFont, QPixmap, QIcon
 
 from ui.resources.i18n import t
 from ui.app_state import ThemeColors
@@ -22,33 +22,33 @@ class PasswordChangeDialog(QMessageBox):
     def __init__(self, username, parent=None):
         super().__init__(parent)
         self.setWindowTitle(t("pwd_change_title"))
-        self.setIcon(QMessageBox.Warning)
+        self.setIcon(QMessageBox.Icon.Warning)
         self.setText(t("pwd_change_msg"))
         self.username = username
 
     @staticmethod
     def prompt(parent, username):
-        from PyQt5.QtWidgets import QDialog, QDialogButtonBox
+        from PyQt6.QtWidgets import QDialog, QDialogButtonBox
         dlg = QDialog(parent)
         dlg.setWindowTitle(t("pwd_change_title"))
         layout = QFormLayout()
 
         old_pass = QLineEdit()
-        old_pass.setEchoMode(QLineEdit.Password)
+        old_pass.setEchoMode(QLineEdit.EchoMode.Password)
         old_pass.setMinimumHeight(34)
-        old_pass.setLayoutDirection(Qt.LeftToRight)
+        old_pass.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         layout.addRow(t("pwd_old"), old_pass)
 
         new_pass = QLineEdit()
-        new_pass.setEchoMode(QLineEdit.Password)
+        new_pass.setEchoMode(QLineEdit.EchoMode.Password)
         new_pass.setMinimumHeight(34)
-        new_pass.setLayoutDirection(Qt.LeftToRight)
+        new_pass.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         layout.addRow(t("pwd_new"), new_pass)
 
         confirm_pass = QLineEdit()
-        confirm_pass.setEchoMode(QLineEdit.Password)
+        confirm_pass.setEchoMode(QLineEdit.EchoMode.Password)
         confirm_pass.setMinimumHeight(34)
-        confirm_pass.setLayoutDirection(Qt.LeftToRight)
+        confirm_pass.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         layout.addRow(t("pwd_confirm"), confirm_pass)
 
         error_label = QLabel("")
@@ -56,7 +56,7 @@ class PasswordChangeDialog(QMessageBox):
         error_label.setWordWrap(True)
         layout.addRow(error_label)
 
-        btns = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btns = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         btns.accepted.connect(dlg.accept)
         btns.rejected.connect(dlg.reject)
         layout.addRow(btns)
@@ -65,7 +65,7 @@ class PasswordChangeDialog(QMessageBox):
         dlg.setMinimumWidth(380)
 
         while True:
-            if dlg.exec_() != QDialog.Accepted:
+            if dlg.exec() != QDialog.Accepted:
                 return False
             old = old_pass.text()
             new = new_pass.text()
@@ -108,7 +108,7 @@ class LoginView(QWidget):
 
     def setup_ui(self):
         outer = QVBoxLayout()
-        outer.setAlignment(Qt.AlignCenter)
+        outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         container = QWidget()
         container.setMaximumWidth(500)
@@ -125,20 +125,20 @@ class LoginView(QWidget):
         if os.path.exists(icon_path):
             logo = QLabel()
             pixmap = QPixmap(icon_path)
-            logo.setPixmap(pixmap.scaled(QSize(120, 120), Qt.KeepAspectRatio, Qt.SmoothTransformation))
-            logo.setAlignment(Qt.AlignCenter)
+            logo.setPixmap(pixmap.scaled(QSize(120, 120), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
             container_layout.addWidget(logo)
 
         title = QLabel(t("login_title"))
         title.setObjectName("headerTitle")
-        title.setAlignment(Qt.AlignCenter)
-        title.setFont(QFont("", 20, QFont.Bold))
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title.setFont(QFont("", 20, QFont.Weight.Bold))
         container_layout.addWidget(title)
         self._title_label = title
 
         subtitle = QLabel(t("login_subtitle"))
         subtitle.setObjectName("headerSubtitle")
-        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         container_layout.addWidget(subtitle)
         self._subtitle_label = subtitle
 
@@ -176,10 +176,10 @@ class LoginView(QWidget):
         form.addRow(self._login_email_label, self.login_email)
 
         self.login_password = QLineEdit()
-        self.login_password.setEchoMode(QLineEdit.Password)
+        self.login_password.setEchoMode(QLineEdit.EchoMode.Password)
         self.login_password.setPlaceholderText(t("login_password"))
         self.login_password.setMinimumHeight(38)
-        self.login_password.setLayoutDirection(Qt.LeftToRight)
+        self.login_password.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self._login_pass_label = QLabel(t("login_password"))
         self.login_password.returnPressed.connect(self.do_login)
 
@@ -204,7 +204,7 @@ class LoginView(QWidget):
 
         self.login_error = QLabel("")
         self.login_error.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
-        self.login_error.setAlignment(Qt.AlignCenter)
+        self.login_error.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.login_error)
 
         self.login_btn = QPushButton(t("login_btn"))
@@ -216,14 +216,14 @@ class LoginView(QWidget):
         self.register_link = QPushButton(t("login_register_link"))
         self.register_link.setFlat(True)
         self.register_link.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
-        self.register_link.setCursor(Qt.PointingHandCursor)
+        self.register_link.setCursor(Qt.CursorShape.PointingHandCursor)
         self.register_link.clicked.connect(self._go_to_register)
         layout.addWidget(self.register_link)
 
         self.forgot_link = QPushButton(t("login_forgot_password"))
         self.forgot_link.setFlat(True)
         self.forgot_link.setStyleSheet(f"color: {ThemeColors.get('warning')}; border: none;")
-        self.forgot_link.setCursor(Qt.PointingHandCursor)
+        self.forgot_link.setCursor(Qt.CursorShape.PointingHandCursor)
         self.forgot_link.clicked.connect(lambda: self.stack.setCurrentIndex(2))
         layout.addWidget(self.forgot_link)
 
@@ -252,10 +252,10 @@ class LoginView(QWidget):
         form.addRow(self._reg_display_label, self.reg_display)
 
         self.reg_password = QLineEdit()
-        self.reg_password.setEchoMode(QLineEdit.Password)
+        self.reg_password.setEchoMode(QLineEdit.EchoMode.Password)
         self.reg_password.setPlaceholderText(t("login_reg_password_ph"))
         self.reg_password.setMinimumHeight(38)
-        self.reg_password.setLayoutDirection(Qt.LeftToRight)
+        self.reg_password.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self._reg_pass_label = QLabel(t("login_password"))
         form.addRow(self._reg_pass_label, self.reg_password)
 
@@ -268,7 +268,7 @@ class LoginView(QWidget):
         self.reg_error = QLabel("")
         self.reg_error.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
         self.reg_error.setWordWrap(True)
-        self.reg_error.setAlignment(Qt.AlignCenter)
+        self.reg_error.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.reg_error)
 
         self.reg_btn = QPushButton(t("login_register_btn"))
@@ -280,7 +280,7 @@ class LoginView(QWidget):
         self.back_link = QPushButton(t("login_back"))
         self.back_link.setFlat(True)
         self.back_link.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
-        self.back_link.setCursor(Qt.PointingHandCursor)
+        self.back_link.setCursor(Qt.CursorShape.PointingHandCursor)
         self.back_link.clicked.connect(self._go_to_login_from_register)
         layout.addWidget(self.back_link)
 
@@ -295,11 +295,11 @@ class LoginView(QWidget):
 
         lbl = QLabel(t("forgot_step1_title"))
         lbl.setObjectName("sectionTitle")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lbl)
 
         desc = QLabel(t("forgot_step1_desc"))
-        desc.setAlignment(Qt.AlignCenter)
+        desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
@@ -310,7 +310,7 @@ class LoginView(QWidget):
 
         self.forgot_error1 = QLabel("")
         self.forgot_error1.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
-        self.forgot_error1.setAlignment(Qt.AlignCenter)
+        self.forgot_error1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.forgot_error1)
 
         self.forgot_send_btn = QPushButton(t("forgot_send_code"))
@@ -322,7 +322,7 @@ class LoginView(QWidget):
         back = QPushButton(t("login_back"))
         back.setFlat(True)
         back.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
-        back.setCursor(Qt.PointingHandCursor)
+        back.setCursor(Qt.CursorShape.PointingHandCursor)
         back.clicked.connect(lambda: self.stack.setCurrentIndex(0))
         layout.addWidget(back)
 
@@ -337,12 +337,12 @@ class LoginView(QWidget):
 
         lbl = QLabel(t("forgot_step2_title"))
         lbl.setObjectName("sectionTitle")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lbl)
 
         self.forgot_code_display = QLabel("")
-        self.forgot_code_display.setAlignment(Qt.AlignCenter)
-        self.forgot_code_display.setFont(QFont("", 16, QFont.Bold))
+        self.forgot_code_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.forgot_code_display.setFont(QFont("", 16, QFont.Weight.Bold))
         self.forgot_code_display.setStyleSheet(
             f"color: {ThemeColors.get('info')}; font-size: 20px; "
             f"background: rgba(0,210,255,0.08); border-radius: 8px; padding: 12px;"
@@ -355,22 +355,22 @@ class LoginView(QWidget):
         layout.addWidget(self.forgot_token)
 
         self.forgot_new_pass = QLineEdit()
-        self.forgot_new_pass.setEchoMode(QLineEdit.Password)
+        self.forgot_new_pass.setEchoMode(QLineEdit.EchoMode.Password)
         self.forgot_new_pass.setPlaceholderText(t("forgot_new_password"))
         self.forgot_new_pass.setMinimumHeight(38)
-        self.forgot_new_pass.setLayoutDirection(Qt.LeftToRight)
+        self.forgot_new_pass.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         layout.addWidget(self.forgot_new_pass)
 
         self.forgot_confirm = QLineEdit()
-        self.forgot_confirm.setEchoMode(QLineEdit.Password)
+        self.forgot_confirm.setEchoMode(QLineEdit.EchoMode.Password)
         self.forgot_confirm.setPlaceholderText(t("forgot_confirm_password"))
         self.forgot_confirm.setMinimumHeight(38)
-        self.forgot_confirm.setLayoutDirection(Qt.LeftToRight)
+        self.forgot_confirm.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         layout.addWidget(self.forgot_confirm)
 
         self.forgot_error2 = QLabel("")
         self.forgot_error2.setStyleSheet(f"color: {ThemeColors.get('error')}; font-size: 13px;")
-        self.forgot_error2.setAlignment(Qt.AlignCenter)
+        self.forgot_error2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.forgot_error2.setWordWrap(True)
         layout.addWidget(self.forgot_error2)
 
@@ -383,7 +383,7 @@ class LoginView(QWidget):
         back = QPushButton(t("login_back"))
         back.setFlat(True)
         back.setStyleSheet(f"color: {ThemeColors.get('info')}; border: none;")
-        back.setCursor(Qt.PointingHandCursor)
+        back.setCursor(Qt.CursorShape.PointingHandCursor)
         back.clicked.connect(lambda: self.stack.setCurrentIndex(2))
         layout.addWidget(back)
 
@@ -398,11 +398,11 @@ class LoginView(QWidget):
 
         lbl = QLabel(t("forgot_step3_title"))
         lbl.setObjectName("sectionTitle")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(lbl)
 
         done = QLabel(t("forgot_step3_desc"))
-        done.setAlignment(Qt.AlignCenter)
+        done.setAlignment(Qt.AlignmentFlag.AlignCenter)
         done.setWordWrap(True)
         layout.addWidget(done)
 
@@ -456,10 +456,10 @@ class LoginView(QWidget):
 
     def _toggle_login_password(self, checked):
         if checked:
-            self.login_password.setEchoMode(QLineEdit.Normal)
+            self.login_password.setEchoMode(QLineEdit.EchoMode.Normal)
             self._pwd_toggle_btn.setText("🙈")
         else:
-            self.login_password.setEchoMode(QLineEdit.Password)
+            self.login_password.setEchoMode(QLineEdit.EchoMode.Password)
             self._pwd_toggle_btn.setText("👁")
 
     def _go_to_register(self):

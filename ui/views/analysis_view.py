@@ -3,68 +3,34 @@
 
 from ui.views._path import _  # noqa: F401 — ensures project root on sys.path
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton,
+    QLabel, QFrame, QScrollArea, QPushButton,
     QComboBox, QFileDialog, QMessageBox
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
-import numpy as np
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from matplotlib.patches import Wedge
-import matplotlib.pyplot as plt
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget,
+    draw_waterfall, draw_line, draw_bar, draw_grouped_bar, draw_gauge,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
-from ui.app_state import state, ThemeColors
+from ui.app_state import state
 from ui.resources.i18n import t
+from ui.plotly_export import export_analysis_html
 from modules import FinancialAnalyzer, ReportGenerator
 from modules.benchmarks import benchmark_analyzer
 from database.db_operations import get_company_dupont_history
 
 
-def _chart_text_color():
-    return ThemeColors.get("chart_text")
-
-
-def _chart_edge_color():
-    return ThemeColors.get("chart_edge")
-
-
-class ChartWidget(QFrame):
-    """كارت يحتوي على رسم بياني"""
-
-    def __init__(self, title, parent=None):
-        super().__init__(parent)
-        self.setObjectName("card")
-        self.setMinimumSize(350, 300)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(16, 12, 16, 12)
-
-        self.title_label = QLabel(title)
-        self.title_label.setObjectName("sectionTitle")
-        layout.addWidget(self.title_label)
-
-        self.figure = Figure(figsize=(4, 3), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        layout.addWidget(self.canvas)
-
-        self.setLayout(layout)
+class ChartWidget(PgChartWidget):
 
     def set_title(self, title):
         self.title_label.setText(title)
 
     def clear_chart(self):
-        self.figure.clear()
-        plt.close(self.figure)
-        self.canvas.draw()
+        self.plot_item.clear()
 
 
 class DuPontView(QWidget):
@@ -138,7 +104,7 @@ class DuPontView(QWidget):
         eq_font.setPointSize(14)
         eq_font.setBold(True)
         self.equation_label.setFont(eq_font)
-        self.equation_label.setAlignment(Qt.AlignCenter)
+        self.equation_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.equation_label.setStyleSheet("padding: 15px;")
         self.equation_label.setObjectName("equationLabel")
         equation_layout.addWidget(self.equation_label)
@@ -231,7 +197,7 @@ class DuPontView(QWidget):
 
         self.interp_label = QLabel("--")
         self.interp_label.setWordWrap(True)
-        self.interp_label.setTextFormat(Qt.RichText)
+        self.interp_label.setTextFormat(Qt.TextFormat.RichText)
         self.interp_label.setStyleSheet("font-size: 11pt;")
         interp_layout.addWidget(self.interp_label)
 
@@ -328,6 +294,11 @@ class DuPontView(QWidget):
         self.export_btn.setMinimumWidth(220)
         self.export_btn.clicked.connect(self.export_pdf)
         export_row.addWidget(self.export_btn)
+        self.html_btn = QPushButton(t("export_analysis_html"))
+        self.html_btn.setObjectName("secondaryBtn")
+        self.html_btn.setMinimumWidth(220)
+        self.html_btn.clicked.connect(self._export_html)
+        export_row.addWidget(self.html_btn)
         content_layout.addLayout(export_row)
 
         self._fill_sector_combo()
@@ -477,6 +448,7 @@ class DuPontView(QWidget):
         self.wc_cycle.title_label.setText(t("ana_working_cycle"))
         self.wc_cycle.desc_label.setText(t("ana_wc_cycle_formula"))
         self.export_btn.setText(t("ana_export_pdf"))
+        self.html_btn.setText(t("export_analysis_html"))
         self._fill_sector_combo()
         self.refresh()
 
@@ -535,15 +507,9 @@ class DuPontView(QWidget):
 
     def _clear_all_charts(self):
         for chart in [self.chart_waterfall, self.chart_trend, self.chart_gauge, self.chart_industry]:
-            chart.figure.clear()
-            plt.close(chart.figure)
-            chart.canvas.draw()
+            chart.plot_item.clear()
 
     def _draw_waterfall(self):
-        """رسم شلال DuPont"""
-        self.chart_waterfall.figure.clear()
-        ax = self.chart_waterfall.figure.add_subplot(111)
-
         dp = state.dupont
         waterfall = self.analyzer.dupont_waterfall(
             dp.get('net_profit_margin', 0),
@@ -556,53 +522,9 @@ class DuPontView(QWidget):
         values = [waterfall['base'], waterfall['turnover_effect'],
                   waterfall['leverage_effect'], waterfall['total']]
 
-        cum = [0, values[0], values[0] + values[1], values[0] + values[1] + values[2]]
-        bottoms = []
-        heights = []
-        colors = []
-        for i, val in enumerate(values):
-            if i == 3:
-                bottoms.append(0)
-                heights.append(val)
-                colors.append('#3498DB')
-            elif val >= 0:
-                bottoms.append(cum[i])
-                heights.append(val)
-                colors.append('#2ECC71')
-            else:
-                bottoms.append(cum[i] + val)
-                heights.append(abs(val))
-                colors.append('#E74C3C')
-
-        bars = ax.bar(labels, heights, bottom=bottoms, color=colors, width=0.6,
-                      edgecolor=_chart_edge_color(), linewidth=0.5)
-
-        for i, bar in enumerate(bars):
-            y_pos = bar.get_y() + bar.get_height() + 0.02 if i < 3 else bar.get_height() + 0.02
-            ax.text(bar.get_x() + bar.get_width() / 2., y_pos,
-                    f'{values[i]:.2f}', ha='center', va='bottom',
-                    fontsize=9, fontweight='bold', color=_chart_text_color())
-
-        for i in range(3):
-            ax.plot([i + 0.4, i + 0.6], [cum[i + 1], cum[i + 1]],
-                    color=ThemeColors.get("chart_grid"), lw=1, ls='--')
-
-        all_vals = bottoms + [b + h for b, h in zip(bottoms, heights)]
-        low, high = min(min(bottoms), 0), max(all_vals)
-        padding = max(abs(high - low) * 0.15, 0.5)
-        ax.set_ylim(low - padding, high + padding)
-
-        ax.set_title(t("ana_waterfall"), fontsize=11, fontweight='bold', pad=10)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        self.chart_waterfall.figure.tight_layout()
-        self.chart_waterfall.canvas.draw()
+        draw_waterfall(self.chart_waterfall.plot_item, labels, values)
 
     def _draw_trend(self):
-        """رسم تطور DuPont عبر السنوات"""
-        self.chart_trend.figure.clear()
-        ax = self.chart_trend.figure.add_subplot(111)
-
         history = []
         if state.company_name:
             try:
@@ -611,12 +533,9 @@ class DuPontView(QWidget):
                 history = []
 
         if not history:
-            ax.text(0.5, 0.5, t("ana_no_history"), ha='center', va='center',
-                    fontsize=10, color=_chart_text_color(), transform=ax.transAxes,
-                    wrap=True)
-            ax.axis('off')
-            self.chart_trend.figure.tight_layout()
-            self.chart_trend.canvas.draw()
+            self.chart_trend.plot_item.clear()
+            txt = _mk_text_item(t("ana_no_history"), 0, 0, size=10, anchor=(0.5, 0.5))
+            self.chart_trend.plot_item.addItem(txt)
             return
 
         years = [h['year'] for h in history]
@@ -625,24 +544,11 @@ class DuPontView(QWidget):
         at = [h['asset_turnover'] for h in history]
         em = [h['equity_multiplier'] for h in history]
 
-        ax.plot(years, roe, marker='o', color='#F39C12', label=t("ana_waterfall_total"))
-        ax.plot(years, npm, marker='s', color='#3498DB', label=t("ana_industry_npm"))
-        ax.set_ylabel('%', color=_chart_text_color())
-        ax.tick_params(axis='x', labelrotation=0)
-
-        ax2 = ax.twinx()
-        ax2.plot(years, at, marker='^', color='#2ECC71', label=t("ana_industry_at"))
-        ax2.plot(years, em, marker='D', color='#9B59B6', label=t("ana_industry_em"))
-        ax2.set_ylabel('x', color=_chart_text_color())
-
-        ax.grid(axis='y', color=ThemeColors.get("chart_grid"), lw=0.5)
-        ax.set_title(t("ana_trend"), fontsize=11, fontweight='bold', pad=10)
-
-        lines = ax.get_lines() + ax2.get_lines()
-        ax.legend(lines, [l.get_label() for l in lines], fontsize=8, loc='best',
-                  frameon=False)
-        self.chart_trend.figure.tight_layout()
-        self.chart_trend.canvas.draw()
+        draw_line(self.chart_trend.plot_item, years,
+                  [roe, npm, at, em],
+                  labels=[t("ana_waterfall_total"), t("ana_industry_npm"),
+                          t("ana_industry_at"), t("ana_industry_em")],
+                  colors=['#F39C12', '#3498DB', '#2ECC71', '#9B59B6'])
 
     def _sector_roe_average(self):
         """متوسط ROE في القطاع المختار"""
@@ -656,10 +562,6 @@ class DuPontView(QWidget):
             return None
 
     def _draw_gauge(self):
-        """رسم مؤشر أداء ROE"""
-        self.chart_gauge.figure.clear()
-        ax = self.chart_gauge.figure.add_subplot(111)
-
         roe = state.dupont.get('roe', 0)
         sector_avg = self._sector_roe_average()
 
@@ -667,109 +569,71 @@ class DuPontView(QWidget):
         if top <= 0:
             top = 25
 
-        ax.set_xlim(-1.1, 1.1)
-        ax.set_ylim(-0.15, 1.15)
-        ax.set_aspect('equal')
-        ax.axis('off')
+        zones = [
+            ('#E74C3C', ''),
+            ('#F39C12', ''),
+            ('#2ECC71', ''),
+        ]
+        draw_gauge(self.chart_gauge.plot_item, roe, zones, max_val=top)
 
-        # مناطق ملونة: أحمر → برتقالي → أخضر
-        for start_frac, end_frac, color in [
-            (0, 0.33, '#E74C3C'), (0.33, 0.66, '#F39C12'), (0.66, 1.0, '#2ECC71')
-        ]:
-            theta1 = 180 - 180 * start_frac
-            theta2 = 180 - 180 * end_frac
-            ax.add_patch(Wedge((0, 0), 1.0, theta1, theta2, width=0.13,
-                               facecolor=color, edgecolor=_chart_edge_color(), lw=0.5))
-
-        # قيمة sector
         if sector_avg is not None:
-            frac = min(sector_avg / top, 1.0)
-            ang = 180 - 180 * frac
-            r = np.deg2rad(ang)
-            ax.plot([0.82 * np.cos(r), 0.95 * np.cos(r)],
-                    [0.82 * np.sin(r), 0.95 * np.sin(r)],
-                    color='#8E44AD', lw=3)
-            ax.text(1.0, 1.0, f"{t('ana_gauge_sector')}: {sector_avg:.1f}%",
-                    ha='right', va='top', fontsize=8, color='#8E44AD')
-
-        # الإبرة
-        frac = min(roe / top, 1.0)
-        ang = 180 - 180 * frac
-        r = np.deg2rad(ang)
-        ax.plot([0, 0.75 * np.cos(r)], [0, 0.75 * np.sin(r)],
-                color='#2C3E50', lw=2.5)
-        ax.add_patch(plt.Circle((0, 0), 0.06, color='#2C3E50'))
-
-        ax.text(0, 0.52, f"{roe:.1f}%", ha='center', fontsize=20,
-                fontweight='bold', color=_chart_text_color())
-        ax.set_title(t("ana_gauge"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_gauge.figure.tight_layout()
-        self.chart_gauge.canvas.draw()
+            indicator = pg.InfiniteLine(pos=(sector_avg, 0), angle=90,
+                                        pen=_mk_pen('#8E44AD', width=3))
+            self.chart_gauge.plot_item.addItem(indicator)
+            lbl = _mk_text_item(
+                f"{t('ana_gauge_sector')}: {sector_avg:.1f}%",
+                sector_avg, 0.7, color='#8E44AD', size=8, anchor=(0.5, 1.0))
+            self.chart_gauge.plot_item.addItem(lbl)
 
     def _draw_industry(self):
-        """رسم مقارنة مكونات DuPont مع القطاع"""
-        self.chart_industry.figure.clear()
-
         if not self._has_data():
-            self.chart_industry.figure.tight_layout()
-            self.chart_industry.canvas.draw()
+            self.chart_industry.plot_item.clear()
             self.industry_summary.setText(t("ana_industry_no_sector"))
             return
 
         if not self._sector_code:
-            ax = self.chart_industry.figure.add_subplot(111)
-            ax.text(0.5, 0.5, t("ana_industry_no_sector"), ha='center', va='center',
-                    fontsize=11, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
-            self.chart_industry.figure.tight_layout()
-            self.chart_industry.canvas.draw()
+            self.chart_industry.plot_item.clear()
+            txt = _mk_text_item(t("ana_industry_no_sector"), 0, 0, size=11, anchor=(0.5, 0.5))
+            self.chart_industry.plot_item.addItem(txt)
             self.industry_summary.setText("")
             return
 
         industry = self.analyzer.dupont_industry_comparison(state.dupont, self._sector_code)
 
         components = ['roe', 'net_profit_margin', 'asset_turnover', 'equity_multiplier']
-        labels = {
+        label_map = {
             'roe': t('ana_industry_roe'),
             'net_profit_margin': t('ana_industry_npm'),
             'asset_turnover': t('ana_industry_at'),
             'equity_multiplier': t('ana_industry_em'),
         }
 
-        status_colors = {'above': '#2ECC71', 'below': '#E74C3C', 'aligned': '#95A5A6', 'n/a': '#95A5A6'}
         status_text = {'above': t('ana_status_above'), 'below': t('ana_status_below'),
                        'aligned': t('ana_status_aligned'), 'n/a': '—'}
 
+        company_vals = []
+        sector_vals = []
+        groups = []
         summary_lines = []
-        for idx, component in enumerate(components):
-            ax = self.chart_industry.figure.add_subplot(2, 2, idx + 1)
+        for component in components:
             cmp_data = industry.get(component, {})
             company_val = cmp_data.get('company_value', 0)
             sector_val = cmp_data.get('sector_average', 0)
             status = cmp_data.get('status', 'n/a')
 
-            bars = ax.bar([t('ana_industry_company'), t('ana_industry_avg')],
-                          [company_val, sector_val],
-                          color=[status_colors.get(status, '#95A5A6'), '#3498DB'],
-                          width=0.55, edgecolor=_chart_edge_color(), linewidth=0.5)
-            for bar, val in zip(bars, [company_val, sector_val]):
-                ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 0.01,
-                        f'{val:.2f}', ha='center', va='bottom', fontsize=8,
-                        color=_chart_text_color())
-
-            ax.set_title(labels[component], fontsize=9, fontweight='bold', pad=6)
-            ax.tick_params(axis='x', labelsize=7)
-            ax.tick_params(axis='y', labelsize=7)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.set_ylim(0, max(company_val, sector_val) * 1.3 if max(company_val, sector_val) > 0 else 1)
+            company_vals.append(company_val)
+            sector_vals.append(sector_val)
+            groups.append(label_map[component])
 
             summary_lines.append(
-                f"{labels[component]}: {company_val:.2f} vs {sector_val:.2f} — {status_text.get(status, '—')}"
+                f"{label_map[component]}: {company_val:.2f} vs {sector_val:.2f} — {status_text.get(status, '—')}"
             )
 
-        self.chart_industry.figure.tight_layout()
-        self.chart_industry.canvas.draw()
+        series_data = [
+            {'label': t('ana_industry_company'), 'values': company_vals, 'color': '#95A5A6'},
+            {'label': t('ana_industry_avg'), 'values': sector_vals, 'color': '#3498DB'},
+        ]
+        draw_grouped_bar(self.chart_industry.plot_item, groups, series_data)
         self.industry_summary.setText("\n".join(f"• {line}" for line in summary_lines))
 
     def _build_report_text(self):
@@ -806,4 +670,87 @@ class DuPontView(QWidget):
         if ok:
             QMessageBox.information(self, t("analysis_title"), t("ana_export_success"))
         else:
+            QMessageBox.critical(self, t("analysis_title"), t("ana_export_error"))
+
+    def _export_html(self):
+        if not self._has_data():
+            QMessageBox.warning(self, t("analysis_title"), t("ana_export_empty"))
+            return
+        default_name = f"analysis_{state.company_name or 'Company'}_{state.fiscal_year}.html"
+        filename, _ = QFileDialog.getSaveFileName(
+            self, t("export_analysis_html"), default_name, "HTML (*.html)"
+        )
+        if not filename:
+            return
+        dp = state.dupont
+        waterfall = self.analyzer.dupont_waterfall(
+            dp.get('net_profit_margin', 0),
+            dp.get('asset_turnover', 0),
+            dp.get('equity_multiplier', 0)
+        )
+        charts_data = {
+            'waterfall': {
+                'labels': [
+                    t("ana_waterfall_base"), t("ana_waterfall_at"),
+                    t("ana_waterfall_em"), t("ana_waterfall_total"),
+                ],
+                'values': [
+                    waterfall['base'], waterfall['turnover_effect'],
+                    waterfall['leverage_effect'], waterfall['total'],
+                ],
+            },
+            'gauge': {
+                'value': dp.get('roe', 0),
+                'zones': [],
+            },
+            'industry': {
+                'groups': [],
+                'series': [],
+            },
+        }
+        history = []
+        if state.company_name:
+            try:
+                history = get_company_dupont_history(state.company_name)
+            except Exception:
+                history = []
+        if history:
+            charts_data['trend'] = {
+                'x': [h['year'] for h in history],
+                'series': [
+                    {'name': t("ana_waterfall_total"), 'y': [h['roe'] for h in history], 'color': '#F39C12'},
+                    {'name': t("ana_industry_npm"), 'y': [h['net_profit_margin'] for h in history], 'color': '#3498DB'},
+                    {'name': t("ana_industry_at"), 'y': [h['asset_turnover'] for h in history], 'color': '#2ECC71'},
+                    {'name': t("ana_industry_em"), 'y': [h['equity_multiplier'] for h in history], 'color': '#9B59B6'},
+                ],
+            }
+        if self._sector_code:
+            industry = self.analyzer.dupont_industry_comparison(dp, self._sector_code)
+            components = ['roe', 'net_profit_margin', 'asset_turnover', 'equity_multiplier']
+            label_map = {
+                'roe': t('ana_industry_roe'),
+                'net_profit_margin': t('ana_industry_npm'),
+                'asset_turnover': t('ana_industry_at'),
+                'equity_multiplier': t('ana_industry_em'),
+            }
+            groups = [label_map[c] for c in components]
+            charts_data['industry'] = {
+                'groups': groups,
+                'series': [
+                    {
+                        'name': t('ana_industry_company'),
+                        'values': [industry.get(c, {}).get('company_value', 0) for c in components],
+                        'color': '#95A5A6',
+                    },
+                    {
+                        'name': t('ana_industry_avg'),
+                        'values': [industry.get(c, {}).get('sector_average', 0) for c in components],
+                        'color': '#3498DB',
+                    },
+                ],
+            }
+        try:
+            export_analysis_html(filename, charts_data)
+            QMessageBox.information(self, t("analysis_title"), t("ana_export_success"))
+        except Exception:
             QMessageBox.critical(self, t("analysis_title"), t("ana_export_error"))

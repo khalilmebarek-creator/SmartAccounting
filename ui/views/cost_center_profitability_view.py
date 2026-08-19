@@ -4,21 +4,20 @@
 
 from ui.views._path import _  # noqa: F401
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_pdf import PdfPages
-
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QComboBox, QTabWidget, QTableWidget,
     QTableWidgetItem, QLineEdit, QDoubleSpinBox, QMessageBox,
     QFileDialog, QHeaderView, QGroupBox,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
+from PyQt6.QtPrintSupport import QPrinter
 
 from ui.views._base import BaseView
-from ui.views.dashboard import ChartWidget, _chart_text_color
+from ui.charts import (PgChartWidget,
+    draw_bar, draw_grouped_bar, draw_line,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import ThemeColors
 from ui.resources.i18n import t
 from modules.cost_center_profitability import CostCenterProfitabilityEngine
@@ -97,7 +96,7 @@ class CostCenterProfitabilityView(BaseView):
         self.no_data_label = QLabel(t("cost_profit_no_data"))
         self.no_data_label.setObjectName("card")
         self.no_data_label.setWordWrap(True)
-        self.no_data_label.setAlignment(Qt.AlignCenter)
+        self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.no_data_label.setMinimumHeight(100)
         self.no_data_label.setStyleSheet("padding: 20px; font-size: 14px;")
         self.no_data_label.hide()
@@ -119,8 +118,8 @@ class CostCenterProfitabilityView(BaseView):
         self.center_table = QTableWidget()
         self.center_table.setColumnCount(6)
         self.center_table.setRowCount(self.MAX_CENTERS)
-        self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.center_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.center_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         self.center_table.verticalHeader().setDefaultSectionSize(44)
         self.center_table.setMinimumHeight(44 * self.MAX_CENTERS + 40)
 
@@ -228,30 +227,30 @@ class CostCenterProfitabilityView(BaseView):
 
         self.analysis_table = QTableWidget(0, 10)
         self.analysis_table.setObjectName("dataTable")
-        self.analysis_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.analysis_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.analysis_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.analysis_table)
 
-        self.chart_profitability = ChartWidget("")
-        self.chart_profitability.canvas.setMinimumHeight(280)
+        self.chart_profitability = PgChartWidget("")
+        self.chart_profitability.setMinimumHeight(280)
         layout.addWidget(self.chart_profitability)
 
         self.tabs.addTab(tab, t("cost_profit_tab_analysis"))
 
     def _stat_card(self, value):
-        from PyQt5.QtWidgets import QFrame
+        from PyQt6.QtWidgets import QFrame
         frame = QFrame()
         frame.setObjectName("card")
         v = QVBoxLayout(frame)
         v.setContentsMargins(16, 12, 16, 12)
         lbl = QLabel("--")
         lbl.setObjectName("cardValue")
-        lbl.setAlignment(Qt.AlignCenter)
+        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         v.addWidget(lbl)
         frame.value_label = lbl
         frame.title_label = QLabel("")
         frame.title_label.setStyleSheet("font-size: 11px; color: #888;")
-        frame.title_label.setAlignment(Qt.AlignCenter)
+        frame.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         v.insertWidget(0, frame.title_label)
         frame.setProperty("_value", value)
         return frame
@@ -269,7 +268,7 @@ class CostCenterProfitabilityView(BaseView):
         prev_group = QGroupBox(t("cost_profit_group_compare_prev"))
         prev_layout = QVBoxLayout(prev_group)
         self.prev_table = QTableWidget(0, 3)
-        self.prev_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.prev_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.prev_table.setMinimumHeight(44 * 4 + 30)
         self._prev_data = []
         prev_layout.addWidget(self.prev_table)
@@ -278,7 +277,7 @@ class CostCenterProfitabilityView(BaseView):
         budget_group = QGroupBox(t("cost_profit_group_budget"))
         budget_layout = QVBoxLayout(budget_group)
         self.budget_table = QTableWidget(0, 3)
-        self.budget_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.budget_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.budget_table.setMinimumHeight(44 * 4 + 30)
         self._budget_data = []
         budget_layout.addWidget(self.budget_table)
@@ -294,13 +293,13 @@ class CostCenterProfitabilityView(BaseView):
 
         self.comparison_table = QTableWidget(0, 8)
         self.comparison_table.setObjectName("dataTable")
-        self.comparison_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.comparison_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.comparison_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.comparison_table)
 
         self.standards_table = QTableWidget(0, 4)
         self.standards_table.setObjectName("dataTable")
-        self.standards_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.standards_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.standards_table.setMinimumHeight(44 * 4 + 30)
         layout.addWidget(self.standards_table)
 
@@ -314,7 +313,7 @@ class CostCenterProfitabilityView(BaseView):
         layout.setSpacing(12)
 
         self.period_table = QTableWidget(self.MAX_PERIODS, 3)
-        self.period_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.period_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self._period_data = []
         for i in range(self.MAX_PERIODS):
             label_item = QTableWidgetItem(t("cost_profit_add_period").format(n=i + 1))
@@ -339,8 +338,8 @@ class CostCenterProfitabilityView(BaseView):
         info_row.addWidget(self.card_growth)
         layout.addLayout(info_row)
 
-        self.chart_trend = ChartWidget("")
-        self.chart_trend.canvas.setMinimumHeight(280)
+        self.chart_trend = PgChartWidget("")
+        self.chart_trend.setMinimumHeight(280)
         layout.addWidget(self.chart_trend)
 
         self.tabs.addTab(tab, t("cost_profit_tab_trend"))
@@ -357,7 +356,7 @@ class CostCenterProfitabilityView(BaseView):
         layout.addWidget(self.ranking_title)
         self.ranking_table = QTableWidget(0, 7)
         self.ranking_table.setObjectName("dataTable")
-        self.ranking_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.ranking_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.ranking_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.ranking_table)
 
@@ -366,7 +365,7 @@ class CostCenterProfitabilityView(BaseView):
         layout.addWidget(self.variance_title)
         self.variance_table = QTableWidget(0, 6)
         self.variance_table.setObjectName("dataTable")
-        self.variance_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.variance_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.variance_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.variance_table)
 
@@ -381,7 +380,7 @@ class CostCenterProfitabilityView(BaseView):
         layout.setSpacing(12)
         self.rec_table = QTableWidget(0, 3)
         self.rec_table.setObjectName("dataTable")
-        self.rec_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.rec_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.rec_table)
         layout.addStretch()
         self.tabs.addTab(tab, t("cost_profit_tab_recommendations"))
@@ -534,55 +533,21 @@ class CostCenterProfitabilityView(BaseView):
 
     def _money(self, table, row, col, value):
         item = QTableWidgetItem(f"{value:,.0f}")
-        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         table.setItem(row, col, item)
         return item
 
     def _draw_profitability_chart(self, centers):
-        fig = self.chart_profitability.figure
-        fig.clear()
-        text_color = _chart_text_color()
-        bg = ThemeColors.get("chart_bg")
-        fig.patch.set_facecolor(bg)
-
-        ax1 = fig.add_subplot(1, 2, 1)
-        ax1.set_facecolor(bg)
-        ax1.tick_params(colors=text_color)
-        for spine in ax1.spines.values():
-            spine.set_color(text_color)
-        labels = [c["name"][:12] for c in centers]
-        x = range(len(labels))
-        width = 0.28
-        ax1.bar([i - width for i in x], [c["revenue"] for c in centers], width,
-                label=t("cost_profit_revenue"), color="#27AE60", alpha=0.85)
-        ax1.bar([i for i in x], [c["total_costs"] for c in centers], width,
-                label=t("cost_profit_total_costs"), color="#E74C3C", alpha=0.85)
-        ax1.bar([i + width for i in x], [c["profit"] for c in centers], width,
-                label=t("cost_profit_profit"), color="#2196F3", alpha=0.85)
-        ax1.set_xticks(list(x))
-        ax1.set_xticklabels([_plain(l) for l in labels], rotation=45, ha='right', fontsize=8,
-                            color=text_color)
-        ax1.legend(fontsize=7, labelcolor=text_color)
-        ax1.grid(True, alpha=0.3, axis='y')
-
-        ax2 = fig.add_subplot(1, 2, 2)
-        ax2.set_facecolor(bg)
-        ax2.tick_params(colors=text_color)
-        for spine in ax2.spines.values():
-            spine.set_color(text_color)
-        margins = [c["margin_pct"] for c in centers]
-        colors = ["#27AE60" if m >= 0 else "#E74C3C" for m in margins]
-        ax2.bar(list(x), margins, color=colors, alpha=0.85)
-        ax2.axhline(0, color=text_color, linewidth=0.8)
-        ax2.set_xticks(list(x))
-        ax2.set_xticklabels([_plain(l) for l in labels], rotation=45, ha='right', fontsize=8,
-                            color=text_color)
-        ax2.set_ylabel(t("cost_profit_margin"), color=text_color)
-        ax2.grid(True, alpha=0.3, axis='y')
-
-        fig.tight_layout()
-        self.chart_profitability.canvas.draw()
-        self.chart_profitability.set_title(t("cost_profit_tab_analysis"))
+        plot = self.chart_profitability.plot_item
+        plot.clear()
+        labels = [_plain(c["name"][:12]) for c in centers]
+        series_data = [
+            {"label": t("cost_profit_revenue"), "values": [c["revenue"] for c in centers], "color": "#27AE60"},
+            {"label": t("cost_profit_total_costs"), "values": [c["total_costs"] for c in centers], "color": "#E74C3C"},
+            {"label": t("cost_profit_profit"), "values": [c["profit"] for c in centers], "color": "#2196F3"},
+        ]
+        draw_grouped_bar(plot, labels, series_data, bar_width=0.8)
+        self.chart_profitability.title_label.setText(t("cost_profit_tab_analysis"))
 
     def _autofill_comparison_tables(self):
         names = [c["name"] for c in self._result["centers"]]
@@ -696,30 +661,21 @@ class CostCenterProfitabilityView(BaseView):
         self._draw_trend_chart(trend["periods"])
 
     def _draw_trend_chart(self, periods):
-        fig = self.chart_trend.figure
-        fig.clear()
-        text_color = _chart_text_color()
-        bg = ThemeColors.get("chart_bg")
-        fig.patch.set_facecolor(bg)
-        ax = fig.add_subplot(111)
-        ax.set_facecolor(bg)
-        ax.tick_params(colors=text_color)
-        for spine in ax.spines.values():
-            spine.set_color(text_color)
+        plot = self.chart_trend.plot_item
         x = [p["period"] for p in periods]
-        ax.plot(x, [p["revenue"] for p in periods], marker="o", color="#2196F3",
-                label=t("cost_profit_trend_revenue"))
-        ax.plot(x, [p["costs"] for p in periods], marker="s", color="#E74C3C",
-                label=t("cost_profit_trend_costs"))
-        ax.plot(x, [p["profit"] for p in periods], marker="^", color="#27AE60",
-                label=t("cost_profit_trend_profit"))
-        ax.set_xticks(x)
-        ax.set_ylabel(t("cost_profit_total_costs"), color=text_color)
-        ax.legend(fontsize=8, labelcolor=text_color)
-        ax.grid(True, alpha=0.3)
-        fig.tight_layout()
-        self.chart_trend.canvas.draw()
-        self.chart_trend.set_title(t("cost_profit_tab_trend"))
+        y_series = [
+            [p["revenue"] for p in periods],
+            [p["costs"] for p in periods],
+            [p["profit"] for p in periods],
+        ]
+        labels = [
+            t("cost_profit_trend_revenue"),
+            t("cost_profit_trend_costs"),
+            t("cost_profit_trend_profit"),
+        ]
+        colors = ["#2196F3", "#E74C3C", "#27AE60"]
+        draw_line(plot, x, y_series, labels=labels, colors=colors)
+        self.chart_trend.title_label.setText(t("cost_profit_tab_trend"))
 
     # ===== تصدير =====
 
@@ -733,11 +689,24 @@ class CostCenterProfitabilityView(BaseView):
         if not file_path:
             return
         try:
-            with PdfPages(file_path) as pdf:
-                for chart in (self.chart_profitability, self.chart_trend):
-                    if chart.figure.axes:
-                        chart.figure.canvas.draw()
-                        pdf.savefig(chart.figure, dpi=150, bbox_inches="tight")
+            from PyQt6.QtGui import QPdfWriter, QPainter
+            from PyQt6.QtCore import QPageSize, QMarginsF
+            writer = QPdfWriter(file_path)
+            writer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+            painter = QPainter()
+            painter.begin(writer)
+            charts = [self.chart_profitability, self.chart_trend]
+            page_w = painter.device().width()
+            page_h = painter.device().height()
+            h_per_chart = page_h // max(len(charts), 1)
+            for i, chart in enumerate(charts):
+                pix = chart.grab()
+                scaled = pix.scaledToWidth(min(page_w - 40, pix.width()),
+                                           Qt.AspectRatioMode.KeepAspectRatio)
+                x = (page_w - scaled.width()) // 2
+                y = i * h_per_chart + (h_per_chart - scaled.height()) // 2
+                painter.drawPixmap(x, y, scaled)
+            painter.end()
             QMessageBox.information(self, t("success"),
                                     f"✅ {t('cost_profit_export_success')}\n{file_path}")
         except Exception as e:

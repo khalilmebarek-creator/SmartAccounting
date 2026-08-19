@@ -1,9 +1,9 @@
 # Loading overlay widget
 # ======================
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import (QFont)
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+from PyQt6.QtGui import (QFont)
 
 
 class LoadingOverlay(QWidget):
@@ -13,14 +13,14 @@ class LoadingOverlay(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
         self.setStyleSheet("background: rgba(0, 0, 0, 120);")
 
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_label = QLabel("")
-        self.status_label.setAlignment(Qt.AlignCenter)
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_label.setStyleSheet("color: white; font-size: 14px; background: transparent;")
         self.status_label.setFont(QFont("Segoe UI", 12))
         layout.addWidget(self.status_label)
@@ -41,10 +41,10 @@ class LoadingOverlay(QWidget):
                 border-radius: 4px;
             }
         """)
-        layout.addWidget(self.progress, alignment=Qt.AlignCenter)
+        layout.addWidget(self.progress, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.detail_label = QLabel("")
-        self.detail_label.setAlignment(Qt.AlignCenter)
+        self.detail_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.detail_label.setStyleSheet("color: rgba(255,255,255,0.7); font-size: 11px; background: transparent;")
         layout.addWidget(self.detail_label)
 
@@ -80,10 +80,10 @@ class SpinnerWidget(QWidget):
         super().__init__(parent)
         self._dots = 0
         self._label = QLabel("●○○○○")
-        self._label.setAlignment(Qt.AlignCenter)
+        self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._label.setStyleSheet("color: #4CAF50; font-size: 18px; background: transparent;")
         layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignCenter)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._label)
 
         self._timer = QTimer(self)

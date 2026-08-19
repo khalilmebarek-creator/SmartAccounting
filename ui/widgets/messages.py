@@ -2,7 +2,7 @@
 # ========================
 # رسائل خطأ/تحذير/نجاح موحّدة: عنوان واضح + إجراء مقترح (تلميح) + نص مترجم.
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 from ui.resources.i18n import t
 

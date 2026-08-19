@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import Qt
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import Qt
 
 app = QApplication.instance()
 if not app:
@@ -486,7 +486,7 @@ class TestPartnersView(unittest.TestCase):
         self.assertIsNone(self.view._selected_partner_id())
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("partners_col_type", "partners_name", "partners_phone",
@@ -519,7 +519,7 @@ class TestInvoicingView(unittest.TestCase):
         from unittest import mock
         self.view.item_desc.setText("Service")
         self.view._add_pending_item()
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view._create_invoice()
         self.assertEqual(self.view.invoices_table.rowCount(), 0)
 
@@ -530,7 +530,7 @@ class TestInvoicingView(unittest.TestCase):
         self.assertGreaterEqual(self.view.status_combo.count(), 6)
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("invoicing_col_type", "invoicing_col_partner",
@@ -569,7 +569,7 @@ class TestInventoryView(unittest.TestCase):
         self.assertIsNone(self.view._selected_item_id())
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("inventory_name", "inventory_sku", "inventory_category",
@@ -600,7 +600,7 @@ class TestPayrollView(unittest.TestCase):
 
     def test_run_payroll_with_no_employees(self):
         from unittest import mock
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view._run_payroll()
         self.assertEqual(self.view.payslips_table.rowCount(), 0)
 
@@ -612,7 +612,7 @@ class TestPayrollView(unittest.TestCase):
         self.assertEqual(self.view.year_spin.value(), 2026)
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("payroll_name", "payroll_position",
@@ -643,7 +643,7 @@ class TestBudgetingView(unittest.TestCase):
 
     def test_compare_without_actuals(self):
         from unittest import mock
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view._compare()
         self.assertEqual(self.view.compare_table.rowCount(), 0)
 
@@ -656,7 +656,7 @@ class TestBudgetingView(unittest.TestCase):
         self.assertGreaterEqual(self.view.category_combo.count(), 3)
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("budgeting_year", "budgeting_item_name",
@@ -678,12 +678,12 @@ class TestProcurementView(unittest.TestCase):
 
     def test_add_requires_supplier(self):
         from unittest import mock
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view._add_order()
         self.assertEqual(self.view.orders_table.rowCount(), 0)
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("procurement_supplier", "procurement_col_date",
@@ -705,12 +705,12 @@ class TestEInvoicingView(unittest.TestCase):
 
     def test_add_requires_customer(self):
         from unittest import mock
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view._add_invoice()
         self.assertEqual(self.view.invoice_table.rowCount(), 0)
 
     def test_form_fields_have_labels(self):
-        from PyQt5.QtWidgets import QLabel
+        from PyQt6.QtWidgets import QLabel
         from ui.resources.i18n import t as _t
         texts = [lbl.text() for lbl in self.view.findChildren(QLabel)]
         for key in ("einvoice_customer", "einvoice_customer_tax_id",
@@ -726,10 +726,10 @@ class TestFadeInSafety(unittest.TestCase):
         self.win = MainWindow()
 
     def _pump(self, ms):
-        from PyQt5.QtCore import QEventLoop, QTimer
+        from PyQt6.QtCore import QEventLoop, QTimer
         loop = QEventLoop()
         QTimer.singleShot(ms, loop.quit)
-        loop.exec_()
+        loop.exec()
 
     def test_rapid_switching_clears_effect(self):
         for vid in (1, 2, 3, 4, 5, 1, 2, 3):
@@ -757,7 +757,7 @@ class TestFadeInSafety(unittest.TestCase):
         from unittest import mock
         cur = self.win.content.currentWidget()
         with mock.patch(
-            "PyQt5.QtWidgets.QGraphicsOpacityEffect.setOpacity",
+            "PyQt6.QtWidgets.QGraphicsOpacityEffect.setOpacity",
             side_effect=RuntimeError("boom")
         ):
             self.win._fade_in_view(cur)

@@ -1,10 +1,10 @@
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTextBrowser,
     QFileDialog, QMessageBox
 )
-from PyQt5.QtGui import QFont
+from PyQt6.QtGui import QFont
 
 from ui.app_state import state
 from ui.resources.i18n import t

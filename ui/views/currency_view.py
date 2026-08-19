@@ -4,7 +4,7 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem,
     QLineEdit, QDoubleSpinBox, QMessageBox, QFileDialog, QHeaderView,
     QHBoxLayout
@@ -73,10 +73,10 @@ class CurrencyView(BaseView):
             t("currency_table_code"), t("currency_table_name"),
             t("currency_table_symbol"), t("currency_table_rate"),
         ])
-        self.rates_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.rates_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.rates_table.setSelectionMode(QTableWidget.SingleSelection)
-        self.rates_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.rates_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.rates_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.rates_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.rates_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         settings_card.layout().addWidget(self.rates_table)
 
         add_row = QHBoxLayout()
@@ -149,8 +149,8 @@ class CurrencyView(BaseView):
             t("currency_table_name"), t("currency_table_rate"),
             t("currency_report_target"),
         ])
-        self.report_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.report_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.report_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.report_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         report_card.layout().addWidget(self.report_table)
         self.no_data_label = QLabel(t("currency_no_data"))
         self.no_data_label.setStyleSheet("color: #888;")

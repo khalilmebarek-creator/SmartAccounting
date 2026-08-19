@@ -12,7 +12,7 @@ requires-python = ">=3.11,<3.14"
 authors = [
     {name = "Accounting Platform Team"}
 ]
-keywords = ["accounting", "finance", "tax", "algeria", "pyqt5"]
+keywords = ["accounting", "finance", "tax", "algeria", "pyqt6"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Education",
@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "PyQt5>=5.15.11,<6.0",
+    "PyQt6>=6.5.0,<7.0",
     "matplotlib>=3.7.0,<4.0",
     "pandas>=2.0.0,<3.0",
     "openpyxl>=3.1.0,<4.0",
@@ -67,7 +67,7 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "E741",   # ambiguous variable name
-    "B008",   # function call in default argument (PyQt5 pattern)
+    "B008",   # function call in default argument (PyQt6 pattern)
 ]
 
 [tool.ruff.lint.isort]

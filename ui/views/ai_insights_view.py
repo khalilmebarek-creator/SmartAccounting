@@ -4,23 +4,30 @@
 
 from ui.views._path import _  # noqa: F401
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_pdf import PdfPages
-
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
     QComboBox, QTabWidget, QTableWidget, QTableWidgetItem, QListWidget,
     QMessageBox, QFileDialog, QHeaderView
 )
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 from ui.views._base import BaseView
-from ui.views.dashboard import ChartWidget, _chart_text_color
+from ui.charts import (PgChartWidget,
+    draw_line, draw_bar,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
 from modules.ai_insights import ai_insights_engine
 from modules.advanced_dashboard import _MONTHLY_WEIGHTS
+
+class ChartWidget(PgChartWidget):
+
+    def set_title(self, title):
+        self.title_label.setText(title)
+
+    def clear_chart(self):
+        self.plot_item.clear()
+
 
 _RISK_LABEL_KEYS = {
     "volatility": "ai_msg_risk_volatility",
@@ -116,7 +123,7 @@ class AIInsightsView(BaseView):
         self.no_data_label = QLabel(t("ai_no_data"))
         self.no_data_label.setObjectName("card")
         self.no_data_label.setWordWrap(True)
-        self.no_data_label.setAlignment(Qt.AlignCenter)
+        self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.no_data_label.setMinimumHeight(100)
         self.no_data_label.setStyleSheet("padding: 20px; font-size: 14px;")
         self.no_data_label.hide()
@@ -190,13 +197,13 @@ class AIInsightsView(BaseView):
 
         self.fc_table = QTableWidget(0, 4)
         self.fc_table.setObjectName("dataTable")
-        self.fc_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.fc_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.fc_table)
 
         self.tabs.addTab(tab, t("ai_fc_tab"))
 
     def _growth_box(self, title, value_label):
-        from PyQt5.QtWidgets import QFrame
+        from PyQt6.QtWidgets import QFrame
         frame = QFrame()
         frame.setObjectName("card")
         v = QVBoxLayout(frame)
@@ -220,7 +227,7 @@ class AIInsightsView(BaseView):
 
         self.an_series_table = QTableWidget(0, 5)
         self.an_series_table.setObjectName("dataTable")
-        self.an_series_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.an_series_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.an_series_table)
 
         self.an_tx_title = QLabel(t("ai_an_transactions"))
@@ -229,7 +236,7 @@ class AIInsightsView(BaseView):
 
         self.an_tx_table = QTableWidget(0, 4)
         self.an_tx_table.setObjectName("dataTable")
-        self.an_tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.an_tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.an_tx_table)
 
         layout.addStretch()
@@ -265,7 +272,7 @@ class AIInsightsView(BaseView):
 
         self.pat_risk_table = QTableWidget(0, 3)
         self.pat_risk_table.setObjectName("dataTable")
-        self.pat_risk_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.pat_risk_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.pat_risk_table)
 
         self.tabs.addTab(tab, t("ai_pat_tab"))
@@ -279,7 +286,7 @@ class AIInsightsView(BaseView):
 
         self.rec_table = QTableWidget(0, 3)
         self.rec_table.setObjectName("dataTable")
-        self.rec_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.rec_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.rec_table)
 
         layout.addStretch()
@@ -386,36 +393,24 @@ class AIInsightsView(BaseView):
             chart.set_title(title)
             self._clear_chart(chart)
             return
-        fig = chart.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
-        text_color = _chart_text_color()
-        bg = ThemeColors.get("chart_bg")
-        fig.patch.set_facecolor(bg)
-        ax.set_facecolor(bg)
-        ax.tick_params(colors=text_color)
-        for spine in ax.spines.values():
-            spine.set_color(text_color)
+        chart.clear_plot()
+        chart.set_title(title)
+        plot = chart.plot_item
 
-        x_hist = list(range(1, len(history) + 1))
         n = len(history)
         forecast = fc.get("forecast", [])
         conf = fc.get("confidence", [])
-        x_fc = [n + i + 1 for i in range(len(forecast))]
+        m = len(forecast)
 
-        ax.plot(x_hist, history, color="#2196F3", marker="o", linewidth=1.5)
-        if x_fc and forecast:
-            ax.plot(x_fc, [p["value"] for p in forecast], color="#E74C3C",
-                    marker="s", linestyle="--", linewidth=1.5, label=_plain_title(title))
-            lower = [c["lower"] for c in conf]
-            upper = [c["upper"] for c in conf]
-            ax.fill_between(x_fc, lower, upper, color="#E74C3C", alpha=0.15,
-                            label=_plain_title(t("ai_fc_confidence")))
-        ax.set_title(_plain_title(title), color=text_color)
-        ax.legend(loc="upper left", fontsize=8, labelcolor=text_color)
-        ax.grid(True, alpha=0.3)
-        chart.canvas.draw()
-        chart.set_title(title)
+        all_x = list(range(1, n + m + 1))
+        y_hist = list(history) + [float('nan')] * m
+        y_fc = [float('nan')] * n + [p["value"] for p in forecast]
+        y_upper = [float('nan')] * n + [c["upper"] for c in conf]
+        y_lower = [float('nan')] * n + [c["lower"] for c in conf]
+
+        draw_line(plot, all_x, [y_hist, y_fc, y_upper, y_lower],
+                  [None, _plain_title(title), t("ai_fc_confidence"), None],
+                  ["#2196F3", "#E74C3C", "#E74C3C", "#E74C3C"], fill=True)
 
     def _fill_anomalies(self, anomalies):
         series = anomalies.get("profit", [])
@@ -469,24 +464,11 @@ class AIInsightsView(BaseView):
         if not indexes:
             self._clear_chart(self.chart_seasonality)
             return
-        fig = self.chart_seasonality.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
-        text_color = _chart_text_color()
-        bg = ThemeColors.get("chart_bg")
-        fig.patch.set_facecolor(bg)
-        ax.set_facecolor(bg)
-        ax.tick_params(colors=text_color)
-        for spine in ax.spines.values():
-            spine.set_color(text_color)
+        self.chart_seasonality.clear_plot()
+        self.chart_seasonality.set_title(title)
         labels = [t(k) for k in _MONTH_KEYS[:len(indexes)]]
-        bars = ax.bar(range(1, len(indexes) + 1), indexes, color="#8E44AD", alpha=0.8)
-        ax.axhline(1.0, color=text_color, linestyle="--", alpha=0.5)
-        ax.set_title(_plain_title(title), color=text_color)
-        ax.set_xticks(range(1, len(indexes) + 1))
-        ax.set_xticklabels([_plain_title(l) for l in labels], rotation=45, fontsize=7, color=text_color)
-        ax.grid(True, alpha=0.3)
-        self.chart_seasonality.canvas.draw()
+        draw_bar(self.chart_seasonality.plot_item, labels, indexes,
+                 ["#8E44AD"] * len(indexes))
 
     def _fill_recommendations(self, recs):
         self.rec_table.setRowCount(len(recs))
@@ -513,7 +495,7 @@ class AIInsightsView(BaseView):
 
     def _set_money(self, table, row, col, value):
         item = QTableWidgetItem(f"{value:,.2f}")
-        item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         table.setItem(row, col, item)
 
     # ===== export =====
@@ -528,12 +510,26 @@ class AIInsightsView(BaseView):
         if not file_path:
             return
         try:
+            from PyQt6.QtGui import QPdfWriter, QPainter
+            from PyQt6.QtCore import QPageSize
+            writer = QPdfWriter(file_path)
+            writer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
+            painter = QPainter()
+            painter.begin(writer)
             charts = [self.fc_chart_revenue, self.fc_chart_expenses,
                       self.fc_chart_profit, self.chart_seasonality]
-            with PdfPages(file_path) as pdf:
-                for chart in charts:
-                    if chart.isVisible():
-                        pdf.savefig(chart.figure, dpi=150, bbox_inches="tight")
+            charts = [c for c in charts if c.isVisible()]
+            page_w = painter.device().width()
+            page_h = painter.device().height()
+            h_per_chart = page_h // max(len(charts), 1)
+            for i, chart in enumerate(charts):
+                pix = chart.grab()
+                scaled = pix.scaledToWidth(min(page_w - 40, pix.width()),
+                                           Qt.AspectRatioMode.KeepAspectRatio)
+                x = (page_w - scaled.width()) // 2
+                y = i * h_per_chart + (h_per_chart - scaled.height()) // 2
+                painter.drawPixmap(x, y, scaled)
+            painter.end()
             QMessageBox.information(self, t("success"), f"✅ {t('ai_export_success')}\n{file_path}")
         except Exception as e:
             QMessageBox.critical(self, t("error"), str(e))

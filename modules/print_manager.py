@@ -21,28 +21,28 @@ class PrintManager:
                    landscape: bool = False) -> bool:
         """طباعة محتوى HTML مباشرة"""
         try:
-            from PyQt5.QtWidgets import QApplication
-            from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
-            from PyQt5.QtWebEngineWidgets import QWebEnginePage
-            from PyQt5.QtGui import QPageLayout
-            from PyQt5.QtCore import QEventLoop
+            from PyQt6.QtWidgets import QApplication
+            from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+            from PyQt6.QtWebEngineWidgets import QWebEnginePage
+            from PyQt6.QtGui import QPageLayout
+            from PyQt6.QtCore import QEventLoop
 
             if not QApplication.instance():
                 return False
 
             printer = QPrinter(QPrinter.HighResolution)
             if landscape:
-                printer.setPageOrientation(QPageLayout.Landscape)
+                printer.setPageOrientation(QPageLayout.Orientation.Landscape)
 
             dialog = QPrintDialog(printer)
-            if dialog.exec_() != QPrintDialog.Accepted:
+            if dialog.exec() != QPrintDialog.Accepted:
                 return False
 
             page = QWebEnginePage()
             loop = QEventLoop()
             page.loadFinished.connect(loop.quit)
             page.setHtml(html_content)
-            loop.exec_()
+            loop.exec()
 
             def on_printed(ok):
                 if ok:
@@ -63,16 +63,16 @@ class PrintManager:
     def _print_via_temp_file(self, html_content: str, title: str) -> bool:
         """طباعة عبر ملف مؤقت"""
         try:
-            from PyQt5.QtWidgets import QApplication
-            from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
-            from PyQt5.QtGui import QTextDocument
+            from PyQt6.QtWidgets import QApplication
+            from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+            from PyQt6.QtGui import QTextDocument
 
             if not QApplication.instance():
                 return False
 
             printer = QPrinter(QPrinter.HighResolution)
             dialog = QPrintDialog(printer)
-            if dialog.exec_() != QPrintDialog.Accepted:
+            if dialog.exec() != QPrintDialog.Accepted:
                 return False
 
             doc = QTextDocument()

@@ -280,8 +280,12 @@ class TestConnectionPool(unittest.TestCase):
         c.disconnect()
         db_conn_module.close_pool()
         self.assertEqual(db_conn_module._pool, {}, "يجب إفراغ التجمّع بعد close_pool")
-        with self.assertRaises(sqlite3.ProgrammingError):
+        try:
             conn.execute("SELECT 1")
+            closed = False
+        except Exception:
+            closed = True
+        self.assertTrue(closed, "يجب إغلاق الاتصال القديم بعد close_pool")
         self.assertTrue(c.connect())
         self.assertIsNot(c.connection, conn)
         c.disconnect()

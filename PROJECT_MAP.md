@@ -1,5 +1,10 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-18 | الإصدار: v3.2.0
+> آخر تحديث: 2026-08-19 | الإصدار: v3.2.0
+
+---
+
+## SESSION LOG (آخر الجلسات)
+- **جلسة 99 (2026-08-19):** تكامل pyqtgraph + SQLAlchemy Core + Plotly — **2075 اختباراً أخضر**
 
 ---
 
@@ -403,7 +408,7 @@ Accounting_Platform/
 
 ## EXECUTION LOG
 
-> **آخر حالة (2026-08-17):** v3.2.0 — **2075 اختباراً** (سطح المكتب) + **56 اختباراً Flutter** (mobile/) + **تطبيق جوال Android** (arm64 18.2MB) + تغطية وحدات 100% + 2105 مفتاح i18n × 3 + **شريط Ribbon 7 تبويبات** + **إصلاح انهيار matplotlib** + **ML مفعّل كاملاً** + **تقارير IAS/IFRS** + **منصة ذكاء اصطناعي متكاملة** + **توحيد تصميم الشاشات المحاسبية الأربع (34-37)** + **تمرير عمودي QScrollArea لكل الشاشات** (BaseView + wrap_in_scroll لـ QWidget).
+> **آخر حالة (2026-08-19):** v3.2.0 — **2075 اختباراً** (سطح المكتب) + **56 اختباراً Flutter** (mobile/) + **تطبيق جوال Android** (arm64 18.2MB) + تغطية وحدات 100% + 2105 مفتاح i18n × 3 + **هجرة PyQt5 → PyQt6 6.11.0** (68 ملفاً + enums + QAction/QShortcut→QtGui + exec_→exec + QDesktopWidget→QScreen + QEvent.Type) + **شريط Ribbon 7 تبويبات** + **إصلاح انهيار matplotlib** + **ML مفعّل كاملاً** + **تقارير IAS/IFRS** + **منصة ذكاء اصطناعي متكاملة** + **توحيد تصميم الشاشات المحاسبية الأربع (34-37)** + **تمرير عمودي QScrollArea لكل الشاشات** (BaseView + wrap_in_scroll لـ QWidget).
 
 | # | التاريخ | الإجراء | النتيجة |
 |---|---------|---------|---------|
@@ -543,3 +548,5 @@ Accounting_Platform/
 | الجلسة | التاريخ | الإصدار | الملفات | المحتوى |
 |--------|---------|---------|---------|---------|
 | 97c | 2026-08-18 | v3.2.0 | config.py, modules/bank_api.py, modules/backup.py, modules/bank_sync.py, modules/cloud_sync.py, modules/excel_export.py, modules/print_manager.py, modules/tax_reminders.py, modules/update_checker.py, modules/user_testing.py, modules/data_import.py, ui/app_state.py, ui/login_session.py, .bandit, .github/workflows/codeql.yml | **تخفيف أثر Bandit + CodeQL**: إصلاح MD5→SHA-256 في bank_api.py + إزالة كلمة المرور الافتراضية في config.py + إضافة logging لـ 14 try/except pass + ملف .bandit لـ false positives + CodeQL workflow مجاني على GitHub → **0 HIGH** (كان 1) + **183 إجمالي** (117 LOW مقبول + 66 MEDIUM B608 SQL مُعاملات/جداول ثابتة false positive) — **2075 اختباراً أخضر** + push `e806f75` |
+
+| 98 | 2026-08-19 | v3.2.0 | requirements.txt, pyproject.toml, 68 files | PyQt5 to PyQt6 migration | 2075 tests green |

@@ -7,7 +7,7 @@
   - بناء مصنف Excel متعدد الأوراق (رأس ملوّن + بيانات)
   - حفظ أشكال matplotlib في PDF واحد (PdfPages)
 """
-from PyQt5.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QFileDialog
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 
@@ -60,9 +60,20 @@ def add_excel_sheet(wb, title, headers, rows, header_fill=DEFAULT_SHEET_FILL):
     return ws
 
 
-def write_charts_pdf(path, figures):
-    """حفظ عدة أشكال matplotlib في ملف PDF واحد (150dpi، بلا هوامش)."""
-    from matplotlib.backends.backend_pdf import PdfPages
-    with PdfPages(path) as pdf:
-        for fig in figures:
-            pdf.savefig(fig, dpi=150, bbox_inches="tight")
+def write_charts_pdf(path, widgets):
+    """حفظ عدة أشكال pyqtgraph في ملف PDF واحد."""
+    from PyQt6.QtGui import QPdfWriter, QPainter
+    from PyQt6.QtCore import QRect
+    if not widgets:
+        return
+    writer = QPdfWriter(path)
+    writer.setResolution(150)
+    painter = QPainter()
+    painter.begin(writer)
+    for i, w in enumerate(widgets):
+        pixmap = w.grab()
+        img = pixmap.toImage()
+        painter.drawImage(QRect(0, 0, writer.width(), writer.height()), img)
+        if i < len(widgets) - 1:
+            writer.newPage()
+    painter.end()

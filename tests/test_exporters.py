@@ -5,9 +5,6 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 from openpyxl import Workbook, load_workbook
 
 from ui import exporters
@@ -44,19 +41,23 @@ class TestExporters(unittest.TestCase):
         self.assertFalse(ws["A1"].font.bold)
 
     def test_write_charts_pdf(self):
-        figs = []
+        from PyQt6.QtWidgets import QApplication, QLabel
+        app = QApplication.instance() or QApplication([])
+        widgets = []
         for _ in range(2):
-            fig, ax = plt.subplots()
-            ax.plot([1, 2, 3])
-            plt.close(fig)
-            figs.append(fig)
+            lbl = QLabel("chart")
+            lbl.resize(200, 150)
+            lbl.show()
+            widgets.append(lbl)
         path = self._path("charts.pdf")
-        exporters.write_charts_pdf(path, figs)
+        exporters.write_charts_pdf(path, widgets)
         from pypdf import PdfReader
         self.assertEqual(len(PdfReader(path).pages), 2)
+        for w in widgets:
+            w.close()
 
     def test_ask_save_path_chosen(self):
-        from PyQt5.QtWidgets import QApplication
+        from PyQt6.QtWidgets import QApplication
         app = QApplication.instance() or QApplication([])
         with patch("ui.exporters.QFileDialog.getSaveFileName",
                    return_value=("C:/out.pdf", "PDF (*.pdf)")):

@@ -2,8 +2,8 @@
 # ==============================
 # المدير يحدد الشاشات المسموحة لكل عضو (1 و2 إجباريتان).
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
     QCheckBox, QHBoxLayout, QLabel, QPushButton, QScrollArea,
     QVBoxLayout, QWidget,
 )
@@ -23,7 +23,7 @@ class ScreensAssignmentDialog(QWidget):
         super().__init__(parent)
         self._username = username
         self.setWindowTitle(t("screens_assign_title"))
-        self.setWindowFlag(Qt.Dialog, True)
+        self.setWindowFlag(Qt.WindowType.Dialog, True)
         self.resize(420, 640)
 
         layout = QVBoxLayout()

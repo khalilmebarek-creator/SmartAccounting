@@ -1,9 +1,9 @@
 # Base view class with common layout helpers
 # ===========================================
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel, QScrollArea
-from PyQt5.QtGui import QFont
-from PyQt5.QtGui import QFont
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QFrame, QLabel, QScrollArea
+from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont
 
 from ui.resources.i18n import t
 from ui.constants import (
@@ -28,7 +28,7 @@ def wrap_in_scroll(widget):
     """لفّ أي widget في QScrollArea — للشاشات التي لا ترث BaseView."""
     scroll = QScrollArea()
     scroll.setWidgetResizable(True)
-    scroll.setFrameShape(QFrame.NoFrame)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
     scroll.setWidget(widget)
     scroll._wrapped_view = widget
     return scroll
@@ -45,7 +45,7 @@ class BaseView(QWidget):
 
         self._scroll = QScrollArea()
         self._scroll.setWidgetResizable(True)
-        self._scroll.setFrameShape(QFrame.NoFrame)
+        self._scroll.setFrameShape(QFrame.Shape.NoFrame)
 
         container = QWidget()
         self._main_layout = QVBoxLayout(container)

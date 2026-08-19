@@ -1,15 +1,15 @@
 from ui.app_state import state, ThemeColors
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QGroupBox, QFrame, QMessageBox, QGridLayout, QSizePolicy
 )
-from PyQt5.QtCore import (Qt)
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from PyQt6.QtCore import (Qt)
+
+from ui.charts import (PgChartWidget,
+    draw_bar, draw_grouped_bar, draw_line,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.resources.i18n import t
 from modules.calculations import CalculationEngine
@@ -79,27 +79,26 @@ class ZScoreView(QWidget):
         layout.addLayout(btn_layout)
 
         sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
+        sep.setFrameShape(QFrame.Shape.HLine)
         sep.setObjectName("separator")
         layout.addWidget(sep)
 
         self.result_label = QLabel("")
         self.result_label.setObjectName("headerTitle")
-        self.result_label.setAlignment(Qt.AlignCenter)
+        self.result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.result_label.setMinimumHeight(50)
         layout.addWidget(self.result_label)
 
         self.interp_label = QLabel("")
         self.interp_label.setObjectName("headerSubtitle")
-        self.interp_label.setAlignment(Qt.AlignCenter)
+        self.interp_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.interp_label.setMinimumHeight(40)
         layout.addWidget(self.interp_label)
 
-        self.chart_frame = QFrame()
-        self.chart_layout = QVBoxLayout()
-        self.chart_layout.setContentsMargins(0, 0, 0, 0)
-        self.chart_frame.setLayout(self.chart_layout)
-        layout.addWidget(self.chart_frame, 1)
+        self.chart_widget = PgChartWidget("Altman Z-Score Breakdown")
+        self.chart_widget.setMinimumHeight(300)
+        self.chart_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        layout.addWidget(self.chart_widget, 1)
 
         self.setLayout(layout)
 
@@ -147,46 +146,24 @@ class ZScoreView(QWidget):
         self._draw_chart(z, result["components"])
 
     def _draw_chart(self, z_score, components):
-        for i in range(self.chart_layout.count()):
-            w = self.chart_layout.itemAt(i).widget()
-            if w:
-                if hasattr(w, 'figure'):
-                    import matplotlib.pyplot as plt
-                    plt.close(w.figure)
-                w.setParent(None)
-                w.deleteLater()
-
-        fig = Figure(figsize=(8, 4), dpi=100, facecolor='none')
-        fig.subplots_adjust(left=0.1, right=0.95, top=0.85, bottom=0.15)
-        ax = fig.add_subplot(111)
-
-        ax.axhspan(0, 1.81, color='#e74c3c', alpha=0.15)
-        ax.axhspan(1.81, 2.99, color='#f39c12', alpha=0.15)
-        ax.axhspan(2.99, 5.0, color='#2ecc71', alpha=0.15)
-        ax.axhline(y=1.81, color='#e74c3c', linestyle='--', linewidth=1, alpha=0.7)
-        ax.axhline(y=2.99, color='#2ecc71', linestyle='--', linewidth=1, alpha=0.7)
-
+        plot = self.chart_widget.plot_item
         components_names = ['X1', 'X2', 'X3', 'X4', 'X5']
         components_vals = [components.get(f'x{i+1}', 0) for i in range(5)]
         weights = [1.2, 1.4, 3.3, 0.6, 1.0]
         weighted = [v * w for v, w in zip(components_vals, weights)]
 
-        bars = ax.bar(components_names, weighted, color='#3498db', alpha=0.8, width=0.5, edgecolor=ThemeColors.get('chart_edge'), linewidth=0.5)
+        colors = []
+        for val in weighted:
+            if val <= 1.81:
+                colors.append("#e74c3c")
+            elif val <= 2.99:
+                colors.append("#f39c12")
+            else:
+                colors.append("#2ecc71")
 
-        ax.plot([], [], 'o', color=ThemeColors.get('chart_edge'), label=f'Z = {z_score}')
-        ax.legend(loc='upper right', fontsize=10, framealpha=0.8)
-
-        ax.set_ylim(0, max(5.0, z_score + 0.5))
-        ax.set_ylabel('Weighted Value', fontsize=10)
-        ax.set_title('Altman Z-Score Breakdown', fontsize=12, fontweight='bold')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.tick_params(axis='both', labelsize=9)
-
-        canvas = FigureCanvas(fig)
-        canvas.setMinimumHeight(300)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.chart_layout.addWidget(canvas)
+        draw_bar(plot, components_names, weighted, colors, bar_width=0.5)
+        plot.setYRange(0, max(5.0, z_score + 0.5))
+        self.chart_widget.title_label.setText('Altman Z-Score Breakdown')
 
     def load_from_state(self):
         fd = state.financial_data

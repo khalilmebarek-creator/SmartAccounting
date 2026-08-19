@@ -1,28 +1,20 @@
 # لوحة التحكم - Dashboard
 # ========================
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton
 )
-from PyQt5.QtCore import (pyqtSignal)
-from PyQt5.QtGui import QFont
+from PyQt6.QtCore import (pyqtSignal)
+from PyQt6.QtGui import QFont
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from ui.charts import (PgChartWidget, PgPieWidget, PgPolarWidget,
+    draw_bar, draw_horizontal_bar, draw_line, draw_area, draw_waterfall, draw_pie_widget, draw_radar, draw_gauge,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
-
-
-def _chart_text_color():
-    return ThemeColors.get("chart_text")
-
-
-def _chart_edge_color():
-    return ThemeColors.get("chart_edge")
+from ui.plotly_export import export_dashboard_html
 
 
 class ChartWidget(QFrame):
@@ -32,7 +24,7 @@ class ChartWidget(QFrame):
         super().__init__(parent)
         self.setObjectName("card")
         self.setMinimumSize(350, 280)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(16, 12, 16, 12)
@@ -41,11 +33,10 @@ class ChartWidget(QFrame):
         self.title_label.setObjectName("sectionTitle")
         layout.addWidget(self.title_label)
 
-        self.figure = Figure(figsize=(4, 3), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        layout.addWidget(self.canvas)
+        self.plot_widget = PgChartWidget(title)
+        self.plot_item = self.plot_widget.plot_item
+        self.plot_widget.setMinimumSize(300, 200)
+        layout.addWidget(self.plot_widget)
 
         self.setLayout(layout)
 
@@ -53,10 +44,59 @@ class ChartWidget(QFrame):
         self.title_label.setText(title)
 
     def clear_chart(self):
-        self.figure.clear()
-        import matplotlib.pyplot as plt
-        plt.close(self.figure)
-        self.canvas.draw()
+        self.plot_item.clear()
+
+
+class PieChartWidget(QFrame):
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setMinimumSize(350, 280)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+
+        self.title_label = QLabel(title)
+        self.title_label.setObjectName("sectionTitle")
+        layout.addWidget(self.title_label)
+
+        self.pie_widget = PgPieWidget(title)
+        layout.addWidget(self.pie_widget)
+
+        self.setLayout(layout)
+
+    def set_title(self, title):
+        self.title_label.setText(title)
+
+    def clear_chart(self):
+        self.pie_widget.pie_canvas.set_pie_data([], [], [])
+
+
+class RadarChartWidget(QFrame):
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setMinimumSize(350, 280)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+
+        self.title_label = QLabel(title)
+        self.title_label.setObjectName("sectionTitle")
+        layout.addWidget(self.title_label)
+
+        self.polar_widget = PgPolarWidget(title)
+        layout.addWidget(self.polar_widget)
+
+        self.setLayout(layout)
+
+    def set_title(self, title):
+        self.title_label.setText(title)
+
+    def clear_chart(self):
+        self.polar_widget.clear_plot()
 
 
 class SummaryCard(QFrame):
@@ -66,7 +106,7 @@ class SummaryCard(QFrame):
         super().__init__(parent)
         self.setObjectName("card")
         self.setMinimumSize(200, 120)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         layout = QVBoxLayout()
         layout.setSpacing(8)
@@ -174,6 +214,13 @@ class DashboardView(QWidget):
         self.export_btn.clicked.connect(self.export_pdf_clicked.emit)
         btn_layout.addWidget(self.export_btn)
 
+        self.html_btn = QPushButton(t("export_dashboard_html"))
+        self.html_btn.setObjectName("secondaryBtn")
+        self.html_btn.setMinimumWidth(280)
+        self.html_btn.setMinimumHeight(40)
+        self.html_btn.clicked.connect(self._export_html)
+        btn_layout.addWidget(self.html_btn)
+
         self.content_layout.addLayout(btn_layout)
 
     def _build_charts(self):
@@ -187,19 +234,19 @@ class DashboardView(QWidget):
         self.chart_ratios = ChartWidget(t("chart_ratios"))
         charts_grid.addWidget(self.chart_ratios, 0, 0)
 
-        self.chart_profitability = ChartWidget(t("chart_profitability"))
+        self.chart_profitability = PieChartWidget(t("chart_profitability"))
         charts_grid.addWidget(self.chart_profitability, 0, 1)
 
         self.chart_dupont = ChartWidget(t("chart_dupont"))
         charts_grid.addWidget(self.chart_dupont, 1, 0)
 
-        self.chart_balance = ChartWidget(t("chart_balance"))
+        self.chart_balance = PieChartWidget(t("chart_balance"))
         charts_grid.addWidget(self.chart_balance, 1, 1)
 
-        self.chart_expenses = ChartWidget(t("chart_expenses"))
+        self.chart_expenses = PieChartWidget(t("chart_expenses"))
         charts_grid.addWidget(self.chart_expenses, 2, 0)
 
-        self.chart_radar = ChartWidget(t("chart_radar"))
+        self.chart_radar = RadarChartWidget(t("chart_radar"))
         charts_grid.addWidget(self.chart_radar, 2, 1)
 
         self.chart_zscore = ChartWidget(t("chart_zscore"))
@@ -216,6 +263,104 @@ class DashboardView(QWidget):
         label.setObjectName("sectionTitle")
         return label
 
+    def _export_html(self):
+        from PyQt6.QtWidgets import QFileDialog, QMessageBox
+        path, _ = QFileDialog.getSaveFileName(
+            self, t("export_dashboard_html"), "dashboard.html", "HTML (*.html)"
+        )
+        if not path:
+            return
+        ratios = state.ratios
+        fd = state.financial_data
+        charts_data = {}
+
+        labels_r = ['Current Ratio', 'Quick Ratio', 'ROA', 'ROE', 'Asset Turnover']
+        keys_r = ['current_ratio', 'quick_ratio', 'roa', 'roe', 'asset_turnover']
+        charts_data['ratios_bar'] = {
+            'labels': labels_r,
+            'values': [ratios.get(k, 0) for k in keys_r],
+            'colors': ['#3498DB', '#2ECC71', '#E74C3C', '#F39C12', '#9B59B6'],
+        }
+
+        pp_labels = ['Gross Margin', 'Net Margin', 'ROA', 'ROE']
+        pp_keys = ['gross_profit_margin', 'net_profit_margin', 'roa', 'roe']
+        charts_data['profitability_pie'] = {
+            'labels': pp_labels,
+            'values': [max(ratios.get(k, 0), 0) for k in pp_keys],
+            'colors': ['#27AE60', '#3498DB', '#E74C3C', '#F39C12'],
+        }
+
+        if state.dupont:
+            dp = state.dupont
+            charts_data['dupont'] = {
+                'labels': ['Net Profit Margin %', 'Asset Turnover', 'Equity Multiplier', 'ROE %'],
+                'values': [dp.get('net_profit_margin', 0), dp.get('asset_turnover', 0),
+                           dp.get('equity_multiplier', 0), dp.get('roe', 0)],
+                'colors': ['#2ECC71', '#3498DB', '#E74C3C', '#F39C12'],
+            }
+
+        if fd:
+            total_liab = fd.get('total_liabilities', 0)
+            equity = fd.get('equity', 0)
+            if total_liab or equity:
+                charts_data['balance_pie'] = {
+                    'labels': ['Liabilities', 'Equity'],
+                    'values': [total_liab, equity],
+                    'colors': ['#E74C3C', '#3498DB'],
+                }
+            cogs = fd.get('cost_of_goods_sold', 0)
+            gross = fd.get('gross_profit', 0)
+            net = fd.get('net_income', 0)
+            opex = max(gross - net, 0) if gross > 0 else 0
+            if cogs or opex:
+                charts_data['expenses_pie'] = {
+                    'labels': ['COGS', 'OpEx', 'Net Profit'],
+                    'values': [cogs, opex, max(net, 0)],
+                    'colors': ['#E74C3C', '#F39C12', '#2ECC71'],
+                }
+            ca = fd.get('current_assets', 0)
+            inv = fd.get('inventory', 0)
+            cl = fd.get('current_liabilities', 0)
+            charts_data['liquidity'] = {
+                'labels': ['Current Assets', 'Inventory', 'Quick Assets', 'Current Liabilities'],
+                'values': [ca, inv, max(ca - inv, 0), cl],
+                'colors': ['#3498DB', '#E74C3C', '#2ECC71', '#F39C12'],
+            }
+
+        cat_r = ['ROE', 'ROA', 'NPM', 'Current Ratio', 'Quick Ratio', 'Asset Turnover']
+        keys_rd = ['roe', 'roa', 'net_profit_margin', 'current_ratio', 'quick_ratio', 'asset_turnover']
+        max_ref = [25, 15, 25, 3, 2.5, 2]
+        raw = [max(ratios.get(k, 0), 0) for k in keys_rd]
+        charts_data['radar'] = {
+            'labels': cat_r,
+            'values': [min(r / m * 100, 100) for r, m in zip(raw, max_ref)],
+        }
+
+        from modules.calculations import CalculationEngine
+        engine = CalculationEngine()
+        working_capital = (fd.get('current_assets', 0) or 0) - (fd.get('current_liabilities', 0) or 0) if fd else 0
+        retained_earnings = (fd.get('net_income', 0) or 0) if fd else 0
+        equity_val = (fd.get('equity', 0) or 0) if fd else 0
+        total_assets = (fd.get('total_assets', 0) or 0) if fd else 0
+        market_value = equity_val if equity_val > 0 else total_assets * 0.5
+        book_debt = (fd.get('total_liabilities', 0) or 0) if fd else 0
+        revenue = (fd.get('revenue', 0) or 0) if fd else 0
+        result = engine.z_score(
+            working_capital=working_capital, retained_earnings=retained_earnings,
+            ebit=retained_earnings, market_value_equity=market_value,
+            book_value_debt=book_debt, sales=revenue, total_assets=total_assets,
+        )
+        charts_data['zscore'] = {
+            'value': result.get('z_score', 0),
+            'zones': [('#E74C3C', 'Danger', 0, 1.8), ('#F39C12', 'Grey', 1.8, 3.0), ('#2ECC71', 'Safe', 3.0, 5.0)],
+        }
+
+        try:
+            export_dashboard_html(path, charts_data)
+            QMessageBox.information(self, t("export_dashboard_html"), t("dashboard_export_html_success"))
+        except Exception as e:
+            QMessageBox.warning(self, t("export_dashboard_html"), str(e))
+
     def retranslate(self):
         """ تحديث كل النصوص عند تغيير اللغة"""
         self.title_label.setText(t("dashboard_title"))
@@ -223,6 +368,7 @@ class DashboardView(QWidget):
         self.summary_section.setText(t("summary_title"))
         self.charts_section.setText(t("charts_title"))
         self.export_btn.setText(t("dashboard_export_pdf"))
+        self.html_btn.setText(t("export_dashboard_html"))
         self.card_roe.set_texts(t("card_roe_title"), t("card_roe_sub"))
         self.card_cr.set_texts(t("card_cr_title"), t("card_cr_sub"))
         self.card_npm.set_texts(t("card_npm_title"), t("card_npm_sub"))
@@ -275,7 +421,6 @@ class DashboardView(QWidget):
 
     def _clear_all(self):
         """مسح كل الرسوم"""
-        import matplotlib.pyplot as plt
         self.card_roe.value_label.setText("--")
         self.card_cr.value_label.setText("--")
         self.card_npm.value_label.setText("--")
@@ -283,70 +428,33 @@ class DashboardView(QWidget):
         for chart in [self.chart_ratios, self.chart_profitability, self.chart_dupont,
                       self.chart_balance, self.chart_expenses, self.chart_radar,
                       self.chart_zscore, self.chart_liquidity]:
-            chart.figure.clear()
-            plt.close(chart.figure)
-            chart.canvas.draw()
+            chart.clear_chart()
 
     def _draw_ratios_bar(self, ratios):
         """رسم بياني شريطي للنسب المالية"""
-        self.chart_ratios.figure.clear()
-        ax = self.chart_ratios.figure.add_subplot(111)
-
         labels = ['Current\nRatio', 'Quick\nRatio', 'ROA', 'ROE', 'Asset\nTurnover']
         keys = ['current_ratio', 'quick_ratio', 'roa', 'roe', 'asset_turnover']
         values = [ratios.get(k, 0) for k in keys]
         colors = ['#3498DB', '#2ECC71', '#E74C3C', '#F39C12', '#9B59B6']
-
-        bars = ax.bar(labels, values, color=colors, width=0.6, edgecolor=_chart_edge_color(), linewidth=0.5)
-
-        for bar, val in zip(bars, values):
-            ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 0.02,
-                    f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
-
-        ax.set_title(t("dash_main_indicators"), fontsize=11, fontweight='bold', pad=10)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_ylim(0, max(values) * 1.3 if max(values) > 0 else 1)
-
-        self.chart_ratios.figure.tight_layout()
-        self.chart_ratios.canvas.draw()
+        draw_bar(self.chart_ratios.plot_item, labels, values, colors)
 
     def _draw_profitability_pie(self, ratios):
         """رسم بياني دائري لنسب الربحية"""
-        self.chart_profitability.figure.clear()
-        ax = self.chart_profitability.figure.add_subplot(111)
-
         labels = ['Gross Margin', 'Net Margin', 'ROA', 'ROE']
         keys = ['gross_profit_margin', 'net_profit_margin', 'roa', 'roe']
         values = [max(ratios.get(k, 0), 0) for k in keys]
         colors = ['#27AE60', '#3498DB', '#E74C3C', '#F39C12']
-
         if sum(values) == 0:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
+            self.chart_profitability.clear_chart()
         else:
-            wedges, texts, autotexts = ax.pie(
-                values, labels=labels, colors=colors, autopct='%1.1f%%',
-                startangle=90, pctdistance=0.75
-            )
-            for autotext in autotexts:
-                autotext.set_fontsize(9)
-                autotext.set_fontweight('bold')
-
-        ax.set_title(t("dash_profitability_structure"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_profitability.figure.tight_layout()
-        self.chart_profitability.canvas.draw()
+            draw_pie_widget(self.chart_profitability.pie_widget, labels, values, colors)
 
     def _draw_dupont_waterfall(self, ratios):
         """رسم بياني شريطي لتحليل DuPont"""
-        self.chart_dupont.figure.clear()
-        ax = self.chart_dupont.figure.add_subplot(111)
-
         if not state.dupont:
-            ax.text(0.5, 0.5, t("dash_no_data_dupont"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
+            self.chart_dupont.plot_item.clear()
+            t_item = _mk_text_item(t("dash_no_data_dupont"), 0.5, 0.5, size=12)
+            self.chart_dupont.plot_item.addItem(t_item)
         else:
             dp = state.dupont
             labels = ['Net Profit\nMargin %', 'Asset\nTurnover', 'Equity\nMultiplier', 'ROE %']
@@ -357,68 +465,29 @@ class DashboardView(QWidget):
                 dp.get('roe', 0)
             ]
             colors = ['#2ECC71', '#3498DB', '#E74C3C', '#F39C12']
-
-            bars = ax.bar(labels, values, color=colors, width=0.6, edgecolor=_chart_edge_color(), linewidth=0.5)
-
-            for bar, val in zip(bars, values):
-                ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 0.02,
-                        f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
-
-            ax.set_title(t("chart_dupont"), fontsize=11, fontweight='bold', pad=10)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.set_ylim(0, max(values) * 1.3 if max(values) > 0 else 1)
-
-        self.chart_dupont.figure.tight_layout()
-        self.chart_dupont.canvas.draw()
+            draw_bar(self.chart_dupont.plot_item, labels, values, colors)
 
     def _draw_balance_pie(self, data):
         """رسم بياني دائري لهيكل الميزانية"""
-        self.chart_balance.figure.clear()
-        ax = self.chart_balance.figure.add_subplot(111)
-
         if not data:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
-            self.chart_balance.canvas.draw()
+            self.chart_balance.clear_chart()
             return
 
         total_liab = data.get('total_liabilities', 0)
         equity = data.get('equity', 0)
 
         if total_liab == 0 and equity == 0:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
+            self.chart_balance.clear_chart()
         else:
             labels = [t("dash_liabilities"), t("dash_equity")]
             values = [total_liab, equity]
             colors = ['#E74C3C', '#3498DB']
-            explode = (0.03, 0.03)
-
-            wedges, texts, autotexts = ax.pie(
-                values, labels=labels, colors=colors, autopct='%1.1f%%',
-                startangle=90, explode=explode, pctdistance=0.75
-            )
-            for autotext in autotexts:
-                autotext.set_fontsize(10)
-                autotext.set_fontweight('bold')
-
-        ax.set_title(t("dash_finance_structure"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_balance.figure.tight_layout()
-        self.chart_balance.canvas.draw()
+            draw_pie_widget(self.chart_balance.pie_widget, labels, values, colors)
 
     def _draw_expenses_pie(self, data):
         """رسم بياني دائري لتوزيع المصروفات"""
-        self.chart_expenses.figure.clear()
-        ax = self.chart_expenses.figure.add_subplot(111)
-
         if not data:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
-            self.chart_expenses.canvas.draw()
+            self.chart_expenses.clear_chart()
             return
 
         cogs = data.get('cost_of_goods_sold', 0)
@@ -427,58 +496,27 @@ class DashboardView(QWidget):
         opex = max(gross - net, 0) if gross > 0 else 0
 
         if cogs == 0 and opex == 0:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
+            self.chart_expenses.clear_chart()
         else:
             labels = [t("dash_cogs"), t("dash_opex"), t("dash_net_profit")]
             values = [cogs, opex, max(net, 0)]
             colors = ['#E74C3C', '#F39C12', '#2ECC70']
-
-            wedges, texts, autotexts = ax.pie(
-                [v for v in values if v > 0],
-                labels=[l for l, v in zip(labels, values) if v > 0],
-                colors=[c for c, v in zip(colors, values) if v > 0],
-                autopct='%1.1f%%',
-                startangle=90, pctdistance=0.75
-            )
-            for autotext in autotexts:
-                autotext.set_fontsize(9)
-                autotext.set_fontweight('bold')
-
-        ax.set_title(t("dash_expenses_structure"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_expenses.figure.tight_layout()
-        self.chart_expenses.canvas.draw()
+            filtered = [(l, v, c) for l, v, c in zip(labels, values, colors) if v > 0]
+            if filtered:
+                f_labels, f_values, f_colors = zip(*filtered)
+                draw_pie_widget(self.chart_expenses.pie_widget, list(f_labels), list(f_values), list(f_colors))
+            else:
+                self.chart_expenses.clear_chart()
 
     def _draw_radar(self, ratios):
-        self.chart_radar.figure.clear()
-        ax = self.chart_radar.figure.add_subplot(111, polar=True)
-
         categories = ['ROE', 'ROA', 'NPM', 'Current\nRatio', 'Quick\nRatio', 'Asset\nTurnover']
         keys = ['roe', 'roa', 'net_profit_margin', 'current_ratio', 'quick_ratio', 'asset_turnover']
         raw_values = [max(ratios.get(k, 0), 0) for k in keys]
         max_ref = [25, 15, 25, 3, 2.5, 2]
         values = [min(r / m * 100, 100) for r, m in zip(raw_values, max_ref)]
-
-        N = len(categories)
-        angles = [n / float(N) * 2 * 3.14159 for n in range(N)]
-        angles += angles[:1]
-        values_plot = values + values[:1]
-
-        ax.plot(angles, values_plot, 'o-', linewidth=2, color='#3498DB')
-        ax.fill(angles, values_plot, alpha=0.2, color='#3498DB')
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(categories, fontsize=9)
-        ax.set_ylim(0, 100)
-        ax.set_title(t("chart_radar"), fontsize=11, fontweight='bold', pad=20)
-        ax.set_facecolor(ThemeColors.get("chart_bg"))
-        self.chart_radar.figure.tight_layout()
-        self.chart_radar.canvas.draw()
+        draw_radar(self.chart_radar.polar_widget, categories, [values], colors_list=["#3498DB"])
 
     def _draw_zscore_gauge(self):
-        self.chart_zscore.figure.clear()
-        ax = self.chart_zscore.figure.add_subplot(111)
-
         fd = state.financial_data
         from modules.calculations import CalculationEngine
         engine = CalculationEngine()
@@ -506,34 +544,19 @@ class DashboardView(QWidget):
         colors_gauge = {'safe': '#2ECC71', 'grey': '#F39C12', 'danger': '#E74C3C'}
         color = colors_gauge.get(classification, '#95A5A6')
 
-        bar_x = [0.5]
-        bar_h = min(max(z, -3) / 5, 1.2) if z != 0 else 0
-        ax.barh(0, bar_h, height=0.5, color=color, edgecolor='none')
-        ax.barh(0, 1.2, height=0.5, color=ThemeColors.get("chart_grid"), edgecolor='none', zorder=0)
-
-        zones = [(-3, -1, '#E74C3C', 'Danger'), (-1, 1.81, '#F39C12', 'Grey'), (1.81, 5, '#2ECC71', 'Safe')]
-        for x0, x1, c, label in zones:
-            ax.axvline(x=(x0 + 3) / 8, color=c, linewidth=2, alpha=0.5, linestyle='--')
-
-        ax.set_xlim(0, 1.2)
-        ax.set_ylim(-0.5, 0.5)
-        ax.text(0.5, 0.4, f"Z-Score = {z:.2f}", ha='center', va='center',
-                fontsize=16, fontweight='bold', color=color)
-        ax.text(0.5, 0.15, classification.upper(), ha='center', va='center',
-                fontsize=12, color=color, style='italic')
-        ax.axis('off')
-        self.chart_zscore.figure.tight_layout()
-        self.chart_zscore.canvas.draw()
+        zones = [('#E74C3C', 'Danger'), ('#F39C12', 'Grey'), ('#2ECC71', 'Safe')]
+        shifted_z = z + 3
+        draw_gauge(self.chart_zscore.plot_item, shifted_z, zones, max_val=8)
+        t_val = _mk_text_item(f"Z-Score = {z:.2f}", 4, 0.3, color=color, bold=True, size=11)
+        self.chart_zscore.plot_item.addItem(t_val)
+        t_cls = _mk_text_item(classification.upper(), 4, -0.3, color=color, bold=False, size=10)
+        self.chart_zscore.plot_item.addItem(t_cls)
 
     def _draw_liquidity_chart(self, data):
-        self.chart_liquidity.figure.clear()
-        ax = self.chart_liquidity.figure.add_subplot(111)
-
         if not data:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha='center', va='center',
-                    fontsize=12, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
-            self.chart_liquidity.canvas.draw()
+            self.chart_liquidity.plot_item.clear()
+            t_item = _mk_text_item(t("dash_no_data_chart"), 0.5, 0.5, size=12)
+            self.chart_liquidity.plot_item.addItem(t_item)
             return
 
         ca = data.get('current_assets', 0)
@@ -544,16 +567,4 @@ class DashboardView(QWidget):
         labels = [t("dash_current_assets"), t("dash_inventory"), t("dash_quick_assets"), t("dash_current_liab")]
         values = [ca, inv, qa, cl]
         colors = ['#3498DB', '#E74C3C', '#2ECC71', '#F39C12']
-
-        bars = ax.barh(labels, values, color=colors, height=0.5, edgecolor=_chart_edge_color(), linewidth=0.5)
-        for bar, val in zip(bars, values):
-            ax.text(bar.get_width() + max(values) * 0.02, bar.get_y() + bar.get_height() / 2.,
-                    f'{val:,.0f}', ha='left', va='center', fontsize=9, fontweight='bold')
-
-        cr = qa / cl if cl > 0 else 0
-        ax.set_title(f"{t('chart_liquidity')} (Quick Ratio: {cr:.2f})", fontsize=11, fontweight='bold', pad=10)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_xlim(0, max(values) * 1.2 if max(values) > 0 else 1)
-        self.chart_liquidity.figure.tight_layout()
-        self.chart_liquidity.canvas.draw()
+        draw_horizontal_bar(self.chart_liquidity.plot_item, labels, values, colors)

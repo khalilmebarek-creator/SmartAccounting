@@ -1,7 +1,7 @@
 """Alert Banner — shows fraud alerts at the top of the main window."""
 
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton
-from PyQt5.QtCore import (pyqtSignal)
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QPushButton
+from PyQt6.QtCore import (pyqtSignal)
 from ui.resources.i18n import t
 
 

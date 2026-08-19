@@ -3,65 +3,28 @@
 
 from ui.views._path import _  # noqa: F401 — ensures project root on sys.path
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton,
+    QLabel, QFrame, QScrollArea, QPushButton,
     QComboBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem,
     QHeaderView, QFileDialog, QMessageBox
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+from ui.charts import (PgChartWidget,
+    draw_line, draw_grouped_bar, draw_area,
+    _text_color, _edge_color, _mk_brush, _mk_pen, _mk_text_item)
 
-from ui.app_state import state, ThemeColors
+import pyqtgraph as pg
+from pyqtgraph import BarGraphItem, InfiniteLine
+
+from ui.app_state import state
 from ui.resources.i18n import t
+from ui.plotly_export import export_scenarios_html
 from modules.scenarios import ScenarioAnalyzer
 
 
-def _chart_text_color():
-    return ThemeColors.get("chart_text")
-
-
-def _chart_edge_color():
-    return ThemeColors.get("chart_edge")
-
-
-class ScenarioChart(QFrame):
-    """كارت يحتوي على رسم بياني"""
-
-    def __init__(self, title, parent=None):
-        super().__init__(parent)
-        self.setObjectName("card")
-        self.setMinimumSize(350, 280)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-
-        layout = QVBoxLayout()
-        layout.setContentsMargins(16, 12, 16, 12)
-
-        self.title_label = QLabel(title)
-        self.title_label.setObjectName("sectionTitle")
-        layout.addWidget(self.title_label)
-
-        self.figure = Figure(figsize=(4, 3), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        layout.addWidget(self.canvas)
-
-        self.setLayout(layout)
-
-    def set_title(self, title):
-        self.title_label.setText(title)
-
-    def clear_chart(self):
-        self.figure.clear()
-        plt.close(self.figure)
-        self.canvas.draw()
 
 
 class ScenariosView(QWidget):
@@ -252,8 +215,8 @@ class ScenariosView(QWidget):
             t("scn_metric"), t("scn_best_col"), t("scn_base_col"),
             t("scn_worst_col"), t("scn_best_delta")
         ])
-        self.comparison_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.comparison_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.comparison_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.comparison_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         content_layout.addWidget(self.comparison_table)
 
     def _build_charts(self, content_layout):
@@ -266,11 +229,11 @@ class ScenariosView(QWidget):
 
         charts_grid = QGridLayout()
         charts_grid.setSpacing(15)
-        self.chart_line = ScenarioChart(t("scn_chart_line"))
+        self.chart_line = PgChartWidget(t("scn_chart_line"))
         charts_grid.addWidget(self.chart_line, 0, 0)
-        self.chart_bar = ScenarioChart(t("scn_chart_bar"))
+        self.chart_bar = PgChartWidget(t("scn_chart_bar"))
         charts_grid.addWidget(self.chart_bar, 0, 1)
-        self.chart_area = ScenarioChart(t("scn_chart_area"))
+        self.chart_area = PgChartWidget(t("scn_chart_area"))
         charts_grid.addWidget(self.chart_area, 1, 0)
         content_layout.addLayout(charts_grid)
 
@@ -305,7 +268,7 @@ class ScenariosView(QWidget):
 
         sensitivity_grid = QGridLayout()
         sensitivity_grid.setSpacing(15)
-        self.chart_tornado = ScenarioChart(t("scn_sensitivity_tornado"))
+        self.chart_tornado = PgChartWidget(t("scn_sensitivity_tornado"))
         sensitivity_grid.addWidget(self.chart_tornado, 0, 0)
 
         steps_frame = QFrame()
@@ -321,8 +284,8 @@ class ScenariosView(QWidget):
             t("scn_sensitivity_pct"), t("scn_sensitivity_net"),
             t("scn_sensitivity_npm"), t("scn_sensitivity_roe")
         ])
-        self.sensitivity_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.sensitivity_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.sensitivity_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.sensitivity_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         steps_layout.addWidget(self.sensitivity_table)
         sensitivity_grid.addWidget(steps_frame, 0, 1)
         content_layout.addLayout(sensitivity_grid)
@@ -343,6 +306,11 @@ class ScenariosView(QWidget):
         self.save_db_btn.clicked.connect(self.save_scenarios_db)
         action_row.addWidget(self.save_db_btn)
         action_row.addStretch()
+        self.html_export_btn = QPushButton(t("export_scenarios_html"))
+        self.html_export_btn.setObjectName("secondaryBtn")
+        self.html_export_btn.setMinimumWidth(220)
+        self.html_export_btn.clicked.connect(self._export_html)
+        action_row.addWidget(self.html_export_btn)
         self.export_btn = QPushButton(t("scn_export_pdf"))
         self.export_btn.setObjectName("pdfBtn")
         self.export_btn.setMinimumWidth(220)
@@ -485,7 +453,7 @@ class ScenariosView(QWidget):
             ]
             for col, text in enumerate(items):
                 item = QTableWidgetItem(text)
-                item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter if col else Qt.AlignLeft | Qt.AlignVCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter if col else Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
                 if col == 4:
                     color = QColor("#2ECC71") if data['best_delta'] >= 0 else QColor("#E74C3C")
                     item.setForeground(color)
@@ -495,71 +463,38 @@ class ScenariosView(QWidget):
         return [t("scn_best_case"), t("scn_base_case"), t("scn_worst_case")]
 
     def _draw_line_chart(self):
-        self.chart_line.figure.clear()
-        ax = self.chart_line.figure.add_subplot(111)
-        labels = self._scenario_axis_labels()
-        revenue = [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")]
-        net = [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")]
-        x = range(3)
-        ax.plot(x, revenue, 'o-', color='#3498DB', linewidth=2, label=t("scn_revenue"), markersize=6)
-        ax.plot(x, net, 's-', color='#2ECC71', linewidth=2, label=t("scn_net_income"), markersize=6)
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(labels, fontsize=9)
-        ax.legend(fontsize=9, frameon=False)
-        ax.grid(True, axis='y', alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_title(t("scn_chart_line"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_line.figure.tight_layout()
-        self.chart_line.canvas.draw()
-
-    def _draw_bar_chart(self):
-        self.chart_bar.figure.clear()
-        ax = self.chart_bar.figure.add_subplot(111)
-        labels = self._scenario_axis_labels()
-        npm = [self._scenarios[k]['net_profit_margin'] for k in ("best", "base", "worst")]
-        roe = [self._scenarios[k]['roe'] for k in ("best", "base", "worst")]
-        x = range(3)
-        width = 0.35
-        bars1 = ax.bar([i - width/2 for i in x], npm, width, color='#3498DB',
-                       edgecolor=_chart_edge_color(), linewidth=0.5, label=t("scn_npm"))
-        bars2 = ax.bar([i + width/2 for i in x], roe, width, color='#F39C12',
-                       edgecolor=_chart_edge_color(), linewidth=0.5, label=t("scn_roe"))
-        for bars in (bars1, bars2):
-            for bar in bars:
-                ax.text(bar.get_x() + bar.get_width() / 2., bar.get_height() + 0.5,
-                        f'{bar.get_height():.1f}', ha='center', va='bottom',
-                        fontsize=8, color=_chart_text_color())
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(labels, fontsize=9)
-        ax.legend(fontsize=9, frameon=False)
-        ax.grid(True, axis='y', alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_title(t("scn_chart_bar"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_bar.figure.tight_layout()
-        self.chart_bar.canvas.draw()
-
-    def _draw_area_chart(self):
-        self.chart_area.figure.clear()
-        ax = self.chart_area.figure.add_subplot(111)
+        self.chart_line.clear_plot()
         labels = self._scenario_axis_labels()
         revenue = [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")]
         net = [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")]
         x = [0, 1, 2]
-        ax.fill_between(x, revenue, color='#3498DB', alpha=0.25, label=t("scn_revenue"))
-        ax.plot(x, revenue, color='#3498DB', linewidth=1.5)
-        ax.fill_between(x, net, color='#2ECC71', alpha=0.35, label=t("scn_net_income"))
-        ax.plot(x, net, color='#2ECC71', linewidth=1.5)
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, fontsize=9)
-        ax.legend(fontsize=9, frameon=False)
-        ax.grid(True, axis='y', alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_title(t("scn_chart_area"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_area.figure.tight_layout()
-        self.chart_area.canvas.draw()
+        draw_line(self.chart_line.plot_item, x, [revenue, net],
+                  labels=[t("scn_revenue"), t("scn_net_income")],
+                  colors=['#3498DB', '#2ECC71'])
+        tick_labels = [[(i, l) for i, l in enumerate(labels)]]
+        self.chart_line.plot_item.getAxis("bottom").setTicks(tick_labels)
+
+    def _draw_bar_chart(self):
+        self.chart_bar.clear_plot()
+        labels = self._scenario_axis_labels()
+        npm = [self._scenarios[k]['net_profit_margin'] for k in ("best", "base", "worst")]
+        roe = [self._scenarios[k]['roe'] for k in ("best", "base", "worst")]
+        draw_grouped_bar(self.chart_bar.plot_item, labels, [
+            {"label": t("scn_npm"), "values": npm, "color": "#3498DB"},
+            {"label": t("scn_roe"), "values": roe, "color": "#F39C12"},
+        ])
+
+    def _draw_area_chart(self):
+        self.chart_area.clear_plot()
+        labels = self._scenario_axis_labels()
+        revenue = [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")]
+        net = [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")]
+        x = [0, 1, 2]
+        draw_area(self.chart_area.plot_item, x, [revenue, net],
+                  labels=[t("scn_revenue"), t("scn_net_income")],
+                  colors=['#3498DB', '#2ECC71'])
+        tick_labels = [[(i, l) for i, l in enumerate(labels)]]
+        self.chart_area.plot_item.getAxis("bottom").setTicks(tick_labels)
 
     def update_sensitivity(self):
         """تحديث تحليل الحساسية (تورنادو + جدول)"""
@@ -577,14 +512,13 @@ class ScenariosView(QWidget):
         self._fill_sensitivity_table()
 
     def _draw_tornado(self):
-        self.chart_tornado.figure.clear()
-        ax = self.chart_tornado.figure.add_subplot(111)
+        self.chart_tornado.clear_plot()
         if not self._tornado or not self._scenarios:
-            ax.text(0.5, 0.5, t("scn_no_data"), ha='center', va='center',
-                    fontsize=10, color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis('off')
-            self.chart_tornado.figure.tight_layout()
-            self.chart_tornado.canvas.draw()
+            t_item = pg.TextItem(t("scn_no_data"), color=_text_color(), anchor=(0.5, 0.5))
+            t_item.setPos(0.5, 0.5)
+            self.chart_tornado.plot_item.addItem(t_item)
+            self.chart_tornado.plot_item.hideAxis("left")
+            self.chart_tornado.plot_item.hideAxis("bottom")
             return
 
         base = self._scenarios['base']['net_income']
@@ -594,27 +528,29 @@ class ScenariosView(QWidget):
             'efficiency': t("scn_variable_efficiency"),
         }
         names = [labels.get(r['variable'], r['variable']) for r in self._tornado]
-        y_pos = range(len(self._tornado))
+        n = len(self._tornado)
+
         for i, row in enumerate(self._tornado):
             low = row['low_net']
             high = row['high_net']
             left = min(low, high, base)
             width = max(low, high, base) - left
             color = '#E74C3C' if high < base else '#2ECC71'
-            ax.barh(i, width, left=left, color=color, height=0.6,
-                    edgecolor=_chart_edge_color(), linewidth=0.5)
-        ax.axvline(base, color='#3498DB', linestyle='--', linewidth=1.2)
-        ax.text(base, len(self._tornado) - 0.2, f" {t('scn_base_case')}: {base:,.0f}",
-                fontsize=8, color='#3498DB')
-        ax.set_yticks(list(y_pos))
-        ax.set_yticklabels(names, fontsize=9)
-        ax.set_xlabel(t("scn_tornado_effect"), fontsize=9)
-        ax.grid(True, axis='x', alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_title(t("scn_sensitivity_tornado"), fontsize=11, fontweight='bold', pad=10)
-        self.chart_tornado.figure.tight_layout()
-        self.chart_tornado.canvas.draw()
+            bg = BarGraphItem(y=i, x0=left, width=width, height=0.6,
+                              brush=_mk_brush(color), pen=_mk_pen(_edge_color(), 0.5))
+            self.chart_tornado.plot_item.addItem(bg)
+
+        base_line = InfiniteLine(pos=(base, 0), angle=90,
+                                 pen=pg.mkPen(52, 152, 219, style=Qt.PenStyle.DashLine, width=1.2))
+        self.chart_tornado.plot_item.addItem(base_line)
+        t_label = _mk_text_item(f" {t('scn_base_case')}: {base:,.0f}", base, n - 0.2,
+                                color='#3498DB', size=8, anchor=(0, 1.0))
+        self.chart_tornado.plot_item.addItem(t_label)
+
+        tick_labels = [[(i, l) for i, l in enumerate(names)]]
+        self.chart_tornado.plot_item.getAxis("left").setTicks(tick_labels)
+        self.chart_tornado.plot_item.setLabel("bottom", t("scn_tornado_effect"))
+        self.chart_tornado.plot_item.showGrid(x=True, y=False, alpha=0.2)
 
     def _fill_sensitivity_table(self):
         rows = self._sensitivity or []
@@ -628,7 +564,7 @@ class ScenariosView(QWidget):
             ]
             for col, text in enumerate(items):
                 item = QTableWidgetItem(text)
-                item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 self.sensitivity_table.setItem(row_idx, col, item)
 
     # ===== حفظ / تحميل =====
@@ -708,23 +644,73 @@ class ScenariosView(QWidget):
         else:
             QMessageBox.critical(self, t("scn_title"), t("scn_export_error"))
 
+    def _export_html(self):
+        if not self._scenarios:
+            QMessageBox.warning(self, t("scn_title"), t("scn_export_empty"))
+            return
+        filename, _ = QFileDialog.getSaveFileName(
+            self, t("export_scenarios_html"), "scenarios.html", "HTML (*.html)"
+        )
+        if not filename:
+            return
+        labels = self._scenario_axis_labels()
+        base = self._scenarios['base']['net_income']
+        charts_data = {
+            'line': {
+                'x': labels,
+                'series': [
+                    {'name': t("scn_revenue"), 'y': [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")], 'color': '#3498DB'},
+                    {'name': t("scn_net_income"), 'y': [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")], 'color': '#2ECC71'},
+                ],
+            },
+            'bar': {
+                'groups': labels,
+                'series': [
+                    {'name': t("scn_npm"), 'values': [self._scenarios[k]['net_profit_margin'] for k in ("best", "base", "worst")], 'color': '#3498DB'},
+                    {'name': t("scn_roe"), 'values': [self._scenarios[k]['roe'] for k in ("best", "base", "worst")], 'color': '#F39C12'},
+                ],
+            },
+            'area': {
+                'x': labels,
+                'series': [
+                    {'name': t("scn_revenue"), 'y': [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")], 'color': '#3498DB'},
+                    {'name': t("scn_net_income"), 'y': [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")], 'color': '#2ECC71'},
+                ],
+            },
+        }
+        if self._tornado:
+            tornado_labels = {
+                'revenue': t("scn_variable_revenue"),
+                'cost': t("scn_variable_cost"),
+                'efficiency': t("scn_variable_efficiency"),
+            }
+            charts_data['tornado'] = {
+                'labels': [tornado_labels.get(r['variable'], r['variable']) for r in self._tornado],
+                'low': [abs(base - r['low_net']) for r in self._tornado],
+                'high': [abs(r['high_net'] - base) for r in self._tornado],
+                'base': base,
+            }
+        try:
+            export_scenarios_html(filename, charts_data)
+            QMessageBox.information(self, t("scn_title"), t("scn_export_success"))
+        except Exception as e:
+            QMessageBox.critical(self, t("scn_title"), f"{t('scn_export_error')}: {e}")
+
     # ===== مساعدات =====
 
     def _disable_actions(self):
         for btn in (self.run_btn, self.save_json_btn, self.load_json_btn,
-                    self.save_db_btn, self.export_btn, self.sensitivity_update_btn):
+                    self.save_db_btn, self.html_export_btn, self.export_btn, self.sensitivity_update_btn):
             btn.setEnabled(False)
 
     def _enable_actions(self):
         for btn in (self.run_btn, self.save_json_btn, self.load_json_btn,
-                    self.save_db_btn, self.export_btn, self.sensitivity_update_btn):
+                    self.save_db_btn, self.html_export_btn, self.export_btn, self.sensitivity_update_btn):
             btn.setEnabled(True)
 
     def _clear_all(self):
         for chart in (self.chart_line, self.chart_bar, self.chart_area, self.chart_tornado):
-            chart.figure.clear()
-            plt.close(chart.figure)
-            chart.canvas.draw()
+            chart.clear_plot()
         self.comparison_table.setRowCount(0)
         self.sensitivity_table.setRowCount(0)
         for card in (self.best_card, self.base_card, self.worst_card):
@@ -753,12 +739,12 @@ class ScenariosView(QWidget):
             t("scn_worst_col"), t("scn_best_delta")
         ])
         self.charts_title.setText(t("scn_charts"))
-        self.chart_line.set_title(t("scn_chart_line"))
-        self.chart_bar.set_title(t("scn_chart_bar"))
-        self.chart_area.set_title(t("scn_chart_area"))
+        self.chart_line.title_label.setText(t("scn_chart_line"))
+        self.chart_bar.title_label.setText(t("scn_chart_bar"))
+        self.chart_area.title_label.setText(t("scn_chart_area"))
         self.sensitivity_title.setText(t("scn_sensitivity"))
         self.sensitivity_update_btn.setText(t("scn_sensitivity_update"))
-        self.chart_tornado.set_title(t("scn_sensitivity_tornado"))
+        self.chart_tornado.title_label.setText(t("scn_sensitivity_tornado"))
         self.sensitivity_table.setHorizontalHeaderLabels([
             t("scn_sensitivity_pct"), t("scn_sensitivity_net"),
             t("scn_sensitivity_npm"), t("scn_sensitivity_roe")
@@ -767,6 +753,7 @@ class ScenariosView(QWidget):
         self.load_json_btn.setText(t("scn_load_json"))
         self.save_db_btn.setText(t("scn_save_db"))
         self.export_btn.setText(t("scn_export_pdf"))
+        self.html_export_btn.setText(t("export_scenarios_html"))
         self.sensitivity_var.blockSignals(True)
         current_var = self.sensitivity_var.currentData()
         self.sensitivity_var.clear()

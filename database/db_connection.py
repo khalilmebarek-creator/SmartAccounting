@@ -1,12 +1,12 @@
-# اتصال قاعدة البيانات SQLite
-# ===========================
+# اتصال قاعدة البيانات SQLite (مدعوم بـ SQLAlchemy engine)
+# =======================================================
 
-import sqlite3
 import threading
 import time
 from contextlib import contextmanager
 import config
 from utils.app_logger import get_logger
+from database.engine import get_engine, dispose_engine
 
 logger = get_logger("db_connection")
 
@@ -14,8 +14,6 @@ DB_TIMEOUT = 10
 DB_RETRY_ATTEMPTS = 3
 DB_RETRY_DELAY = 0.5
 
-# تجمّع الاتصالات: path -> sqlite3.Connection
-# إعادة استخدام الاتصال بدلاً من فتح/إغلاق لكل عملية (تحسين أداء DB)
 _pool = {}
 _pool_lock = threading.Lock()
 
@@ -29,8 +27,6 @@ def _is_alive(connection):
 
 
 class DatabaseConnection:
-    """فئة للاتصال بقاعدة البيانات SQLite"""
-
     def __init__(self):
         self.connection = None
         self.cursor = None
@@ -56,9 +52,8 @@ class DatabaseConnection:
                         pooled.close()
                     except Exception:
                         pass
-                connection = sqlite3.connect(db_path, timeout=DB_TIMEOUT)
-                connection.execute("PRAGMA journal_mode=WAL")
-                connection.execute("PRAGMA foreign_keys = ON")
+                engine = get_engine()
+                connection = engine.raw_connection()
                 with _pool_lock:
                     _pool[db_path] = connection
                 self.connection = connection
@@ -89,7 +84,7 @@ class DatabaseConnection:
                     self.cursor.execute(query)
                 self.connection.commit()
                 return True
-            except sqlite3.OperationalError as e:
+            except Exception as e:
                 logger.error(f"Execute error (attempt {attempt}): {e}")
                 if attempt < DB_RETRY_ATTEMPTS:
                     time.sleep(DB_RETRY_DELAY)
@@ -102,13 +97,8 @@ class DatabaseConnection:
                         self.connection.rollback()
                     except Exception:
                         pass
-            except Exception as e:
-                logger.error(f"Execute error (not retried): {e}")
-                try:
-                    self.connection.rollback()
-                except Exception:
-                    pass
-                return False
+                if not isinstance(e, type(self.connection).OperationalError if hasattr(type(self.connection), 'OperationalError') else Exception):
+                    return False
         return False
 
     def fetch_all(self, query, params=None):
@@ -157,7 +147,6 @@ db = DatabaseConnection()
 
 
 def close_pool():
-    """إغلاق كل الاتصالات المُجمّعة (للاختبارات وعند تبديل ملف قاعدة البيانات)"""
     with _pool_lock:
         for connection in list(_pool.values()):
             try:
@@ -168,6 +157,7 @@ def close_pool():
     if db.connection is not None:
         db.connection = None
         db.cursor = None
+    dispose_engine()
 
 
 @contextmanager

@@ -4,7 +4,7 @@
 ![Version](https://img.shields.io/badge/version-3.2.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11+-green)
 ![License](https://img.shields.io/badge/license-MIT-orange)
-![Tests](https://img.shields.io/badge/tests-1862-green)
+![Tests](https://img.shields.io/badge/tests-2075-green)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-orange)
 
 منصة محاسبية متكاملة للمؤسسات الصغيرة والمتوسطة في الجزائر — 35 شاشة تفاعلية، امتثال ضريبي جزائري كامل (IBS/TVA/IRG/CNAS/CNAC/VF)، تحليل مالي متقدم (20 نسبة + DuPont + Z-Score)، ورؤى ذكية قائمة على الذكاء الاصطناعي.
@@ -20,7 +20,7 @@
 - 💾 **حفظ محلي آمن** — SQLite مع تشفير كلمات المرور (PBKDF2) وخزنة AES-256-GCM
 - ☁️ **مزامنة سحابية** — Dropbox/OneDrive/Google Drive + نسخ احتياطي تلقائي
 - 🌐 **3 لغات** — العربية (RTL) / English / Français
-- 📄 **تصدير موحّد** — PDF / Excel / CSV عبر طبقة موحّدة (ui/exporters.py)
+- 📄 **تصدير موحّد** — PDF / Excel / CSV / HTML تفاعلي (Plotly) عبر طبقة موحّدة (ui/exporters.py + ui/plotly_export.py)
 
 ---
 
@@ -33,14 +33,16 @@ Accounting_Platform/
 ├── requirements.txt                 # المكتبات المطلوبة (إنتاج)
 ├── requirements-dev.txt             # مكتبات التطوير/الاختبار
 ├── ui/
-│   ├── run_ui.py                    # نقطة دخول الواجهة (PyQt5)
+│   ├── run_ui.py                    # نقطة دخول الواجهة (PyQt6)
 │   ├── main_window.py               # النافذة الرئيسية + التحميل الكسول
+│   ├── charts.py                    # طبقة الرسوم البيانية (pyqtgraph)
+│   ├── plotly_export.py             # تصدير HTML تفاعلي (Plotly)
 │   ├── exporters.py                 # طبقة التصدير الموحدة
 │   ├── views/                       # 35 شاشة (views)
 │   └── resources/fonts/             # الخطوط (Amiri) والأيقونات
 ├── modules/                         # 44 وحدة (محركات الأعمال + الضرائب)
-├── database/                        # SQLite + WAL + تجمّع اتصالات
-├── tests/                           # 62 ملفًا / 1800 اختبار
+├── database/                        # SQLAlchemy Core + SQLite WAL
+├── tests/                           # 62 ملفًا / 2075 اختبار
 ├── docs/                            # التوثيق + الموقع (GitHub Pages)
 ├── thesis/                          # حزمة مذكرة الماستر + الفيديو التعليمي
 ├── .github/workflows/ci.yml         # CI (اختبارات + تغطية)

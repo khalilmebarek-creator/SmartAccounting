@@ -2,8 +2,8 @@
 # ========================
 # 7 أقسام موجّهة للمستخدم النهائي — بلا أي ذكر للكود أو بنية المشروع.
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
     QHBoxLayout, QLabel, QPushButton, QTabWidget, QTextBrowser,
     QVBoxLayout, QWidget,
 )
@@ -22,7 +22,7 @@ class GuideDialog(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(t("guide_title"))
-        self.setWindowFlag(Qt.Dialog, True)
+        self.setWindowFlag(Qt.WindowType.Dialog, True)
         self.resize(720, 560)
 
         layout = QVBoxLayout()

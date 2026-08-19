@@ -3,18 +3,17 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QDoubleSpinBox, QLineEdit, QTableWidget,
     QTableWidgetItem, QGroupBox, QHeaderView, QMessageBox,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget, draw_grouped_bar,
+    _text_color, _chart_bg, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -53,7 +52,7 @@ class CostCenterView(QWidget):
             t("cost_center_name"), t("cost_center_costs"),
             t("cost_center_revenue"), t("cost_center_headcount")
         ])
-        self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.center_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.center_table.setRowCount(5)
 
         self._center_data = []
@@ -110,7 +109,7 @@ class CostCenterView(QWidget):
             font.setPointSize(14)
             font.setBold(True)
             card_val.setFont(font)
-            card_val.setAlignment(Qt.AlignCenter)
+            card_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
             vl.addWidget(card_val)
             frame.setLayout(vl)
             summary_layout.addWidget(frame)
@@ -123,15 +122,13 @@ class CostCenterView(QWidget):
             t("cost_center_revenue"), t("cost_center_profit"),
             t("cost_center_margin"), t("cost_center_efficiency")
         ])
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.results_table.setMinimumHeight(44 * 5 + 30)
         main_layout.addWidget(self.results_table)
 
-        self.figure = Figure(figsize=(8, 4), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setMinimumHeight(280)
-        main_layout.addWidget(self.canvas)
+        self.chart = PgChartWidget("Cost Center Analysis")
+        self.chart.setMinimumHeight(280)
+        main_layout.addWidget(self.chart)
 
         self.setLayout(main_layout)
 
@@ -184,31 +181,14 @@ class CostCenterView(QWidget):
         self._draw_chart(items)
 
     def _draw_chart(self, items):
-        import matplotlib.pyplot as plt
-        plt.close(self.figure)
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
-
         labels = [item["name"][:12] for item in items]
         costs = [item["costs"] for item in items]
         revenues = [item["revenue"] for item in items]
 
-        x = range(len(labels))
-        width = 0.35
-
-        ax.bar([i - width / 2 for i in x], costs, width, label=t("cost_center_costs"),
-               color=ThemeColors.get('error'), alpha=0.8)
-        ax.bar([i + width / 2 for i in x], revenues, width, label=t("cost_center_revenue"),
-               color=ThemeColors.get('success'), alpha=0.8)
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=9)
-        ax.legend()
-        ax.grid(True, alpha=0.3, axis='y')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        self.figure.tight_layout()
-        self.canvas.draw()
+        draw_grouped_bar(self.chart.plot_item, labels, [
+            {"label": t("cost_center_costs"), "values": costs, "color": ThemeColors.get('error')},
+            {"label": t("cost_center_revenue"), "values": revenues, "color": ThemeColors.get('success')},
+        ])
 
     def retranslate(self):
         self.title.setText(t("cost_center_title"))

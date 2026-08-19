@@ -4,13 +4,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QFrame, QSizePolicy, QProgressBar, QScrollArea,
     QWidget,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -31,7 +31,7 @@ class AIPlatformView(BaseView):
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
         inner = QWidget()
         self._inner_layout = QVBoxLayout()
         self._inner_layout.setContentsMargins(0, 0, 0, 0)
@@ -48,10 +48,10 @@ class AIPlatformView(BaseView):
         hl.addWidget(self._health_title)
         self._health_value = QLabel("—")
         self._health_value.setStyleSheet("font-size: 48px; font-weight: bold;")
-        self._health_value.setAlignment(Qt.AlignCenter)
+        self._health_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hl.addWidget(self._health_value)
         self._health_grade = QLabel("")
-        self._health_grade.setAlignment(Qt.AlignCenter)
+        self._health_grade.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._health_grade.setStyleSheet("font-size: 16px; font-weight: bold;")
         hl.addWidget(self._health_grade)
         self._health_card.setLayout(hl)
@@ -101,19 +101,19 @@ class AIPlatformView(BaseView):
                      "efficiency_risk", "growth_risk", "solvency_risk"):
             col = QVBoxLayout()
             lbl = QLabel(t(f"ai_platform_{key}"))
-            lbl.setAlignment(Qt.AlignCenter)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setStyleSheet("font-size: 10px;")
             col.addWidget(lbl)
             bar = QProgressBar()
-            bar.setOrientation(Qt.Vertical)
+            bar.setOrientation(Qt.Orientation.Vertical)
             bar.setFixedWidth(32)
             bar.setFixedHeight(100)
             bar.setMaximum(100)
             bar.setTextVisible(False)
             self._radar_bars[key] = bar
-            col.addWidget(bar, 0, Qt.AlignCenter)
+            col.addWidget(bar, 0, Qt.AlignmentFlag.AlignCenter)
             val = QLabel("0")
-            val.setAlignment(Qt.AlignCenter)
+            val.setAlignment(Qt.AlignmentFlag.AlignCenter)
             val.setStyleSheet("font-size: 10px; font-weight: bold;")
             self._radar_bars[key + "_val"] = val
             col.addWidget(val)

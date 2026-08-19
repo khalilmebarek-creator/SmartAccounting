@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt5.QtWidgets import QApplication, QPushButton, QTableWidget, QLineEdit
+from PyQt6.QtWidgets import QApplication, QPushButton, QTableWidget, QLineEdit
 
 app = QApplication.instance()
 if not app:
@@ -25,7 +25,7 @@ class TestBaseViewHelpers(unittest.TestCase):
         self._clear_nested = _clear_nested
 
     def test_clear_nested_recurses_into_sub_layouts(self):
-        from PyQt5.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QWidget
+        from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QWidget
         outer = QVBoxLayout()
         inner = QHBoxLayout()
         inner.addWidget(QLabel("x"))
@@ -35,7 +35,7 @@ class TestBaseViewHelpers(unittest.TestCase):
         self.assertEqual(outer.count(), 0)
 
     def test_clear_nested_empty_layout(self):
-        from PyQt5.QtWidgets import QVBoxLayout
+        from PyQt6.QtWidgets import QVBoxLayout
         layout = QVBoxLayout()
         self._clear_nested(layout)
         self.assertEqual(layout.count(), 0)
@@ -56,7 +56,7 @@ class TestBaseViewScrollArea(unittest.TestCase):
         self.view = BaseView()
 
     def test_scroll_area_exists(self):
-        from PyQt5.QtWidgets import QScrollArea
+        from PyQt6.QtWidgets import QScrollArea
         self.assertTrue(hasattr(self.view, "_scroll"))
         self.assertIsInstance(self.view._scroll, QScrollArea)
 
@@ -64,8 +64,8 @@ class TestBaseViewScrollArea(unittest.TestCase):
         self.assertTrue(self.view._scroll.widgetResizable())
 
     def test_scroll_area_no_frame(self):
-        from PyQt5.QtWidgets import QFrame
-        self.assertEqual(self.view._scroll.frameShape(), QFrame.NoFrame)
+        from PyQt6.QtWidgets import QFrame
+        self.assertEqual(self.view._scroll.frameShape(), QFrame.Shape.NoFrame)
 
     def test_main_layout_inside_scroll_widget(self):
         scroll_widget = self.view._scroll.widget()
@@ -161,7 +161,7 @@ class TestAuditView(unittest.TestCase):
         state.ratios = {}
         state.financial_data = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view.run_audit()
         finally:
             state.ratios = old_ratios
@@ -207,7 +207,7 @@ class TestReportsView(unittest.TestCase):
             self.assertTrue(hasattr(self.view, btn), btn)
 
     def test_refresh_analyses_cancelled(self):
-        with mock.patch("PyQt5.QtWidgets.QInputDialog.getText",
+        with mock.patch("PyQt6.QtWidgets.QInputDialog.getText",
                         return_value=("", False)):
             self.view.refresh_analyses()
         self.assertEqual(self.view.analyses_list.count(), 0)
@@ -215,7 +215,7 @@ class TestReportsView(unittest.TestCase):
     def test_refresh_analyses_with_results(self):
         results = [{"company_name": "ACME", "year": 2024, "roe": 12.5,
                     "current_ratio": 1.8}]
-        with mock.patch("PyQt5.QtWidgets.QInputDialog.getText",
+        with mock.patch("PyQt6.QtWidgets.QInputDialog.getText",
                         return_value=("ACME", True)), \
              mock.patch("database.get_company_analyses",
                         return_value=results):
@@ -251,7 +251,7 @@ class TestSettingsView(unittest.TestCase):
         from ui.app_state import state
         before = state.api_url
         self.view.api_url_input.setText("file:///C:/Windows/system32")
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view.save_settings()
         self.assertEqual(state.api_url, before)
 
@@ -259,8 +259,8 @@ class TestSettingsView(unittest.TestCase):
         from unittest import mock
         from ui.app_state import state
         self.view.api_url_input.setText("https://api.example.com/v1")
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), \
-                mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.information"), \
+                mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view.save_settings()
         self.assertEqual(state.api_url, "https://api.example.com/v1")
 
@@ -325,7 +325,7 @@ class TestTaxView(unittest.TestCase):
         self.assertIsNotNone(self.view.last_simulation)
 
     def test_save_simulation_no_data(self):
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
             self.view.save_simulation()
 
 
@@ -346,7 +346,7 @@ class TestComparativeView(unittest.TestCase):
         old_data = state.financial_data
         state.financial_data = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view._add_year()
             self.assertEqual(len(self.view.years_data), 0)
         finally:
@@ -363,7 +363,7 @@ class TestComparativeView(unittest.TestCase):
                     "roe": 12.5, "debt_to_equity": 0.9}]
         self.view.year_combo.addItem("2024", 2024)
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), \
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.information"), \
                  mock.patch("database.db_operations.get_company_analyses",
                             return_value=results):
                 self.view._add_year()
@@ -428,14 +428,14 @@ class TestSecurityView(unittest.TestCase):
         self.assertEqual(self.view.alerts_table.columnCount(), 6)
 
     def test_clear_alerts(self):
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.question",
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.question",
                         return_value=16384), \
              mock.patch("modules.fraud_detection.fraud_detector.clear_alerts",
                         return_value=0):
             self.view._clear_alerts()
 
     def test_clear_alerts_cancelled(self):
-        with mock.patch("PyQt5.QtWidgets.QMessageBox.question",
+        with mock.patch("PyQt6.QtWidgets.QMessageBox.question",
                         return_value=65536):
             self.view._clear_alerts()
 
@@ -512,7 +512,7 @@ class TestForecastingView(unittest.TestCase):
         state.financial_data = {}
         state.ratios = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view.run_forecast()
         finally:
             state.financial_data = old_data
@@ -553,7 +553,7 @@ class TestBudgetView(unittest.TestCase):
         state.financial_data = {}
         state.ratios = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view.run_budget()
         finally:
             state.financial_data = old_data
@@ -628,7 +628,7 @@ class TestBreakEvenView(unittest.TestCase):
         state.financial_data = {}
         state.ratios = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view.run_analysis()
         finally:
             state.financial_data = old_data
@@ -738,7 +738,7 @@ class TestScenariosView(unittest.TestCase):
         state.financial_data = {}
         state.ratios = {}
         try:
-            with mock.patch("PyQt5.QtWidgets.QMessageBox.warning"):
+            with mock.patch("PyQt6.QtWidgets.QMessageBox.warning"):
                 self.view.run_simulation()
         finally:
             state.financial_data = old_data

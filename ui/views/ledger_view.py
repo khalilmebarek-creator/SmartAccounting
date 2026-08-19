@@ -5,12 +5,12 @@
 from ui.views._path import _  # noqa: F401
 
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QDateEdit, QDoubleSpinBox, QMessageBox,
     QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate
+from PyQt6.QtCore import QDate
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -94,9 +94,9 @@ class LedgerView(BaseView):
             t("ledger_col_description"), t("ledger_col_debit"),
             t("ledger_col_credit"), t("ledger_col_reference"),
         ])
-        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.entries_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.entries_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.entries_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.entries_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.entries_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         list_card.layout().addWidget(self.entries_table)
         self._main_layout.addWidget(list_card)
 
@@ -108,8 +108,8 @@ class LedgerView(BaseView):
             t("ledger_col_account"), t("ledger_col_name"),
             t("ledger_col_debit"), t("ledger_col_credit"),
         ])
-        self.tb_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tb_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tb_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tb_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         tb_card.layout().addWidget(self.tb_table)
         self._main_layout.addWidget(tb_card)
 
@@ -155,7 +155,7 @@ class LedgerView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("ledger_title"), t("ledger_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

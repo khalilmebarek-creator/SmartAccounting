@@ -5,7 +5,7 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QLabel, QPushButton, QComboBox, QTableWidget, QTableWidgetItem,
     QMessageBox, QFileDialog, QHeaderView, QHBoxLayout, QTextEdit, QGridLayout,
 )
@@ -71,9 +71,9 @@ class DemoDataView(BaseView):
             t("demo_opex"), t("demo_net_income"), t("demo_cash"),
             t("demo_ar"), t("demo_inventory"), t("demo_payables"),
         ])
-        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tx_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.tx_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tx_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tx_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tx_table.verticalHeader().setDefaultSectionSize(44)
         self.tx_table.setMinimumHeight(44 * 13 + 40)
         tx_card.layout().addWidget(self.tx_table)
@@ -178,8 +178,8 @@ class DemoDataView(BaseView):
             return
         reply = QMessageBox.question(
             self, t("confirm"), t("demo_load_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply != QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
             return
         if DemoData.load_company(state, company_id):
             QMessageBox.information(self, t("demo_title"), t("demo_loaded"))

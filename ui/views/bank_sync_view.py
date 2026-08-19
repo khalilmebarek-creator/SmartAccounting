@@ -2,13 +2,13 @@
 # ========================================
 
 import os
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QFileDialog,
     QFrame, QLineEdit, QMessageBox, QHeaderView,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -93,7 +93,7 @@ class BankSyncView(BaseView):
 
         self.tx_table = QTableWidget()
         self.tx_table.setAlternatingRowColors(True)
-        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         tx_layout.addWidget(self.tx_table)
         tx_frame.setLayout(tx_layout)
         self._main_layout.addWidget(tx_frame)
@@ -212,18 +212,18 @@ class BankSyncView(BaseView):
 
         for i, tx in enumerate(transactions):
             date_item = QTableWidgetItem(tx.get("date", ""))
-            date_item.setFlags(date_item.flags() & ~Qt.ItemIsEditable)
+            date_item.setFlags(date_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tx_table.setItem(i, 0, date_item)
 
             desc_item = QTableWidgetItem(tx.get("description", ""))
-            desc_item.setFlags(desc_item.flags() & ~Qt.ItemIsEditable)
+            desc_item.setFlags(desc_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.tx_table.setItem(i, 1, desc_item)
 
             for j, key in enumerate(["debit", "credit", "balance"], start=2):
                 val = tx.get(key, 0)
                 item = QTableWidgetItem(f"{val:,.2f}" if val else "—")
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-                item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 if key == "credit" and val > 0:
                     item.setForeground(QColor(ThemeColors.get("success")))
                 elif key == "debit" and val > 0:

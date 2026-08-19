@@ -2,14 +2,14 @@
 # ====================================
 
 import os
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QFileDialog,
     QFrame, QMessageBox, QHeaderView, QGridLayout,
     QTextEdit,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (QFont)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import (QFont)
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -110,7 +110,7 @@ class DataImportView(BaseView):
 
         self.preview_table = QTableWidget()
         self.preview_table.setAlternatingRowColors(True)
-        self.preview_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.preview_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         preview_layout.addWidget(self.preview_table)
         preview_frame.setLayout(preview_layout)
         self._main_layout.addWidget(preview_frame)
@@ -192,7 +192,7 @@ class DataImportView(BaseView):
         for i, row in enumerate(preview):
             for j, val in enumerate(row):
                 item = QTableWidgetItem(str(val))
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.preview_table.setItem(i, j, item)
 
         self.preview_title.setText(f"{t('imp_preview')} ({len(rows)} {t('imp_rows')})")
@@ -250,7 +250,7 @@ class DataImportView(BaseView):
                 if isinstance(val, float):
                     val = f"{val:,.2f}"
                 item = QTableWidgetItem(str(val))
-                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self.preview_table.setItem(i, j, item)
 
     def refresh(self):

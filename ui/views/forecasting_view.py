@@ -3,17 +3,16 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton,
     QDoubleSpinBox, QTableWidget, QTableWidgetItem,
     QGroupBox, QFormLayout, QHeaderView, QMessageBox
 )
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget, draw_line,
+    _text_color, _chart_bg, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -83,14 +82,12 @@ class ForecastingView(QWidget):
             t("forecast_year"), t("forecast_optimistic"),
             t("forecast_base"), t("forecast_pessimistic")
         ])
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         main_layout.addWidget(self.results_table)
 
-        self.figure = Figure(figsize=(8, 4), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setMinimumHeight(300)
-        main_layout.addWidget(self.canvas)
+        self.chart = PgChartWidget(t("forecast_chart_title"))
+        self.chart.setMinimumHeight(300)
+        main_layout.addWidget(self.chart)
 
         self.setLayout(main_layout)
 
@@ -118,7 +115,7 @@ class ForecastingView(QWidget):
         self.results_table.setRowCount(years)
         for i in range(years):
             year_item = QTableWidgetItem(f"+{i + 1}")
-            year_item.setTextAlignment(Qt.AlignCenter)
+            year_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.results_table.setItem(i, 0, year_item)
             for col, proj in [(1, proj_opt), (2, proj_base), (3, proj_pess)]:
                 if "error" not in proj and i < len(proj["projections"]):
@@ -126,14 +123,12 @@ class ForecastingView(QWidget):
                     item = QTableWidgetItem(f"{val:,.0f}")
                 else:
                     item = QTableWidgetItem("--")
-                item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 self.results_table.setItem(i, col, item)
 
     def _draw_chart(self, proj_opt, proj_base, proj_pess, years):
-        import matplotlib.pyplot as plt
-        plt.close(self.figure)
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
+        self.chart.clear_plot()
+        pi = self.chart.plot_item
         base_rev = state.financial_data.get("revenue", 0)
         x = [0] + list(range(1, years + 1))
 
@@ -144,17 +139,9 @@ class ForecastingView(QWidget):
         ]:
             if "error" not in proj:
                 y = [base_rev] + [p["projected_revenue"] for p in proj["projections"]]
-                ax.plot(x, y, 'o-', color=color, linewidth=2, label=label, markersize=6)
+                draw_line(pi, x, y, labels=label, colors=color)
 
-        ax.set_title(t("forecast_chart_title"), fontsize=11, fontweight='bold')
-        ax.set_xlabel(t("forecast_years_ahead"))
-        ax.set_ylabel(t("forecast_revenue"))
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        self.figure.tight_layout()
-        self.canvas.draw()
+        self.chart.title_label.setText(t("forecast_chart_title"))
 
     def retranslate(self):
         self.title.setText(t("forecast_title"))

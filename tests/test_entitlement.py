@@ -33,7 +33,7 @@ def keypair():
 @pytest.fixture(scope="module")
 def qapp():
     """تطبيق Qt واحد للاختبارات الواجهية (sys.argv ضروري — درس Module 1)."""
-    from PyQt5.QtWidgets import QApplication
+    from PyQt6.QtWidgets import QApplication
 
     app = QApplication.instance() or QApplication(sys.argv)
     yield app
@@ -140,7 +140,7 @@ def _make_cloud_view(qapp):
 def test_push_blocked_on_free(qapp):
     view = _make_cloud_view(qapp)
     view._engine.push = mock.Mock(side_effect=AssertionError("gated!"))
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information") as info:
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information") as info:
         view._do_push(None)
     info.assert_called_once()
     view._engine.push.assert_not_called()
@@ -149,7 +149,7 @@ def test_push_blocked_on_free(qapp):
 def test_pull_blocked_on_free(qapp):
     view = _make_cloud_view(qapp)
     view._engine.pull = mock.Mock(side_effect=AssertionError("gated!"))
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"):
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"):
         view._pull()
     view._engine.pull.assert_not_called()
 
@@ -158,7 +158,7 @@ def test_push_allowed_on_pro(tmp_path, keypair, qapp):
     entitlement.set_store(_store_for(tmp_path, keypair, Tier.PRO))
     view = _make_cloud_view(qapp)
     view._engine.push = mock.Mock(return_value=[])
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"):
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"):
         view._do_push(None)
     view._engine.push.assert_called_once()
 
@@ -169,7 +169,7 @@ def test_backup_local_stays_free(qapp):
     view._engine.backup_local = mock.Mock(
         return_value={"path": "x", "size": 1, "timestamp": 0}
     )
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"):
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"):
         view._backup_local()
     view._engine.backup_local.assert_called_once()
 
@@ -198,12 +198,12 @@ def test_ai_export_blocked_on_free(qapp):
     from ui.views.ai_insights_view import AIInsightsView
 
     view = AIInsightsView()
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), mock.patch(
-        "PyQt5.QtWidgets.QMessageBox.warning"
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"), mock.patch(
+        "PyQt6.QtWidgets.QMessageBox.warning"
     ), mock.patch(
         "ui.views.ai_insights_view.QFileDialog.getSaveFileName",
         return_value=("", ""),
-    ), mock.patch("PyQt5.QtWidgets.QMessageBox.critical"):
+    ), mock.patch("PyQt6.QtWidgets.QMessageBox.critical"):
         view._export_pdf()
         view._export_excel()
 
@@ -213,12 +213,12 @@ def test_ai_export_allowed_on_enterprise(tmp_path, keypair, qapp):
 
     entitlement.set_store(_store_for(tmp_path, keypair, Tier.ENTERPRISE))
     view = AIInsightsView()
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"), mock.patch(
-        "PyQt5.QtWidgets.QMessageBox.warning"
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"), mock.patch(
+        "PyQt6.QtWidgets.QMessageBox.warning"
     ), mock.patch(
         "ui.views.ai_insights_view.QFileDialog.getSaveFileName",
         return_value=("", ""),
-    ), mock.patch("PyQt5.QtWidgets.QMessageBox.critical"):
+    ), mock.patch("PyQt6.QtWidgets.QMessageBox.critical"):
         view._export_pdf()
         view._export_excel()
 
@@ -227,7 +227,7 @@ def test_ai_retranslate_keeps_gate(qapp):
     from ui.views.ai_insights_view import AIInsightsView
 
     view = AIInsightsView()
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.information"):
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.information"):
         view.retranslate()
     items = [view.months_combo.itemText(i) for i in range(view.months_combo.count())]
     assert "6" in items

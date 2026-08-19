@@ -7,12 +7,12 @@ from ui.views._path import _  # noqa: F401
 import os
 import time
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QLineEdit, QCheckBox,
     QSpinBox, QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtGui import QFont, QColor
+from PyQt6.QtGui import QFont, QColor
 
 from ui.views._base import BaseView
 from ui.app_state import state, ThemeColors
@@ -69,10 +69,10 @@ class CloudSyncView(BaseView):
             t("cloud_dest_name"), t("cloud_dest_path"),
             t("cloud_dest_auto"), t("cloud_dest_snapshots"),
         ])
-        self.dest_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.dest_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.dest_table.setSelectionMode(QTableWidget.SingleSelection)
-        self.dest_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.dest_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.dest_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.dest_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.dest_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.dest_table.verticalHeader().setDefaultSectionSize(44)
         self.dest_table.setMinimumHeight(44 * 3 + 30)
         dest_card.layout().addWidget(self.dest_table)
@@ -113,10 +113,10 @@ class CloudSyncView(BaseView):
         self.backup_table.setHorizontalHeaderLabels([
             t("cloud_file"), t("cloud_size"), t("cloud_time"), t("cloud_encrypted"),
         ])
-        self.backup_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.backup_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.backup_table.setSelectionMode(QTableWidget.SingleSelection)
-        self.backup_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.backup_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.backup_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.backup_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.backup_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.backup_table.verticalHeader().setDefaultSectionSize(44)
         self.backup_table.setMinimumHeight(44 * 3 + 30)
         backup_card.layout().addWidget(self.backup_table)
@@ -171,7 +171,7 @@ class CloudSyncView(BaseView):
         pass_card = self._make_card("cloud_passphrase")
         pass_row = QHBoxLayout()
         self.pass_input = QLineEdit()
-        self.pass_input.setEchoMode(QLineEdit.Password)
+        self.pass_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.pass_input.setPlaceholderText(t("cloud_passphrase"))
         pass_row.addWidget(self.pass_input)
         set_pass_btn = QPushButton(t("cloud_set_passphrase"))
@@ -205,8 +205,8 @@ class CloudSyncView(BaseView):
             t("cloud_time"), t("cloud_action"), t("cloud_destination"),
             t("cloud_status"),
         ])
-        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.history_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.history_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.history_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.history_table.verticalHeader().setDefaultSectionSize(44)
         self.history_table.setMinimumHeight(200)
         hist_card.layout().addWidget(self.history_table)
@@ -405,7 +405,7 @@ class CloudSyncView(BaseView):
         snap = self.backup_table.item(row, 0).text()
         if QMessageBox.question(
             self, t("cloud_title"), t("cloud_restore_confirm"),
-        ) != QMessageBox.Yes:
+        ) != QMessageBox.StandardButton.Yes:
             return
         try:
             self._engine.restore_backup(state, snap)
@@ -426,7 +426,7 @@ class CloudSyncView(BaseView):
             return
         if QMessageBox.question(
             self, t("cloud_title"), t("cloud_restore_confirm"),
-        ) != QMessageBox.Yes:
+        ) != QMessageBox.StandardButton.Yes:
             return
         try:
             self._engine.restore_from_file(state, path)
@@ -449,7 +449,7 @@ class CloudSyncView(BaseView):
             return
         if QMessageBox.question(
             self, t("cloud_title"), t("cloud_restore_confirm"),
-        ) != QMessageBox.Yes:
+        ) != QMessageBox.StandardButton.Yes:
             return
         try:
             self._engine.pull(state, dest_id, name)
@@ -493,7 +493,7 @@ class CloudSyncView(BaseView):
     def _clear_history(self):
         if QMessageBox.question(
             self, t("cloud_title"), t("cloud_clear_history_confirm"),
-        ) != QMessageBox.Yes:
+        ) != QMessageBox.StandardButton.Yes:
             return
         self._engine.clear_history()
         self.refresh()

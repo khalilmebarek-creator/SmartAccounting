@@ -6,12 +6,12 @@ import json
 import ssl
 import time
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QTextEdit, QTextBrowser, QFrame,
 )
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import (QTextCursor)
+from PyQt6.QtCore import Qt, QEvent, QThread, pyqtSignal
+from PyQt6.QtGui import (QTextCursor)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -615,7 +615,7 @@ class ChatView(QWidget):
         # === Input Area ===
         input_frame = QFrame()
         input_frame.setObjectName("card")
-        input_layout = QHBoxLayout()
+        input_layout = QHBoxLayout(input_frame)
         input_layout.setContentsMargins(10, 10, 10, 10)
         input_layout.setSpacing(10)
 
@@ -642,7 +642,6 @@ class ChatView(QWidget):
         btn_col.addWidget(self.clear_btn)
 
         input_layout.addLayout(btn_col)
-        input_frame.setLayout(input_layout)
         main_layout.addWidget(input_frame)
 
         self.setLayout(main_layout)
@@ -658,8 +657,8 @@ class ChatView(QWidget):
         self.mode_label.style().polish(self.mode_label)
 
     def eventFilter(self, obj, event):
-        if obj == self.input_field and event.type() == event.KeyPress:
-            if event.key() == Qt.Key_Return and not event.modifiers() & Qt.ShiftModifier:
+        if obj == self.input_field and event.type() == QEvent.Type.KeyPress:
+            if event.key() == Qt.Key.Key_Return and not event.modifiers() & Qt.KeyboardModifier.ShiftModifier:
                 self.send_message()
                 return True
         return super().eventFilter(obj, event)
@@ -836,7 +835,7 @@ class ChatView(QWidget):
 
     def _scroll_to_bottom(self):
         cursor = self.chat_display.textCursor()
-        cursor.movePosition(QTextCursor.End)
+        cursor.movePosition(QTextCursor.MoveOperation.End)
         self.chat_display.setTextCursor(cursor)
 
     def _restore_history(self):

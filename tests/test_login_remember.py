@@ -21,8 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtCore import QEventLoop, QTimer
+from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import QEventLoop, QTimer
 
 app = QApplication.instance()
 if not app:
@@ -39,7 +39,7 @@ from modules.user_manager import _hash_password
 def _pump(ms=30):
     loop = QEventLoop()
     QTimer.singleShot(ms, loop.quit)
-    loop.exec_()
+    loop.exec()
 
 
 def _set_language(lang):

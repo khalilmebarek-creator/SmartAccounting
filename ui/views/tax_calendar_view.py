@@ -3,15 +3,15 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QGroupBox, QFrame,
     QMessageBox, QDialog, QLineEdit, QTextEdit, QDateEdit,
     QComboBox, QHeaderView, QGridLayout, QScrollArea
 )
-from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
-from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtGui import QFont, QColor, QTextDocument
+from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
+from PyQt6.QtCore import Qt, QDate
+from PyQt6.QtGui import QFont, QColor, QTextDocument
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -158,14 +158,14 @@ class TaxCalendarView(BaseView):
         self._main_layout.addLayout(toolbar)
 
         sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
+        sep.setFrameShape(QFrame.Shape.HLine)
         sep.setObjectName("separator")
         self._main_layout.addWidget(sep)
 
         self.empty_guide = QLabel(t("taxcal_empty_guide"))
         self.empty_guide.setObjectName("card")
         self.empty_guide.setWordWrap(True)
-        self.empty_guide.setAlignment(Qt.AlignCenter)
+        self.empty_guide.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty_guide.setMinimumHeight(80)
         self.empty_guide.setStyleSheet("padding: 20px; font-size: 14px;")
         self.empty_guide.hide()
@@ -181,8 +181,8 @@ class TaxCalendarView(BaseView):
             t("taxcal_col_form"), t("taxcal_col_severity"),
             t("taxcal_col_action"),
         ])
-        self.upcoming_table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
-        self.upcoming_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.upcoming_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        self.upcoming_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.upcoming_table.setColumnWidth(0, 90)
         self.upcoming_table.setColumnWidth(2, 110)
         self.upcoming_table.setColumnWidth(3, 80)
@@ -191,14 +191,14 @@ class TaxCalendarView(BaseView):
         self.upcoming_table.setColumnWidth(6, 120)
         self.upcoming_table.setAlternatingRowColors(True)
         self.upcoming_table.verticalHeader().setVisible(False)
-        self.upcoming_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.upcoming_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.upcoming_table.setMinimumHeight(250)
         upcoming_layout.addWidget(self.upcoming_table)
         self.upcoming_group.setLayout(upcoming_layout)
         self._main_layout.addWidget(self.upcoming_group, 1)
 
         cal_sep = QFrame()
-        cal_sep.setFrameShape(QFrame.HLine)
+        cal_sep.setFrameShape(QFrame.Shape.HLine)
         cal_sep.setObjectName("separator")
         self._main_layout.addWidget(cal_sep)
 
@@ -286,7 +286,7 @@ class TaxCalendarView(BaseView):
                 card_layout.addWidget(strip)
 
             month_lbl = QLabel(t(month_keys[col]))
-            month_lbl.setAlignment(Qt.AlignCenter)
+            month_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             font = QFont()
             font.setBold(True)
             font.setPointSize(12 if is_current else 11)
@@ -309,12 +309,12 @@ class TaxCalendarView(BaseView):
                 count_lbl = QLabel(count_text)
                 count_color = error_color if priority == "high" else info_color
                 count_lbl.setStyleSheet(f"font-size: 10px; color: {count_color}; font-weight: bold;")
-                count_lbl.setAlignment(Qt.AlignCenter)
+                count_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 card_layout.addWidget(count_lbl)
             else:
                 empty_lbl = QLabel(t("taxcal_no_items"))
                 empty_lbl.setStyleSheet(f"font-size: 10px; color: {text_muted}; font-style: italic;")
-                empty_lbl.setAlignment(Qt.AlignCenter)
+                empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 card_layout.addWidget(empty_lbl)
 
             card.setLayout(card_layout)
@@ -375,17 +375,17 @@ class TaxCalendarView(BaseView):
                 row_color = QColor(ThemeColors.get('info')).lighter(160)
 
             type_item = QTableWidgetItem(rem.get("tax_type", ""))
-            type_item.setTextAlignment(Qt.AlignCenter)
+            type_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             name = rem.get("name_en", rem.get("name_ar", ""))
             name_item = QTableWidgetItem(name)
 
             due_item = QTableWidgetItem(rem.get("due_date", ""))
-            due_item.setTextAlignment(Qt.AlignCenter)
+            due_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             days_text = f"{days}" if days >= 0 else str(days)
             days_item = QTableWidgetItem(days_text)
-            days_item.setTextAlignment(Qt.AlignCenter)
+            days_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if days <= 3:
                 days_item.setForeground(QColor(ThemeColors.get('error')))
             elif days <= 7:
@@ -398,13 +398,13 @@ class TaxCalendarView(BaseView):
             days_item.setFont(font)
 
             form_item = QTableWidgetItem(rem.get("form_number", ""))
-            form_item.setTextAlignment(Qt.AlignCenter)
+            form_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             sev_text = f"🔴 {t('taxcal_urgent')}" if severity == "urgent" else (
                 f"🟠 {t('taxcal_warning')}" if severity == "warning" else f"🔵 {t('taxcal_info')}"
             )
             sev_item = QTableWidgetItem(sev_text)
-            sev_item.setTextAlignment(Qt.AlignCenter)
+            sev_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             ack_btn = QPushButton(t("taxcal_acknowledge"))
             ack_btn.setMinimumHeight(40)
@@ -432,14 +432,14 @@ class TaxCalendarView(BaseView):
 
     def _add_reminder(self):
         dialog = AddReminderDialog(self)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec() == QDialog.Accepted:
             self.refresh()
 
     def _print_calendar(self):
         try:
             printer = QPrinter(QPrinter.HighResolution)
             dialog = QPrintDialog(printer, self)
-            if dialog.exec_() == QPrinter.Accepted:
+            if dialog.exec() == QPrinter.Accepted:
                 reminders = tax_reminders.get_upcoming_reminders(days_ahead=90)
                 doc = QTextDocument()
                 html = self._build_print_html(reminders)

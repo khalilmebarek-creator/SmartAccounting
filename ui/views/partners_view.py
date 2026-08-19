@@ -4,12 +4,12 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QDateEdit,
     QMessageBox, QFileDialog, QHeaderView, QFrame
 )
-from PyQt5.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt
 
 from ui.views._base import BaseView
 from ui.resources.i18n import t
@@ -67,7 +67,7 @@ class PartnersView(BaseView):
         add_btn.clicked.connect(self._add_partner)
         row2.addLayout(self._labeled_field("partners_email", self.email_edit))
         row2.addLayout(self._labeled_field("partners_tax_id", self.tax_edit))
-        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addWidget(add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
@@ -97,9 +97,9 @@ class PartnersView(BaseView):
             t("partners_col_phone"), t("partners_col_email"),
             t("partners_col_balance"),
         ])
-        self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.partners_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.partners_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.partners_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.partners_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.partners_table.itemSelectionChanged.connect(self._on_select_partner)
         self.partners_table.setMinimumHeight(44 * 6 + 30)
         list_card.layout().addWidget(self.partners_table)
@@ -127,7 +127,7 @@ class PartnersView(BaseView):
         tx_add_btn.clicked.connect(self._add_transaction)
         tx_row2.addLayout(self._labeled_field("partners_col_amount", self.tx_amount))
         tx_row2.addLayout(self._labeled_field("partners_tx_reference", self.tx_ref))
-        tx_row2.addWidget(tx_add_btn, 0, Qt.AlignBottom)
+        tx_row2.addWidget(tx_add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         tx_card.layout().addLayout(tx_row2)
 
         self.tx_table = QTableWidget()
@@ -137,8 +137,8 @@ class PartnersView(BaseView):
             t("partners_col_amount"), t("partners_col_reference"),
             t("partners_col_notes"),
         ])
-        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tx_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.tx_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.tx_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tx_table.setMinimumHeight(44 * 5 + 30)
         tx_card.layout().addWidget(self.tx_table)
         row.addWidget(tx_card)
@@ -151,8 +151,8 @@ class PartnersView(BaseView):
             t("partners_aging_30"), t("partners_aging_60"),
             t("partners_aging_90"),
         ])
-        self.aging_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.aging_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.aging_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.aging_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.aging_table.setMinimumHeight(44 * 5 + 30)
         aging_card.layout().addWidget(self.aging_table)
         row.addWidget(aging_card)
@@ -239,7 +239,7 @@ class PartnersView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("partners_title"), t("partners_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

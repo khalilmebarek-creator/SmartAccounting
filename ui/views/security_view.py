@@ -2,13 +2,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QTableWidget, QTableWidgetItem, QComboBox,
     QTextEdit, QFrame, QMessageBox,
 )
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import (QColor)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import (QColor)
 
 from ui.resources.i18n import t
 from ui.app_state import ThemeColors
@@ -85,7 +85,7 @@ class SecurityView(QWidget):
         self.alerts_table.horizontalHeader().setStretchLastSection(True)
         self.alerts_table.setAlternatingRowColors(True)
         self.alerts_table.verticalHeader().setVisible(False)
-        self.alerts_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.alerts_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.alerts_table.selectionModel().selectionChanged.connect(self._show_detail)
         main_layout.addWidget(self.alerts_table)
 
@@ -107,7 +107,7 @@ class SecurityView(QWidget):
         lbl_title.setObjectName("subtitleLabel")
         lbl_value = QLabel(value)
         lbl_value.setObjectName("statValue")
-        lbl_value.setAlignment(Qt.AlignCenter)
+        lbl_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
         font = lbl_value.font()
         font.setBold(True)
         font.setPointSize(18)
@@ -190,9 +190,9 @@ class SecurityView(QWidget):
     def _clear_alerts(self):
         reply = QMessageBox.question(
             self, t("confirm_delete_title"), t("security_clear_confirm"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
         )
-        if reply == QMessageBox.Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             fraud_detector.clear_alerts()
             self._refresh_table()
 

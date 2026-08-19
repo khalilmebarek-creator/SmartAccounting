@@ -1,21 +1,23 @@
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFrame, QTableWidget, QTableWidgetItem, QHeaderView,
-    QComboBox, QMessageBox, QScrollArea, QSizePolicy, QListWidget,
+    QComboBox, QMessageBox, QScrollArea, QListWidget,
     QDialog, QLineEdit, QDoubleSpinBox, QFormLayout
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor
+
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget, PgPolarWidget,
+    draw_radar, draw_bar,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.views._base import BaseView
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
+from ui.plotly_export import export_benchmarks_html
 from modules.benchmarks import benchmark_analyzer, ALGERIAN_SECTORS
 from database.db_operations import (
     get_competitors, save_competitor, delete_competitor, get_company_ratio_history
@@ -177,17 +179,24 @@ class BenchmarkView(BaseView):
         self.export_btn.clicked.connect(self._export_excel)
         controls.addWidget(self.export_btn)
 
+        self.html_btn = QPushButton(t("export_benchmarks_html"))
+        self.html_btn.setObjectName("secondaryBtn")
+        self.html_btn.setMinimumHeight(40)
+        self.html_btn.clicked.connect(self._export_html)
+        controls.addWidget(self.html_btn)
+
         self._main_layout.addLayout(controls)
 
         self.setTabOrder(self.sector_combo, self.compare_btn)
         self.setTabOrder(self.compare_btn, self.print_btn)
         self.setTabOrder(self.print_btn, self.export_btn)
+        self.setTabOrder(self.export_btn, self.html_btn)
 
     def _build_score(self):
         """بطاقة النتيجة والتقييم"""
 
         sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
+        sep.setFrameShape(QFrame.Shape.HLine)
         sep.setObjectName("separator")
         self._main_layout.addWidget(sep)
 
@@ -208,7 +217,7 @@ class BenchmarkView(BaseView):
         score_font.setBold(True)
         score_font.setPointSize(22)
         self.score_value.setFont(score_font)
-        self.score_value.setAlignment(Qt.AlignCenter)
+        self.score_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
         value_layout.addWidget(self.score_value)
 
         self.rating_value = QLabel("")
@@ -217,7 +226,7 @@ class BenchmarkView(BaseView):
         rating_font.setBold(True)
         rating_font.setPointSize(14)
         self.rating_value.setFont(rating_font)
-        self.rating_value.setAlignment(Qt.AlignCenter)
+        self.rating_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
         value_layout.addWidget(self.rating_value)
 
         score_layout.addLayout(value_layout)
@@ -234,7 +243,7 @@ class BenchmarkView(BaseView):
         self.empty_guide = QLabel(t("bench_empty_guide"))
         self.empty_guide.setObjectName("card")
         self.empty_guide.setWordWrap(True)
-        self.empty_guide.setAlignment(Qt.AlignCenter)
+        self.empty_guide.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.empty_guide.setMinimumHeight(100)
         self.empty_guide.setStyleSheet("padding: 20px; font-size: 14px;")
         self.empty_guide.hide()
@@ -247,10 +256,10 @@ class BenchmarkView(BaseView):
             t("bench_col_best"), t("bench_col_international"),
             t("bench_col_min"), t("bench_col_avg"), t("bench_col_max")
         ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setAlternatingRowColors(True)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setMinimumHeight(300)
         self.content_layout.addWidget(self.table)
 
@@ -274,28 +283,16 @@ class BenchmarkView(BaseView):
         self.content_layout.addLayout(sw_layout)
 
     def _build_charts(self):
-        """الرسوم البيانية (رادار/أعمدة)"""
-
         charts_layout = QHBoxLayout()
         charts_layout.setSpacing(15)
 
-        self.radar_frame = QFrame()
-        self.radar_frame.setObjectName("card")
-        radar_layout = QVBoxLayout(self.radar_frame)
-        radar_layout.setContentsMargins(10, 10, 10, 10)
-        self.radar_chart_layout = QVBoxLayout()
-        self.radar_chart_layout.setContentsMargins(0, 0, 0, 0)
-        self.radar_frame.setLayout(self.radar_chart_layout)
-        charts_layout.addWidget(self.radar_frame, 1)
+        self.radar_widget = PgPolarWidget(t("bench_radar_title"))
+        self.radar_widget.setMinimumHeight(320)
+        charts_layout.addWidget(self.radar_widget, 1)
 
-        self.bar_frame = QFrame()
-        self.bar_frame.setObjectName("card")
-        bar_layout = QVBoxLayout(self.bar_frame)
-        bar_layout.setContentsMargins(10, 10, 10, 10)
-        self.bar_chart_layout = QVBoxLayout()
-        self.bar_chart_layout.setContentsMargins(0, 0, 0, 0)
-        self.bar_frame.setLayout(self.bar_chart_layout)
-        charts_layout.addWidget(self.bar_frame, 1)
+        self.bar_widget = PgChartWidget(t("bench_bar_title"))
+        self.bar_widget.setMinimumHeight(300)
+        charts_layout.addWidget(self.bar_widget, 1)
 
         self.content_layout.addLayout(charts_layout)
 
@@ -312,17 +309,13 @@ class BenchmarkView(BaseView):
         self.content_layout.addWidget(self.suggestions_list)
 
     def _build_trend(self):
-        """الاتجاه عبر السنوات"""
-
         self.trend_title = QLabel(t("bench_trend_title"))
         self.trend_title.setObjectName("sectionTitle")
         self.content_layout.addWidget(self.trend_title)
 
-        self.trend_frame = QFrame()
-        self.trend_frame.setObjectName("card")
-        self.trend_chart_layout = QVBoxLayout(self.trend_frame)
-        self.trend_chart_layout.setContentsMargins(10, 10, 10, 10)
-        self.content_layout.addWidget(self.trend_frame)
+        self.trend_widget = PgChartWidget(t("bench_trend_title"))
+        self.trend_widget.setMinimumHeight(240)
+        self.content_layout.addWidget(self.trend_widget)
 
     def _build_competitors(self):
         """مقارنة المنافسين"""
@@ -349,10 +342,10 @@ class BenchmarkView(BaseView):
         self.comp_table.setHorizontalHeaderLabels([
             t("bench_comp_position"), t("bench_comp_name"), t("bench_score")
         ])
-        self.comp_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.comp_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.comp_table.setAlternatingRowColors(True)
-        self.comp_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.comp_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.comp_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.comp_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.comp_table.setMinimumHeight(120)
         self.comp_table.setMaximumHeight(200)
         self.content_layout.addWidget(self.comp_table)
@@ -471,18 +464,8 @@ class BenchmarkView(BaseView):
             self.table.setItem(i, 5, QTableWidgetItem(f"{avg_val:.4f}"))
             self.table.setItem(i, 6, QTableWidgetItem(f"{max_val:.4f}"))
 
-    def _clear_chart_layout(self, layout):
-        for i in range(layout.count()):
-            w = layout.itemAt(i).widget()
-            if w:
-                if hasattr(w, 'figure'):
-                    import matplotlib.pyplot as plt
-                    plt.close(w.figure)
-                w.setParent(None)
-                w.deleteLater()
-
     def _draw_radar(self, company_ratios, sector_code):
-        self._clear_chart_layout(self.radar_chart_layout)
+        self.radar_widget.clear_plot()
 
         radar_data = benchmark_analyzer.get_radar_data(company_ratios, sector_code)
         labels = radar_data.get("labels", [])
@@ -492,43 +475,13 @@ class BenchmarkView(BaseView):
         company_vals = radar_data["company"]
         sector_avg = radar_data["sector_avg"]
 
-        import numpy as np
-        N = len(labels)
-        angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
-        angles += angles[:1]
-        company_vals += company_vals[:1]
-        sector_avg += sector_avg[:1]
-
-        fig = Figure(figsize=(5, 5), dpi=100, facecolor='none')
-        ax = fig.add_subplot(111, polar=True)
-
-        ax.set_facecolor('none')
-        ax.spines['polar'].set_color(ThemeColors.get('chart_grid'))
-        ax.tick_params(colors=ThemeColors.get('chart_text'))
-        ax.yaxis.grid(True, color=ThemeColors.get('chart_grid'), alpha=0.5)
-        ax.xaxis.grid(True, color=ThemeColors.get('chart_grid'), alpha=0.5)
-
-        ax.plot(angles, company_vals, 'o-', linewidth=2, color='#3498DB',
-                label=t("bench_legend_company"))
-        ax.fill(angles, company_vals, alpha=0.15, color='#3498DB')
-
-        ax.plot(angles, sector_avg, 's--', linewidth=2, color='#E74C3C',
-                label=t("bench_legend_sector"))
-        ax.fill(angles, sector_avg, alpha=0.15, color='#E74C3C')
-
-        ax.set_xticks(angles[:-1])
-        ax.set_xticklabels(labels, size=8, color=ThemeColors.get('chart_text'))
-        ax.set_ylim(0, 100)
-
-        ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1), fontsize=8)
-
-        canvas = FigureCanvas(fig)
-        canvas.setMinimumHeight(320)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.radar_chart_layout.addWidget(canvas)
+        draw_radar(self.radar_widget, labels,
+                   [company_vals, sector_avg],
+                   colors_list=["#3498DB", "#E74C3C"])
 
     def _draw_bar(self):
-        self._clear_chart_layout(self.bar_chart_layout)
+        self.bar_widget.clear_plot()
+        pi = self.bar_widget.plot_item
 
         if not self.comparison_result:
             return
@@ -549,7 +502,7 @@ class BenchmarkView(BaseView):
 
         names = []
         scores = []
-        colors = []
+        bar_colors = []
         for key, display in ratio_display.items():
             if key in ratios:
                 names.append(display)
@@ -557,44 +510,31 @@ class BenchmarkView(BaseView):
                 scores.append(score)
                 status = ratios[key].get("status", "")
                 if status in ("critical", "below"):
-                    colors.append("#E74C3C")
+                    bar_colors.append("#E74C3C")
                 elif status in ("good", "excellent"):
-                    colors.append("#27AE60")
+                    bar_colors.append("#27AE60")
                 else:
-                    colors.append("#F39C12")
+                    bar_colors.append("#F39C12")
 
         if not names:
             return
 
-        fig = Figure(figsize=(5, 4), dpi=100, facecolor='none')
-        fig.subplots_adjust(left=0.15, right=0.95, top=0.9, bottom=0.25)
-        ax = fig.add_subplot(111)
+        import numpy as np
+        n = len(names)
+        y = np.arange(n)
+        brushes = [_mk_brush(c) for c in bar_colors]
+        bg = pg.BarGraphItem(y=y, x0=0, width=scores, height=0.6, brushes=brushes)
+        pi.addItem(bg)
 
-        ax.set_facecolor('none')
-        bars = ax.barh(names, scores, color=colors, edgecolor=ThemeColors.get('chart_edge'), linewidth=0.5)
+        for i, score in enumerate(scores):
+            t_item = _mk_text_item(f"{score:.0f}", score + 2, y[i], bold=True, size=9)
+            pi.addItem(t_item)
 
-        ax.set_xlim(0, 110)
-        ax.set_xlabel(t("bench_bar_xlabel"), fontsize=9, color=ThemeColors.get('chart_text'))
-        ax.set_title(t("bench_bar_title"), fontsize=11, fontweight='bold',
-                     color=ThemeColors.get('chart_text'))
-
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_color(ThemeColors.get('chart_grid'))
-        ax.spines['left'].set_color(ThemeColors.get('chart_grid'))
-        ax.tick_params(axis='y', labelsize=8, colors=ThemeColors.get('chart_text'))
-        ax.tick_params(axis='x', labelsize=8, colors=ThemeColors.get('chart_text'))
-        ax.xaxis.grid(True, color=ThemeColors.get('chart_grid'), alpha=0.3)
-
-        for bar, score in zip(bars, scores):
-            ax.text(bar.get_width() + 2, bar.get_y() + bar.get_height() / 2,
-                    f'{score:.0f}', va='center', fontsize=8,
-                    color=ThemeColors.get('chart_text'))
-
-        canvas = FigureCanvas(fig)
-        canvas.setMinimumHeight(300)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.bar_chart_layout.addWidget(canvas)
+        tick_labels = [[(i, l) for i, l in enumerate(names)]]
+        pi.getAxis("left").setTicks(tick_labels)
+        pi.setXRange(0, 110)
+        pi.setLabel("bottom", t("bench_bar_xlabel"))
+        pi.showGrid(x=True, y=False, alpha=0.2)
 
     def _fill_suggestions(self, company_ratios, sector_code):
         self.suggestions_list.clear()
@@ -672,18 +612,18 @@ class BenchmarkView(BaseView):
             self.weaknesses_list.addItem(f"  {label}  ·  {st}  ({w['score']}/100)")
 
     def _draw_trend(self):
-        self._clear_chart_layout(self.trend_chart_layout)
+        self.trend_widget.clear_plot()
+        pi = self.trend_widget.plot_item
 
         company = state.company_name or ""
         sector_code = self.sector_combo.currentData()
         history = get_company_ratio_history(company) if company else []
 
         if not history or not sector_code:
-            lbl = QLabel(t("bench_trend_no_data"))
-            lbl.setAlignment(Qt.AlignCenter)
-            lbl.setWordWrap(True)
-            lbl.setStyleSheet("padding: 20px; color: #7F8C8D;")
-            self.trend_chart_layout.addWidget(lbl)
+            pi.hideAxis("left")
+            pi.hideAxis("bottom")
+            t_item = _mk_text_item(t("bench_trend_no_data"), 0, 0, size=10, anchor=(0.5, 0.5))
+            pi.addItem(t_item)
             return
 
         trend = benchmark_analyzer.get_trend_data(history, sector_code)
@@ -702,34 +642,25 @@ class BenchmarkView(BaseView):
         ref = benchmark_analyzer.compare_with_sector(sector_avg_ratios, sector_code)
         ref_score = ref.get("overall_score", 0)
 
-        fig = Figure(figsize=(6, 3), dpi=100, facecolor='none')
-        fig.subplots_adjust(left=0.1, right=0.97, top=0.85, bottom=0.2)
-        ax = fig.add_subplot(111)
-        ax.set_facecolor('none')
+        draw_line(pi, years, scores,
+                  label=t("bench_legend_company"),
+                  colors="#3498DB", fill=False)
 
-        ax.plot(years, scores, 'o-', linewidth=2, color='#3498DB', markersize=6,
-                label=t("bench_legend_company"))
-        ax.axhline(ref_score, linestyle='--', color='#E74C3C', linewidth=1.5,
-                   label=t("bench_trend_sector_avg"))
+        from pyqtgraph import InfiniteLine
+        ref_line = InfiniteLine(pos=(0, ref_score), angle=0,
+                                pen=_mk_pen('#E74C3C', 2))
+        pi.addItem(ref_line)
+        ref_lbl = _mk_text_item(
+            f"{t('bench_trend_sector_avg')}: {ref_score:.0f}",
+            years[-1] if years else 0, ref_score,
+            color='#E74C3C', size=8, anchor=(1.0, 1.5))
+        pi.addItem(ref_lbl)
 
         for x, y in zip(years, scores):
-            ax.annotate(f"{y:.0f}", (x, y), textcoords="offset points",
-                        xytext=(0, 8), ha='center', fontsize=8,
-                        color=ThemeColors.get('chart_text'))
+            ann = _mk_text_item(f"{y:.0f}", x, y, size=8, anchor=(0.5, 2.0))
+            pi.addItem(ann)
 
-        ax.set_xticks(years)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['bottom'].set_color(ThemeColors.get('chart_grid'))
-        ax.spines['left'].set_color(ThemeColors.get('chart_grid'))
-        ax.tick_params(colors=ThemeColors.get('chart_text'), labelsize=9)
-        ax.yaxis.grid(True, color=ThemeColors.get('chart_grid'), alpha=0.3)
-        ax.legend(loc='lower right', fontsize=8)
-
-        canvas = FigureCanvas(fig)
-        canvas.setMinimumHeight(240)
-        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.trend_chart_layout.addWidget(canvas)
+        pi.showGrid(x=False, y=True, alpha=0.2)
 
     def _load_competitors(self):
         sector_code = self.sector_combo.currentData()
@@ -776,7 +707,7 @@ class BenchmarkView(BaseView):
             for rname, bm in ALGERIAN_SECTORS.get(sector_code, {}).get("benchmarks", {}).items()
         }
         dlg = AddCompetitorDialog(defaults, self)
-        if dlg.exec_() != QDialog.Accepted:
+        if dlg.exec() != QDialog.Accepted:
             return
 
         data = dlg.get_data()
@@ -800,7 +731,7 @@ class BenchmarkView(BaseView):
         confirm = QMessageBox.question(
             self, t("warning"), t("bench_comp_confirm_delete")
         )
-        if confirm != QMessageBox.Yes:
+        if confirm != QMessageBox.StandardButton.Yes:
             return
         delete_competitor(sector_code, name_item.text())
         self._refresh_competitor_ranking()
@@ -902,7 +833,7 @@ class BenchmarkView(BaseView):
                         "Score": r.get("score", 0),
                     })
 
-            from PyQt5.QtWidgets import QFileDialog
+            from PyQt6.QtWidgets import QFileDialog
             file_path, _ = QFileDialog.getSaveFileName(
                 self, t("bench_export_title"), "benchmarks.xlsx",
                 "Excel Files (*.xlsx)"
@@ -916,6 +847,82 @@ class BenchmarkView(BaseView):
         except Exception as e:
             from utils.app_logger import get_logger
             get_logger("benchmarks_view").error(f"Export failed: {e}")
+            QMessageBox.critical(self, t("error"), str(e))
+
+    def _export_html(self):
+        if not self.comparison_result:
+            QMessageBox.warning(self, t("warning"), t("bench_no_results"))
+            return
+
+        try:
+            from PyQt6.QtWidgets import QFileDialog
+            file_path, _ = QFileDialog.getSaveFileName(
+                self, t("export_benchmarks_html"), "benchmarks.html",
+                "HTML (*.html)"
+            )
+            if not file_path:
+                return
+
+            result = self.comparison_result
+            ratios = result.get("ratios", {})
+            ratio_display = self._ratio_display()
+
+            radar_data = benchmark_analyzer.get_radar_data(
+                self._get_company_ratios(), self.sector_combo.currentData()
+            )
+            labels = radar_data.get("labels", [])
+            company_vals = radar_data.get("company", [])
+            sector_avg = radar_data.get("sector_avg", [])
+
+            charts_data = {}
+            if labels:
+                charts_data["radar"] = {
+                    "labels": labels,
+                    "series": [
+                        {"name": t("bench_legend_company"), "values": company_vals, "color": "#3498DB"},
+                        {"name": t("bench_legend_sector"), "values": sector_avg, "color": "#E74C3C"},
+                    ],
+                }
+
+            bar_labels = []
+            bar_values = []
+            bar_colors = []
+            for key, display in ratio_display.items():
+                if key in ratios:
+                    bar_labels.append(display)
+                    bar_values.append(ratios[key].get("score", 0))
+                    status = ratios[key].get("status", "")
+                    if status in ("critical", "below"):
+                        bar_colors.append("#E74C3C")
+                    elif status in ("good", "excellent"):
+                        bar_colors.append("#27AE60")
+                    else:
+                        bar_colors.append("#F39C12")
+            if bar_labels:
+                charts_data["bar"] = {
+                    "labels": bar_labels, "values": bar_values, "colors": bar_colors,
+                }
+
+            company = state.company_name or ""
+            history = get_company_ratio_history(company) if company else []
+            sector_code = self.sector_combo.currentData()
+            if history and sector_code:
+                trend = benchmark_analyzer.get_trend_data(history, sector_code)
+                years = trend.get("years", [])
+                scores = trend.get("scores", [])
+                if years and "error" not in trend:
+                    charts_data["trend"] = {
+                        "x": years,
+                        "series": [
+                            {"name": t("bench_legend_company"), "y": scores, "color": "#3498DB"},
+                        ],
+                    }
+
+            export_benchmarks_html(file_path, charts_data)
+            QMessageBox.information(self, t("success"), t("bench_export_success"))
+        except Exception as e:
+            from utils.app_logger import get_logger
+            get_logger("benchmarks_view").error(f"HTML export failed: {e}")
             QMessageBox.critical(self, t("error"), str(e))
 
     def refresh(self):
@@ -933,13 +940,13 @@ class BenchmarkView(BaseView):
             self.score_frame.hide()
             self.suggestions_title.hide()
             self.suggestions_list.hide()
-            self.radar_frame.hide()
-            self.bar_frame.hide()
+            self.radar_widget.hide()
+            self.bar_widget.hide()
             self.sw_title.hide()
             self.strengths_list.hide()
             self.weaknesses_list.hide()
             self.trend_title.hide()
-            self.trend_frame.hide()
+            self.trend_widget.hide()
             self.comp_title.hide()
             self.comp_add_btn.hide()
             self.comp_delete_btn.hide()
@@ -952,13 +959,13 @@ class BenchmarkView(BaseView):
         self.score_frame.show()
         self.suggestions_title.show()
         self.suggestions_list.show()
-        self.radar_frame.show()
-        self.bar_frame.show()
+        self.radar_widget.show()
+        self.bar_widget.show()
         self.sw_title.show()
         self.strengths_list.show()
         self.weaknesses_list.show()
         self.trend_title.show()
-        self.trend_frame.show()
+        self.trend_widget.show()
         self.comp_title.show()
         self.comp_add_btn.show()
         self.comp_delete_btn.show()
@@ -982,6 +989,7 @@ class BenchmarkView(BaseView):
         self.compare_btn.setText(t("bench_compare"))
         self.print_btn.setText(t("bench_print"))
         self.export_btn.setText(t("bench_export"))
+        self.html_btn.setText(t("export_benchmarks_html"))
         self.score_title.setText(t("bench_score"))
         self.table_title.setText(t("bench_table_title"))
         self.suggestions_title.setText(t("bench_suggestions"))

@@ -7,17 +7,17 @@ import os
 from ui.views._path import _  # noqa: F401
 from ui.views._base import wrap_in_scroll
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QStackedWidget, QLabel, QStatusBar,
-    QMessageBox, QAction, QFileDialog, QShortcut,
+    QMessageBox, QFileDialog,
     QDialog, QDialogButtonBox, QFormLayout, QPushButton,
     QTableWidget, QTabBar,
     QApplication,
 )
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
-from PyQt5.QtGui import (QIcon, QKeySequence, QFont, QColor)
+from PyQt6.QtPrintSupport import QPrintDialog, QPrinter
+from PyQt6.QtCore import Qt, QSize, QTimer, pyqtSignal, QThread
+from PyQt6.QtGui import (QShortcut, QIcon, QKeySequence, QFont, QColor, QAction)
 
 from ui.views.login_view import LoginView
 from ui.widgets.alert_banner import AlertBanner
@@ -71,9 +71,9 @@ class MainWindow(QMainWindow):
     def _show_update_safe(self, info: dict):
         """عرض رسالة التحديث بأمان عبر signal"""
         try:
-            from PyQt5.QtWidgets import QMessageBox
+            from PyQt6.QtWidgets import QMessageBox
             msg = QMessageBox(self)
-            msg.setIcon(QMessageBox.Information)
+            msg.setIcon(QMessageBox.Icon.Information)
             msg.setWindowTitle("تحديث متاح | Update Available")
             msg.setText(
                 f"نسخة جديدة متاحة: {info.get('remote', '')}\n"
@@ -81,15 +81,15 @@ class MainWindow(QMainWindow):
                 f"التحديثات:\n" + "\n".join(f"• {c}" for c in info.get('changelog', []))
             )
             msg.setInformativeText("هل تريد تحميل التحديث؟")
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            if msg.exec_() == QMessageBox.Yes:
+            msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            if msg.exec() == QMessageBox.StandardButton.Yes:
                 self._perform_update(info)
         except Exception:
             self.log.debug("Update dialog dismissed or failed", exc_info=True)
 
     def _perform_update(self, info: dict):
         """تحميل التحديث → تشغيل المثبت → إعادة التشغيل تلقائياً"""
-        from PyQt5.QtWidgets import QProgressDialog
+        from PyQt6.QtWidgets import QProgressDialog
         from modules.update_checker import download_installer, backup_current_executable
 
         installer_url = info.get("installer_url") or info.get("download_url")
@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
     def _on_download_done(self, path: str, progress):
         """تشغيل المثبت → إعادة التشغيل بعد التثبيت"""
         progress.close()
-        from PyQt5.QtWidgets import QApplication, QMessageBox
+        from PyQt6.QtWidgets import QApplication, QMessageBox
         import subprocess, os, sys, uuid
 
         if not path or not os.path.exists(path):
@@ -186,7 +186,7 @@ class MainWindow(QMainWindow):
 
     def _perform_rollback(self):
         """استعادة النسخة السابقة (تراجع) — نسخ احتياطي قبل آخر تحديث"""
-        from PyQt5.QtWidgets import QMessageBox, QApplication
+        from PyQt6.QtWidgets import QMessageBox, QApplication
         from modules.update_checker import has_rollback_backup
 
         if not getattr(sys, 'frozen', False):
@@ -202,9 +202,9 @@ class MainWindow(QMainWindow):
 
         answer = QMessageBox.question(
             self, t("update_rollback_title"), t("update_rollback_confirm"),
-            QMessageBox.Yes | QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
-        if answer != QMessageBox.Yes:
+        if answer != QMessageBox.StandardButton.Yes:
             return
 
         import subprocess, uuid
@@ -247,7 +247,7 @@ class MainWindow(QMainWindow):
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         self.setLayoutDirection(
-            Qt.RightToLeft if state.language == "ar" else Qt.LeftToRight
+            Qt.LayoutDirection.RightToLeft if state.language == "ar" else Qt.LayoutDirection.LeftToRight
         )
 
         central_widget = QWidget()
@@ -335,7 +335,7 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(t("status_ready"))
         self.version_label = QLabel(f"v{APP_VERSION}")
         self.version_label.setObjectName("versionLabel")
-        self.version_label.setAlignment(Qt.AlignCenter)
+        self.version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_bar.addPermanentWidget(self.version_label)
 
         self._setup_shortcuts()
@@ -361,7 +361,7 @@ class MainWindow(QMainWindow):
         self.theme_toggle_btn = QPushButton(t("theme_toggle"))
         self.theme_toggle_btn.setObjectName("themeToggleBtn")
         self.theme_toggle_btn.setMaximumHeight(24)
-        self.theme_toggle_btn.setCursor(Qt.PointingHandCursor)
+        self.theme_toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.theme_toggle_btn.clicked.connect(self._toggle_theme)
         self.status_bar.addPermanentWidget(self.theme_toggle_btn)
 
@@ -464,10 +464,10 @@ class MainWindow(QMainWindow):
         for action, key in zip(labels, view_keys):
             layout.addRow(action, QLabel(f"<b>{key}</b>"))
 
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
         buttons.accepted.connect(dialog.accept)
         layout.addRow(buttons)
-        dialog.exec_()
+        dialog.exec()
 
     def _setup_shortcuts(self):
         """اختصارات لوحة المفاتيح — تشير لمعرّف الشاشة (1-35) لا صف الشريط"""
@@ -587,13 +587,13 @@ class MainWindow(QMainWindow):
     def show_license_dialog(self):
         """فتح حوار تفعيل الترخيص (Module 1 - Licensing)."""
         from commercial.licensing.license_dialog import LicenseDialog
-        LicenseDialog(self).exec_()
+        LicenseDialog(self).exec()
 
     def show_guide_dialog(self):
         """فتح دليل الاستخدام التفاعلي (بدون كود/بنية — للمستخدم النهائي)."""
         from ui.views.guide_view import GuideDialog
         dialog = GuideDialog(self)
-        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
         dialog.show()
 
     def create_menu_bar(self):
@@ -718,8 +718,8 @@ class MainWindow(QMainWindow):
         if widget is None:
             return
         try:
-            from PyQt5.QtWidgets import QGraphicsOpacityEffect
-            from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, QTimer
+            from PyQt6.QtWidgets import QGraphicsOpacityEffect
+            from PyQt6.QtCore import QPropertyAnimation, QEasingCurve, QTimer
 
             # إيقاف أي تلاشٍ سابق على نفس الشاشة حتى لا يُتلفف أثناء طيرانه
             # ويبقى التأثير عالقاً عند شفافية منخفضة (شاشة سوداء)
@@ -735,7 +735,7 @@ class MainWindow(QMainWindow):
             anim.setDuration(180)
             anim.setStartValue(0.0)
             anim.setEndValue(1.0)
-            anim.setEasingCurve(QEasingCurve.OutCubic)
+            anim.setEasingCurve(QEasingCurve.Type.OutCubic)
 
             def _remove():
                 # أزل مرجع الأنيميشن وتأثيره فقط إذا ما زال هذا الأنيميشن هو الحالي
@@ -801,7 +801,7 @@ class MainWindow(QMainWindow):
         """تطبيق اللغة على كل الواجهات"""
         Translator.set_language(state.language)
         is_rtl = state.language == "ar"
-        self.setLayoutDirection(Qt.RightToLeft if is_rtl else Qt.LeftToRight)
+        self.setLayoutDirection(Qt.LayoutDirection.RightToLeft if is_rtl else Qt.LayoutDirection.LeftToRight)
 
         self.setWindowTitle(t("window_title"))
 
@@ -857,9 +857,9 @@ class MainWindow(QMainWindow):
         dialog = QPrintDialog(printer, self)
         dialog.setWindowTitle(t("menu_print"))
 
-        if dialog.exec_() == QPrintDialog.Accepted:
+        if dialog.exec() == QPrintDialog.Accepted:
             try:
-                from PyQt5.QtGui import QPainter
+                from PyQt6.QtGui import QPainter
                 painter = QPainter(printer)
                 _view = getattr(self.content.currentWidget(), '_wrapped_view',
                                 self.content.currentWidget())
@@ -887,21 +887,19 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            from matplotlib.backends.backend_pdf import PdfPages
+            from ui.exporters import write_charts_pdf
 
-            with PdfPages(file_path) as pdf:
-                for chart_widget in [
-                    self._get_or_create_view(2).chart_ratios,
-                    self._get_or_create_view(2).chart_profitability,
-                    self._get_or_create_view(2).chart_dupont,
-                    self._get_or_create_view(2).chart_balance,
-                    self._get_or_create_view(2).chart_expenses,
-                    self._get_or_create_view(2).chart_radar,
-                    self._get_or_create_view(2).chart_zscore,
-                    self._get_or_create_view(2).chart_liquidity,
-                ]:
-                    fig = chart_widget.figure
-                    pdf.savefig(fig, dpi=150, bbox_inches='tight')
+            charts = [
+                self._get_or_create_view(2).chart_ratios,
+                self._get_or_create_view(2).chart_profitability,
+                self._get_or_create_view(2).chart_dupont,
+                self._get_or_create_view(2).chart_balance,
+                self._get_or_create_view(2).chart_expenses,
+                self._get_or_create_view(2).chart_radar,
+                self._get_or_create_view(2).chart_zscore,
+                self._get_or_create_view(2).chart_liquidity,
+            ]
+            write_charts_pdf(file_path, charts)
 
             QMessageBox.information(
                 self, t("success"),

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 app = QApplication.instance()
 if not app:
@@ -59,7 +59,7 @@ class TestApplyStandardLayout(unittest.TestCase):
 
     def _apply(self, level):
         from ui.constants import apply_standard_layout
-        from PyQt5.QtWidgets import QVBoxLayout
+        from PyQt6.QtWidgets import QVBoxLayout
         layout = QVBoxLayout()
         apply_standard_layout(layout, level)
         return layout

@@ -3,13 +3,13 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QFrame, QTextBrowser, QPushButton,
     QScrollArea, QSizePolicy, QMessageBox
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 
 from ui.app_state import state
 from ui.resources.i18n import t
@@ -30,7 +30,7 @@ class AuditItemCard(QFrame):
         super().__init__(parent)
         self.setObjectName("card")
         self.setMinimumHeight(70)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self._severity_key = severity_key
         color, icon = self.SEVERITY_KEYS.get(severity_key, ('#7F8C8D', '•'))
@@ -181,7 +181,7 @@ class AuditView(QWidget):
         self.results_layout.setSpacing(8)
 
         self.placeholder_label = QLabel(self._lbl_placeholder)
-        self.placeholder_label.setAlignment(Qt.AlignCenter)
+        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.placeholder_label.setObjectName("placeholderLabel")
         self.results_layout.addWidget(self.placeholder_label)
 
@@ -349,7 +349,7 @@ class AuditView(QWidget):
                 widget.deleteLater()
 
         self.placeholder_label = QLabel(self._lbl_placeholder)
-        self.placeholder_label.setAlignment(Qt.AlignCenter)
+        self.placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.placeholder_label.setObjectName("placeholderLabel")
         self.results_layout.addWidget(self.placeholder_label)
         self.results_layout.addStretch()

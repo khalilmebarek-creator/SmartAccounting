@@ -6,7 +6,7 @@
 from ui.views._path import _  # noqa: F401
 
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QHBoxLayout, QGridLayout, QLabel, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QLineEdit,
     QSpinBox, QTextEdit, QMessageBox, QFileDialog,
@@ -233,10 +233,10 @@ class UserTestingView(BaseView):
             t("ut_col_category"), t("ut_col_rating"), t("ut_col_priority"),
             t("ut_col_status"), t("ut_col_title"), t("ut_col_comment"), "",
         ])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setSelectionMode(QTableWidget.SingleSelection)
-        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.verticalHeader().setDefaultSectionSize(44)
         self.table.setWordWrap(True)
         self.table.setMinimumHeight(44 * 6 + 40)
@@ -413,8 +413,8 @@ class UserTestingView(BaseView):
             return
         reply = QMessageBox.question(
             self, t("ut_title"), t("ut_confirm_delete_session"),
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply != QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
             return
         self._engine.delete_session(self._current_sid)
         self._current_sid = None

@@ -3,18 +3,17 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton,
     QDoubleSpinBox, QGroupBox, QFormLayout, QMessageBox,
     QGridLayout,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (QFont)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import (QFont)
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget, draw_line,
+    _text_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -85,7 +84,7 @@ class BreakEvenView(QWidget):
             self._result_titles[key] = lbl
             val = QLabel("--")
             val.setObjectName("cardValue")
-            val.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            val.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             font = QFont()
             font.setPointSize(12)
             font.setBold(True)
@@ -97,11 +96,9 @@ class BreakEvenView(QWidget):
         results_group.setLayout(results_layout)
         main_layout.addWidget(results_group)
 
-        self.figure = Figure(figsize=(8, 4), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setMinimumHeight(300)
-        main_layout.addWidget(self.canvas)
+        self.chart = PgChartWidget(t("breakeven_chart_title"))
+        self.chart.setMinimumHeight(300)
+        main_layout.addWidget(self.chart)
 
         self.setLayout(main_layout)
 
@@ -134,10 +131,8 @@ class BreakEvenView(QWidget):
         self._draw_chart(result)
 
     def _draw_chart(self, result):
-        import matplotlib.pyplot as plt
-        plt.close(self.figure)
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
+        self.chart.clear_plot()
+        pi = self.chart.plot_item
 
         rev = result["current_revenue"]
         be = result["breakeven_revenue"]
@@ -150,25 +145,43 @@ class BreakEvenView(QWidget):
         total_cost = [fc, fc + max_rev * (1 - cm_ratio)]
         total_rev_line = [0, max_rev]
 
-        ax.plot(x, total_rev_line, 'o-', color=ThemeColors.get('info'), linewidth=2, label='Revenue')
-        ax.plot(x, total_cost, 'o-', color=ThemeColors.get('error'), linewidth=2, label='Total Cost')
-        ax.axvline(x=be, color=ThemeColors.get('warning'), linestyle='--', linewidth=1.5, label=f'Break-Even: {be:,.0f}')
+        draw_line(pi, x, [total_rev_line, total_cost],
+                  labels=['Revenue', 'Total Cost'],
+                  colors=[ThemeColors.get('info'), ThemeColors.get('error')])
+
+        from pyqtgraph import InfiniteLine
+        be_line = InfiniteLine(pos=(be, 0), angle=90,
+                               pen=_mk_pen(ThemeColors.get('warning'), 2))
+        pi.addItem(be_line)
+        be_lbl = _mk_text_item(f"BE: {be:,.0f}", be, max(total_rev_line[-1], total_cost[-1]) * 0.95,
+                                color=ThemeColors.get('warning'), size=8)
+        pi.addItem(be_lbl)
 
         if rev > be:
-            ax.fill_between([be, rev], [fc + be * (1 - cm_ratio), fc + rev * (1 - cm_ratio)],
-                            [be, rev], alpha=0.15, color=ThemeColors.get('success'))
+            fill_x = [be, rev]
+            fill_y1 = [fc + be * (1 - cm_ratio), fc + rev * (1 - cm_ratio)]
+            fill_y2 = [be, rev]
+            item_lower = pi.plot(fill_x, fill_y1, pen=None)
+            r, g, b = _hex_to_rgb(ThemeColors.get('success'))
+            item_lower.setBrush(pg.mkBrush(r, g, b, 40))
+            item_lower.setFillLevel(0)
+            item_upper = pi.plot(fill_x, fill_y2, pen=None)
+            item_upper.setBrush(pg.mkBrush(r, g, b, 40))
+            item_upper.setFillLevel(0)
         elif rev < be:
-            ax.fill_between([rev, be], [rev, fc + be * (1 - cm_ratio)],
-                            [rev * (1 - cm_ratio) + fc, fc + be * (1 - cm_ratio)], alpha=0.15, color=ThemeColors.get('error'))
+            fill_x = [rev, be]
+            fill_y1 = [rev * (1 - cm_ratio) + fc, fc + be * (1 - cm_ratio)]
+            fill_y2 = [rev, be]
+            item_lower = pi.plot(fill_x, fill_y1, pen=None)
+            r, g, b = _hex_to_rgb(ThemeColors.get('error'))
+            item_lower.setBrush(pg.mkBrush(r, g, b, 40))
+            item_lower.setFillLevel(0)
+            item_upper = pi.plot(fill_x, fill_y2, pen=None)
+            item_upper.setBrush(pg.mkBrush(r, g, b, 40))
+            item_upper.setFillLevel(0)
 
-        ax.set_title(t("breakeven_chart_title") if t("breakeven_chart_title") != "breakeven_chart_title" else "Break-Even Chart",
-                     fontsize=11, fontweight='bold')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        self.figure.tight_layout()
-        self.canvas.draw()
+        title = t("breakeven_chart_title") if t("breakeven_chart_title") != "breakeven_chart_title" else "Break-Even Chart"
+        self.chart.title_label.setText(title)
 
     def retranslate(self):
         self.title.setText(t("breakeven_title"))

@@ -3,18 +3,17 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QDoubleSpinBox, QTableWidget, QTableWidgetItem,
     QGroupBox, QHeaderView, QMessageBox, QSizePolicy
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor
 
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
+import pyqtgraph as pg
+from ui.charts import (PgChartWidget, draw_grouped_bar,
+    _text_color, _chart_bg, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -48,7 +47,7 @@ class BudgetView(QWidget):
         self.input_table = QTableWidget()
         self.input_table.setColumnCount(2)
         self.input_table.setHorizontalHeaderLabels([t("budget_category"), t("budget_amount")])
-        self.input_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.input_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.input_table.verticalHeader().setDefaultSectionSize(44)
         self.input_table.setMinimumHeight(44 * 6 + 30)
 
@@ -61,7 +60,7 @@ class BudgetView(QWidget):
         self._budget_spins = []
         for i, cat in enumerate(categories):
             cat_item = QTableWidgetItem(cat)
-            cat_item.setFlags(cat_item.flags() & ~Qt.ItemIsEditable)
+            cat_item.setFlags(cat_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self.input_table.setItem(i, 0, cat_item)
             spin = QDoubleSpinBox()
             spin.setRange(0, 1_000_000_000)
@@ -101,7 +100,7 @@ class BudgetView(QWidget):
             font.setPointSize(16)
             font.setBold(True)
             card_val.setFont(font)
-            card_val.setAlignment(Qt.AlignCenter)
+            card_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
             vl.addWidget(card_val)
             frame.setLayout(vl)
             summary_layout.addWidget(frame)
@@ -113,17 +112,15 @@ class BudgetView(QWidget):
             t("budget_category"), t("budget_amount"),
             t("budget_actual"), t("budget_variance"), t("budget_status")
         ])
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.results_table.verticalHeader().setDefaultSectionSize(44)
         self.results_table.setMinimumHeight(44 * 6 + 30)
-        self.results_table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.results_table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         main_layout.addWidget(self.results_table)
 
-        self.figure = Figure(figsize=(8, 4), dpi=100)
-        self.figure.patch.set_facecolor(ThemeColors.get("chart_bg"))
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setMinimumHeight(280)
-        main_layout.addWidget(self.canvas)
+        self.chart = PgChartWidget("Budget")
+        self.chart.setMinimumHeight(280)
+        main_layout.addWidget(self.chart)
 
         self.setLayout(main_layout)
 
@@ -172,31 +169,14 @@ class BudgetView(QWidget):
         self._draw_chart(items)
 
     def _draw_chart(self, items):
-        import matplotlib.pyplot as plt
-        plt.close(self.figure)
-        self.figure.clear()
-        ax = self.figure.add_subplot(111)
-
         labels = [item["category"][:10] for item in items]
         budgeted = [item["budgeted"] for item in items]
         actual = [item["actual"] for item in items]
 
-        x = range(len(labels))
-        width = 0.35
-
-        ax.bar([i - width / 2 for i in x], budgeted, width, label=t("budget_amount"),
-               color=ThemeColors.get('info'), alpha=0.8)
-        ax.bar([i + width / 2 for i in x], actual, width, label=t("budget_actual"),
-               color=ThemeColors.get('warning'), alpha=0.8)
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=9)
-        ax.legend()
-        ax.grid(True, alpha=0.3, axis='y')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        self.figure.tight_layout()
-        self.canvas.draw()
+        draw_grouped_bar(self.chart.plot_item, labels, [
+            {"label": t("budget_amount"), "values": budgeted, "color": ThemeColors.get('info')},
+            {"label": t("budget_actual"), "values": actual, "color": ThemeColors.get('warning')},
+        ])
 
     def retranslate(self):
         self.title.setText(t("budget_title"))

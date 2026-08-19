@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QDialog,
     QFormLayout,
     QHBoxLayout,

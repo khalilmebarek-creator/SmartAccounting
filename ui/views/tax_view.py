@@ -1,15 +1,15 @@
 # واجهة النظام الجبائي الجزائري
 # ==============================
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QLineEdit, QDoubleSpinBox, QComboBox,
     QGroupBox, QFrame, QTableWidget, QTableWidgetItem,
     QMessageBox, QTextEdit, QTabWidget, QFormLayout,
     QHeaderView, QSplitter, QFileDialog, QInputDialog,
 )
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import (QColor)
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import (QColor)
 
 from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
@@ -50,7 +50,7 @@ class TaxView(QWidget):
         self.main_layout.addWidget(year_label)
 
         self.tabs = QTabWidget()
-        self.tabs.setTabPosition(QTabWidget.North)
+        self.tabs.setTabPosition(QTabWidget.TabPosition.North)
         self.main_layout.addWidget(self.tabs)
 
         self._build_simulation_tab()
@@ -67,7 +67,7 @@ class TaxView(QWidget):
         layout = QVBoxLayout(tab)
         layout.setSpacing(12)
 
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
@@ -99,7 +99,7 @@ class TaxView(QWidget):
         form.addRow(t("tax_opex"), self.opex_input)
 
         sep = QFrame()
-        sep.setFrameShape(QFrame.HLine)
+        sep.setFrameShape(QFrame.Shape.HLine)
         sep.setObjectName("separator")
         form.addRow(sep)
 
@@ -125,7 +125,7 @@ class TaxView(QWidget):
         form.addRow(t("tax_equity"), self.equity_input)
 
         sep2 = QFrame()
-        sep2.setFrameShape(QFrame.HLine)
+        sep2.setFrameShape(QFrame.Shape.HLine)
         sep2.setObjectName("separator")
         form.addRow(sep2)
 
@@ -180,11 +180,11 @@ class TaxView(QWidget):
         self.results_table = QTableWidget()
         self.results_table.setColumnCount(2)
         self.results_table.setHorizontalHeaderLabels([t("tax_table_item"), t("tax_table_value")])
-        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
-        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.results_table.setAlternatingRowColors(True)
         self.results_table.verticalHeader().setVisible(False)
-        self.results_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.results_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.results_table.setMinimumHeight(44 * 8 + 30)
         results_layout.addWidget(self.results_table)
 
@@ -422,10 +422,10 @@ class TaxView(QWidget):
             t("tax_oblig_type"), t("tax_oblig_day"),
             t("tax_oblig_amount"), t("tax_oblig_status")
         ])
-        self.oblig_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.oblig_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.oblig_table.setAlternatingRowColors(True)
         self.oblig_table.verticalHeader().setVisible(False)
-        self.oblig_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.oblig_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.oblig_table.setMinimumHeight(44 * 6 + 30)
         layout.addWidget(self.oblig_table)
 
@@ -452,7 +452,7 @@ class TaxView(QWidget):
         layout = QVBoxLayout(tab)
         layout.setSpacing(12)
 
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
         left_widget = QWidget()
         left_layout = QVBoxLayout(left_widget)
@@ -461,8 +461,8 @@ class TaxView(QWidget):
         self.decl_company_group = QGroupBox(t("taxdecl_company_group"))
         company_form = QFormLayout()
         company_form.setSpacing(8)
-        company_form.setRowWrapPolicy(QFormLayout.WrapLongRows)
-        company_form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        company_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
+        company_form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
 
         self.decl_name_input = QLineEdit(state.company_name)
         self.decl_name_input.setMinimumHeight(40)
@@ -878,7 +878,7 @@ class TaxView(QWidget):
             return
         if QMessageBox.question(
                 self, t("tax_years_delete"),
-                f"{t('tax_years_delete')} {year}?") != QMessageBox.Yes:
+                f"{t('tax_years_delete')} {year}?") != QMessageBox.StandardButton.Yes:
             return
         if tax_years.delete_year(year):
             years_left = self.tax_engine.list_years()
@@ -1209,8 +1209,8 @@ class TaxView(QWidget):
         for i, (label, value) in enumerate(rows):
             label_item = QTableWidgetItem(label)
             value_item = QTableWidgetItem(value)
-            label_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            value_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            label_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            value_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
             if i == 12:
                 label_item.setForeground(QColor(ThemeColors.get('error')))
                 value_item.setForeground(QColor(ThemeColors.get('error')))
@@ -1419,10 +1419,10 @@ class TaxView(QWidget):
             amount_item = QTableWidgetItem(f"{ob.get('amount', 0):,.0f} DZD")
             status_item = QTableWidgetItem(ob.get("status", ""))
 
-            type_item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            day_item.setTextAlignment(Qt.AlignCenter)
-            amount_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-            status_item.setTextAlignment(Qt.AlignCenter)
+            type_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            day_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            amount_item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
             status = ob.get("status", "")
             if status == "paid":

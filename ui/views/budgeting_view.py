@@ -4,8 +4,8 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QTableWidget,
     QTableWidgetItem, QLineEdit, QComboBox, QDoubleSpinBox, QSpinBox,
     QMessageBox, QFileDialog, QHeaderView, QFrame, QTextEdit
@@ -65,7 +65,7 @@ class BudgetingView(BaseView):
         row2.addLayout(self._labeled_field("budgeting_col_amount", self.amount_spin))
         add_btn = QPushButton(t("budgeting_add_btn"))
         add_btn.clicked.connect(self._add_item)
-        row2.addWidget(add_btn, 0, Qt.AlignBottom)
+        row2.addWidget(add_btn, 0, Qt.AlignmentFlag.AlignBottom)
         add_card.layout().addLayout(row2)
         self._main_layout.addWidget(add_card)
 
@@ -96,9 +96,9 @@ class BudgetingView(BaseView):
             t("budgeting_col_id"), t("budgeting_col_name"),
             t("budgeting_col_category"), t("budgeting_col_amount"),
         ])
-        self.items_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.items_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.items_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.items_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.items_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.items_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         list_card.layout().addWidget(self.items_table)
         self._main_layout.addWidget(list_card)
 
@@ -121,8 +121,8 @@ class BudgetingView(BaseView):
             t("budgeting_col_actual"), t("budgeting_col_variance"),
             t("budgeting_col_execution"),
         ])
-        self.compare_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.compare_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.compare_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.compare_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         cmp_card.layout().addWidget(self.compare_table)
         self._main_layout.addWidget(cmp_card)
 
@@ -202,7 +202,7 @@ class BudgetingView(BaseView):
     def _clear_all(self):
         if QMessageBox.question(
                 self, t("budgeting_title"), t("budgeting_clear_confirm")) != \
-                QMessageBox.Yes:
+                QMessageBox.StandardButton.Yes:
             return
         self._engine.clear()
         self.refresh()

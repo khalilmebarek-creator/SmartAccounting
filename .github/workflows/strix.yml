@@ -1,0 +1,29 @@
+name: Strix Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1'  # كل اثنين الساعة 8 صباحاً
+
+jobs:
+  strix-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Strix pentest
+        uses: usestrix/strix-action@v1
+        with:
+          target: https://khalilmebarek-creator.github.io/SmartAccounting/
+          strix-yml: .github/strix.yml
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}

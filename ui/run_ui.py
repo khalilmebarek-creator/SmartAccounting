@@ -1,4 +1,4 @@
-# نقطة الدخول لواجهة PyQt5
+# نقطة الدخول لواجهة PyQt6
 # ===========================
 
 import sys
@@ -44,14 +44,11 @@ def main():
     MUTEX_NAME = "SmartAccountingMutex"
     ctypes.windll.kernel32.CreateMutexW(None, False, MUTEX_NAME)
 
-    from PyQt5.QtWidgets import QApplication
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QFont
+    from PyQt6.QtWidgets import QApplication
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QFont
 
     sys.excepthook = _global_exception_hook
-
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
     app = QApplication(sys.argv)
     app.setApplicationVersion("2.5.0")
@@ -74,7 +71,7 @@ def main():
 
     _nudge_license_check(window)
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 def _nudge_license_check(window):
@@ -84,14 +81,14 @@ def _nudge_license_check(window):
     package the app must start exactly as before (no regression).
     """
     try:
-        from PyQt5.QtCore import QTimer
-        from PyQt5.QtWidgets import QMessageBox
+        from PyQt6.QtCore import QTimer
+        from PyQt6.QtWidgets import QMessageBox
         from commercial.licensing.activation import LicenseStore
         from commercial.licensing.expiry import days_remaining
         store = LicenseStore()
         if store.is_read_only():
             from commercial.licensing.license_dialog import LicenseDialog
-            QTimer.singleShot(800, lambda: LicenseDialog(window, store=store).exec_())
+            QTimer.singleShot(800, lambda: LicenseDialog(window, store=store).exec())
             return
         state = store.load()
         if state is None or state.expiry is None:

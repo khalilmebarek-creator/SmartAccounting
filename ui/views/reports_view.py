@@ -3,7 +3,7 @@
 
 from ui.views._path import _  # noqa: F401
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QTextBrowser, QListWidget,
     QFileDialog, QMessageBox, QInputDialog
@@ -246,9 +246,9 @@ class ReportsView(QWidget):
         reply = QMessageBox.question(
             self, t("confirm_delete_title"),
             f"{t('reports_delete_confirm')}\n{r['company_name']} - {r['year']}",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
         )
-        if reply != QMessageBox.Yes:
+        if reply != QMessageBox.StandardButton.Yes:
             return
         try:
             from database import delete_analysis

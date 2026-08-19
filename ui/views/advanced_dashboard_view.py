@@ -2,20 +2,19 @@ from ui.views._path import _  # noqa: F401
 
 import math
 
-from PyQt5.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QPushButton, QFrame, QComboBox,
     QMessageBox, QScrollArea, QCheckBox, QLineEdit,
-    QListWidget, QListWidgetItem,
+    QListWidget, QListWidgetItem, QSizePolicy,
 )
-from PyQt5.QtCore import (QTimer)
-from PyQt5.QtGui import QFont, QColor
-import matplotlib
-matplotlib.use('Qt5Agg')
-import matplotlib.pyplot as plt
+from PyQt6.QtCore import (QTimer, QRectF)
+from PyQt6.QtGui import QFont, QColor
 
 from ui.views._base import BaseView
-from ui.views.dashboard import ChartWidget, _chart_text_color
+from ui.charts import (PgChartWidget, PgPieWidget, PgPolarWidget,
+    draw_line, draw_pie_widget, draw_radar,
+    _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import state, ThemeColors
 from ui import exporters
 from ui.resources.i18n import t
@@ -72,8 +71,75 @@ _WIDGET_LABEL_KEYS = {
 
 
 def _plain_title(text):
-    """إزالة الرموز التعبيرية من عناوين الرسوم (غير مدعومة في matplotlib)"""
     return "".join(ch for ch in (text or "") if ord(ch) < 0xFFFF)
+
+
+class ChartWidget(QFrame):
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setMinimumSize(350, 280)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+        self.title_label = QLabel(title)
+        self.title_label.setObjectName("sectionTitle")
+        layout.addWidget(self.title_label)
+        self.plot_widget = PgChartWidget(title)
+        self.plot_item = self.plot_widget.plot_item
+        self.plot_widget.setMinimumSize(300, 200)
+        layout.addWidget(self.plot_widget)
+        self.setLayout(layout)
+
+    def set_title(self, t_text):
+        self.title_label.setText(t_text)
+
+    def clear_chart(self):
+        self.plot_item.clear()
+
+
+class PieChartWidget(QFrame):
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setMinimumSize(350, 280)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+        self.title_label = QLabel(title)
+        self.title_label.setObjectName("sectionTitle")
+        layout.addWidget(self.title_label)
+        self.pie_widget = PgPieWidget(title)
+        layout.addWidget(self.pie_widget)
+        self.setLayout(layout)
+
+    def set_title(self, t_text):
+        self.title_label.setText(t_text)
+
+    def clear_chart(self):
+        self.pie_widget.pie_canvas.set_pie_data([], [], [])
+
+
+class RadarChartWidget(QFrame):
+    def __init__(self, title, parent=None):
+        super().__init__(parent)
+        self.setObjectName("card")
+        self.setMinimumSize(350, 280)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        layout = QVBoxLayout()
+        layout.setContentsMargins(16, 12, 16, 12)
+        self.title_label = QLabel(title)
+        self.title_label.setObjectName("sectionTitle")
+        layout.addWidget(self.title_label)
+        self.polar_widget = PgPolarWidget(title)
+        layout.addWidget(self.polar_widget)
+        self.setLayout(layout)
+
+    def set_title(self, t_text):
+        self.title_label.setText(t_text)
+
+    def clear_chart(self):
+        self.polar_widget.clear_plot()
 
 
 class AdvancedDashboardView(BaseView):
@@ -251,9 +317,9 @@ class AdvancedDashboardView(BaseView):
         self.chart_revenue.title_label.hide()
         rl.addWidget(self.chart_revenue)
 
-        self.chart_expense = ChartWidget(t("advd_chart_expense"))
+        self.chart_expense = PieChartWidget(t("advd_chart_expense"))
         self.chart_profitability = ChartWidget(t("advd_chart_profitability"))
-        self.chart_radar = ChartWidget(t("advd_chart_radar"))
+        self.chart_radar = RadarChartWidget(t("advd_chart_radar"))
 
         charts_grid = QGridLayout()
         charts_grid.setSpacing(15)
@@ -400,9 +466,7 @@ class AdvancedDashboardView(BaseView):
         self.alerts_list.clear()
         for chart in (self.chart_revenue, self.chart_expense,
                       self.chart_profitability, self.chart_radar):
-            chart.figure.clear()
-            plt.close(chart.figure)
-            chart.canvas.draw()
+            chart.clear_chart()
 
     def _update_kpi_cards(self, fd, ratios):
         kpis = {k["key"]: k for k in advanced_dashboard_engine.compute_kpis(fd, ratios)}
@@ -432,101 +496,54 @@ class AdvancedDashboardView(BaseView):
         )
 
     def _draw_revenue_trend(self, fd):
-        fig = self.chart_revenue.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
         trend = advanced_dashboard_engine.revenue_trend(fd, period=self._period)
-        ax.plot(trend["labels"], trend["values"], marker="o", linewidth=2,
-                color=self._accent_color)
-        ax.fill_between(range(len(trend["values"])), trend["values"],
-                        alpha=0.15, color=self._accent_color)
-        ax.set_title(_plain_title(t("advd_chart_revenue")), fontsize=11, fontweight="bold", pad=10)
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
-        ax.tick_params(axis="x", labelsize=8)
-        if self._period == "monthly":
-            ax.set_xticks(range(len(trend["labels"])))
-            ax.set_xticklabels(trend["labels"], rotation=45, ha="right", fontsize=8)
-        fig.tight_layout()
-        self.chart_revenue.canvas.draw()
+        if not trend["values"]:
+            self.chart_revenue.plot_item.clear()
+            return
+        x = list(range(len(trend["labels"])))
+        draw_line(self.chart_revenue.plot_item, x, [trend["values"]],
+                  labels=[_plain_title(t("advd_chart_revenue"))],
+                  colors=[self._accent_color], fill=True)
+        tick_labels = [[(i, l) for i, l in enumerate(trend["labels"])]]
+        self.chart_revenue.plot_item.getAxis("bottom").setTicks(tick_labels)
 
     def _draw_expense_breakdown(self, fd):
-        fig = self.chart_expense.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
         e = advanced_dashboard_engine.expense_breakdown(fd)
         labels = [t("advd_expense_cogs"), t("advd_expense_opex"), t("advd_expense_net")]
         values = [max(v, 0) for v in e["values"]]
         colors = ["#E74C3C", "#F39C12", "#2ECC71"]
         if sum(values) == 0:
-            ax.text(0.5, 0.5, t("dash_no_data_chart"), ha="center", va="center",
-                    color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis("off")
+            self.chart_expense.clear_chart()
         else:
-            wedges, texts, autotexts = ax.pie(
-                [v for v in values if v > 0],
-                labels=[l for l, v in zip(labels, values) if v > 0],
-                colors=[c for c, v in zip(colors, values) if v > 0],
-                autopct="%1.1f%%", startangle=90, pctdistance=0.75
-            )
-            for autotext in autotexts:
-                autotext.set_fontsize(9)
-                autotext.set_fontweight("bold")
-        ax.set_title(_plain_title(t("advd_chart_expense")), fontsize=11, fontweight="bold", pad=10)
-        fig.tight_layout()
-        self.chart_expense.canvas.draw()
+            draw_pie_widget(self.chart_expense.pie_widget,
+                            [l for l, v in zip(labels, values) if v > 0],
+                            [v for v in values if v > 0],
+                            [c for c, v in zip(colors, values) if v > 0])
 
     def _draw_profitability_trend(self):
-        fig = self.chart_profitability.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
         history = get_company_ratio_history(state.company_name)
         trend = advanced_dashboard_engine.profitability_trend(history)
         if not trend["years"]:
-            ax.text(0.5, 0.5, t("bench_trend_no_data"), ha="center", va="center",
-                    color=_chart_text_color(), transform=ax.transAxes, fontsize=11)
-            ax.axis("off")
-        else:
-            ax.plot(trend["years"], trend["series"]["roe"], marker="o",
-                    linewidth=2, label="ROE %", color="#3498DB")
-            ax.plot(trend["years"], trend["series"]["net_profit_margin"],
-                    marker="s", linewidth=2, label="NPM %", color="#F39C12")
-            ax.legend(fontsize=9, loc="best")
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-        ax.set_title(_plain_title(t("advd_chart_profitability")), fontsize=11, fontweight="bold", pad=10)
-        fig.tight_layout()
-        self.chart_profitability.canvas.draw()
+            self.chart_profitability.plot_item.clear()
+            return
+        x = list(range(len(trend["years"])))
+        draw_line(self.chart_profitability.plot_item, x,
+                  [trend["series"]["roe"], trend["series"]["net_profit_margin"]],
+                  labels=["ROE %", "NPM %"],
+                  colors=["#3498DB", "#F39C12"])
+        tick_labels = [[(i, l) for i, l in enumerate(trend["years"])]]
+        self.chart_profitability.plot_item.getAxis("bottom").setTicks(tick_labels)
 
     def _draw_radar(self, ratios):
-        fig = self.chart_radar.figure
-        fig.clear()
-        ax = fig.add_subplot(111, polar=True)
         sector = self.sector_combo.currentData()
         data = advanced_dashboard_engine.ratios_radar(ratios, sector)
         if not data["labels"]:
-            ax.text(0.5, 0.5, t("bench_no_sector"), ha="center", va="center",
-                    color=_chart_text_color(), transform=ax.transAxes)
-            ax.axis("off")
-        else:
-            N = len(data["labels"])
-            angles = [n / float(N) * 2 * math.pi for n in range(N)]
-            angles += angles[:1]
-            company = data["company"] + data["company"][:1]
-            sector_avg = data["sector_avg"] + data["sector_avg"][:1]
-            ax.plot(angles, company, "o-", linewidth=2, color=self._accent_color,
-                    label=t("bench_legend_company"))
-            ax.fill(angles, company, alpha=0.2, color=self._accent_color)
-            ax.plot(angles, sector_avg, "s--", linewidth=1.5, color="#95A5A6",
-                    label=t("bench_trend_sector_avg"))
-            ax.set_xticks(angles[:-1])
-            ax.set_xticklabels(data["labels"], fontsize=8)
-            ax.set_ylim(0, 100)
-            ax.legend(fontsize=8, loc="upper right", bbox_to_anchor=(1.25, 1.1))
-            ax.set_facecolor(ThemeColors.get("chart_bg"))
-        ax.set_title(_plain_title(t("advd_chart_radar")), fontsize=11, fontweight="bold", pad=20)
-        fig.tight_layout()
-        self.chart_radar.canvas.draw()
+            self.chart_radar.clear_chart()
+            return
+        draw_radar(self.chart_radar.polar_widget, data["labels"],
+                   [data["company"], data["sector_avg"]],
+                   colors_list=[self._accent_color, "#95A5A6"],
+                   legend_labels=[t("bench_legend_company"), t("bench_trend_sector_avg")])
 
     def _update_alerts(self, fd, ratios):
         self.alerts_list.clear()
@@ -673,11 +690,27 @@ class AdvancedDashboardView(BaseView):
         if not file_path:
             return
         try:
-            figures = [c.figure for c in
-                       (self.chart_revenue, self.chart_expense,
-                        self.chart_profitability, self.chart_radar)
-                       if c.isVisible()]
-            exporters.write_charts_pdf(file_path, figures)
+            from PyQt6.QtGui import QPdfWriter, QPainter
+            charts = []
+            for c in (self.chart_revenue, self.chart_expense,
+                      self.chart_profitability, self.chart_radar):
+                if c.isVisible():
+                    charts.append(c)
+            if not charts:
+                return
+            pdf = QPdfWriter(file_path)
+            pdf.setResolution(150)
+            painter = QPainter()
+            painter.begin(pdf)
+            first = True
+            for chart in charts:
+                if not first:
+                    pdf.newPage()
+                first = False
+                pix = chart.grab()
+                rect = QRectF(0, 0, pdf.width(), pdf.height())
+                painter.drawImage(rect, pix)
+            painter.end()
             QMessageBox.information(
                 self, t("success"), f"✅ {t('advd_export_success')}\n{file_path}"
             )

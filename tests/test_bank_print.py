@@ -26,10 +26,10 @@ class FakeWebEngine(object):
 
     def __init__(self, page_class=None):
         self.page_class = page_class if page_class is not None else mock.MagicMock()
-        self._module = types.ModuleType("PyQt5.QtWebEngineWidgets")
+        self._module = types.ModuleType("PyQt6.QtWebEngineWidgets")
         self._module.QWebEnginePage = self.page_class
         self._patch = mock.patch.dict(
-            sys.modules, {"PyQt5.QtWebEngineWidgets": self._module}
+            sys.modules, {"PyQt6.QtWebEngineWidgets": self._module}
         )
 
     def __enter__(self):
@@ -395,27 +395,27 @@ class TestPrintHtml(unittest.TestCase):
 
     def test_print_html_no_application_returns_false(self):
         with FakeWebEngine(), mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=None
+            "PyQt6.QtWidgets.QApplication.instance", return_value=None
         ):
             self.assertFalse(self.manager.print_html("<p>hi</p>"))
 
     def test_print_html_dialog_cancelled_returns_false(self):
         with FakeWebEngine(), mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter"), mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
-        ) as dlg, mock.patch("PyQt5.QtCore.QEventLoop"):
-            dlg.return_value.exec_.return_value = 0
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter"), mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
+        ) as dlg, mock.patch("PyQt6.QtCore.QEventLoop"):
+            dlg.return_value.exec.return_value = 0
             self.assertFalse(self.manager.print_html("<p>hi</p>"))
 
     def test_print_html_success(self):
         page_class = mock.MagicMock()
         with FakeWebEngine(page_class), mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter"), mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
-        ) as dlg, mock.patch("PyQt5.QtCore.QEventLoop") as loop_cls:
-            dlg.return_value.exec_.return_value = dlg.Accepted
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter"), mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
+        ) as dlg, mock.patch("PyQt6.QtCore.QEventLoop") as loop_cls:
+            dlg.return_value.exec.return_value = dlg.Accepted
             result = self.manager.print_html("<p>hello</p>", landscape=False)
             self.assertTrue(result)
             page = page_class.return_value
@@ -423,15 +423,15 @@ class TestPrintHtml(unittest.TestCase):
             callback = page.print.call_args[0][1]
             callback(True)
             callback(False)
-            loop_cls.return_value.exec_.assert_called_once()
+            loop_cls.return_value.exec.assert_called_once()
 
     def test_print_html_landscape_sets_orientation(self):
         with FakeWebEngine(), mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter") as printer_cls, mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
-        ) as dlg, mock.patch("PyQt5.QtCore.QEventLoop"):
-            dlg.return_value.exec_.return_value = dlg.Accepted
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter") as printer_cls, mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
+        ) as dlg, mock.patch("PyQt6.QtCore.QEventLoop"):
+            dlg.return_value.exec.return_value = dlg.Accepted
             result = self.manager.print_html("<p>hi</p>", landscape=True)
             self.assertTrue(result)
             printer_cls.return_value.setPageOrientation.assert_called_once()
@@ -440,7 +440,7 @@ class TestPrintHtml(unittest.TestCase):
         with mock.patch.object(
             PrintManager, "_print_via_temp_file", return_value=True
         ) as fb, mock.patch.dict(
-            sys.modules, {"PyQt5.QtWebEngineWidgets": None}
+            sys.modules, {"PyQt6.QtWebEngineWidgets": None}
         ):
             result = self.manager.print_html("<p>hi</p>")
             self.assertTrue(result)
@@ -448,9 +448,9 @@ class TestPrintHtml(unittest.TestCase):
 
     def test_print_html_generic_exception_returns_false(self):
         with FakeWebEngine(), mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
         ), mock.patch(
-            "PyQt5.QtPrintSupport.QPrinter",
+            "PyQt6.QtPrintSupport.QPrinter",
             side_effect=RuntimeError("printer boom"),
         ):
             result = self.manager.print_html("<p>hi</p>")
@@ -467,39 +467,39 @@ class TestPrintViaTempFile(unittest.TestCase):
 
     def test_print_via_temp_file_no_application_returns_false(self):
         with mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=None
+            "PyQt6.QtWidgets.QApplication.instance", return_value=None
         ):
             self.assertFalse(self.manager._print_via_temp_file("<p>hi</p>", "T"))
 
     def test_print_via_temp_file_dialog_cancelled_returns_false(self):
         with mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter"), mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter"), mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
         ) as dlg:
-            dlg.return_value.exec_.return_value = 0
+            dlg.return_value.exec.return_value = 0
             self.assertFalse(self.manager._print_via_temp_file("<p>hi</p>", "T"))
 
     def test_print_via_temp_file_success(self):
         with mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter"), mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
-        ) as dlg, mock.patch("PyQt5.QtGui.QTextDocument") as doc_cls:
-            dlg.return_value.exec_.return_value = dlg.Accepted
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter"), mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
+        ) as dlg, mock.patch("PyQt6.QtGui.QTextDocument") as doc_cls:
+            dlg.return_value.exec.return_value = dlg.Accepted
             result = self.manager._print_via_temp_file("<p>hi</p>", "T")
             self.assertTrue(result)
             doc_cls.return_value.print_.assert_called_once()
 
     def test_print_via_temp_file_exception_returns_false(self):
         with mock.patch(
-            "PyQt5.QtWidgets.QApplication.instance", return_value=object()
-        ), mock.patch("PyQt5.QtPrintSupport.QPrinter"), mock.patch(
-            "PyQt5.QtPrintSupport.QPrintDialog"
+            "PyQt6.QtWidgets.QApplication.instance", return_value=object()
+        ), mock.patch("PyQt6.QtPrintSupport.QPrinter"), mock.patch(
+            "PyQt6.QtPrintSupport.QPrintDialog"
         ) as dlg, mock.patch(
-            "PyQt5.QtGui.QTextDocument", side_effect=RuntimeError("boom")
+            "PyQt6.QtGui.QTextDocument", side_effect=RuntimeError("boom")
         ):
-            dlg.return_value.exec_.return_value = dlg.Accepted
+            dlg.return_value.exec.return_value = dlg.Accepted
             self.assertFalse(self.manager._print_via_temp_file("<p>hi</p>", "T"))
 
 

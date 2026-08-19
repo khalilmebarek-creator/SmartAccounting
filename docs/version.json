@@ -1,17 +1,17 @@
 {
   "version": "3.2.0",
-  "date": "2026-08-13",
+  "date": "2026-08-19",
   "min_version": "3.0.0",
   "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.2.0",
   "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.0/SmartAccounting-Setup-v3.2.0.exe",
   "mobile_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.0/SmartAccountingMobile-v1.1.apk",
   "changelog": [
-    "🆕 تطبيق جوال SmartAccounting Mobile v1.1 (Android): 5 شاشات — لوحة قيادة برسوم + 20 نسبة + صحة AI برادار مخاطر + تقويم جبائي بتنبيهات + IAS — يقرأ ملفات snapshot من سطح المكتب (حتى المشفّرة AES-256-GCM/Argon2id) مع تطابق حرفي لأرقام الذكاء الاصطناعي، 3 لغات RTL كامل، 53 اختباراً",
-    "🧠 منصة ذكاء اصطناعي متكاملة (شاشة 39): درجة الصحة المالية 0-100 من 6 محاور + رادار مخاطر + ملخص تنفيذي + توصيات استراتيجية",
-    "📋 تقارير مالية معيارية IAS/IFRS (شاشة 38): المركز المالي IAS 1 + الدخل الشامل + التدفقات النقدية IAS 7 + التغيرات في حقوق الملكية + تصدير PDF/Excel",
-    "🤖 تفعيل ML كاملاً: التنبؤ 6 أشهر والتصدير متاحان لجميع المستخدمين دون بوابات",
-    "🎀 شريط Ribbon بسبعة تبويبات (تحليل + تقارير منفصلان) + إعادة تشكيل شاشات العملاء/الفواتير/المخزون بعناوين فوق الحقول",
-    "🐛 إصلاح انهيار matplotlib بألوان rgba في الثيم الداكن (سقوط التطبيق عند رسم لوحة التحكم)",
-    "✅ 2037 اختباراً على سطح المكتب + 53 اختباراً على الجوال — تغطية 100%"
+    "📈 تحويل كامل من matplotlib إلى pyqtgraph: 12 شاشة + 34 رسماً بيانياً (شريط/خط/مساحة/شلال/دائري/رادار/مقياس) — أداء أسرع وذاكرة أقل",
+    "🗄️ SQLAlchemy Core: محرك engine.py + metadata 23 جدول + repository.py 20 دالة CRUD — db_connection.py مدعوم بـ SQLAlchemy raw_connection",
+    "🌐 تصدير Plotly تفاعلي HTML: 4 شاشات (لوحة التحكم + التحليل + السيناريوهات + المعايير المرجعية) — رسوم تفاعلية في المتصفح",
+    "🔄 هجرة PyQt5 → PyQt6 6.11.0 كاملة (68 ملف) + إصلاح ChatView hang",
+    "🛡️ تخفيف Bandit + CodeQL: 0 HIGH + SHA-256 بدل MD5 + حذف كلمات المرور الافتراضية",
+    "📱 تطبيق جوال SmartAccounting Mobile v1.1 (Android): 5 شاشات + 53 اختباراً",
+    "✅ 2075 اختباراً على سطح المكتب — تغطية 100%"
   ]
 }
