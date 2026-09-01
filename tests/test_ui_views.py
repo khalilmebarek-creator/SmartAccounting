@@ -296,8 +296,8 @@ class TestChatView(unittest.TestCase):
         self.assertEqual(self.view.messages, [])
 
     def test_add_system_message(self):
-        self.view._add_system_message("مرحباً")
-        self.assertIn("مرحباً", self.view.chat_display.toPlainText())
+        self.view._add_system_message("Ù…Ø±Ø­Ø¨Ø§Ù‹")
+        self.assertIn("Ù…Ø±Ø­Ø¨Ø§Ù‹", self.view.chat_display.toPlainText())
 
 
 class TestTaxView(unittest.TestCase):
@@ -364,7 +364,7 @@ class TestComparativeView(unittest.TestCase):
         self.view.year_combo.addItem("2024", 2024)
         try:
             with mock.patch("PyQt6.QtWidgets.QMessageBox.information"), \
-                 mock.patch("database.db_operations.get_company_analyses",
+                 mock.patch("database.repository.get_company_analyses",
                             return_value=results):
                 self.view._add_year()
             self.assertEqual(len(self.view.years_data), 1)

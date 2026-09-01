@@ -19,7 +19,7 @@ import threading
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.db_connection import DatabaseConnection
-from database.db_schema import create_tables
+from database.repository import create_tables
 from modules.calculations import CalculationEngine
 from modules.demo_data import DEMO_COMPANIES
 from modules.comparative import ComparativeAnalyzer
@@ -58,20 +58,15 @@ class _PerfDB(unittest.TestCase):
         import config
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
@@ -135,7 +130,7 @@ class TestBulkTransactions(_PerfDB):
         self.assertLess(read_time, 5.0, f"read too slow: {read_time:.2f}s")
 
     def test_save_and_retrieve_1500_analyses(self):
-        from database.db_operations import save_analysis, get_company_analyses
+        from database.repository import save_analysis, get_company_analyses
         start = time.perf_counter()
         for i in range(1500):
             fin = _mk_financial(i)

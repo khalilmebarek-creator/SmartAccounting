@@ -244,21 +244,15 @@ class TestDashboardLayoutsDB(unittest.TestCase):
         import config
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        from database.db_connection import DatabaseConnection
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
@@ -276,11 +270,11 @@ class TestDashboardLayoutsDB(unittest.TestCase):
                 conn.commit()
             finally:
                 conn.close()
-        from database.db_schema import create_tables
+        from database.repository import create_tables
         self.assertTrue(create_tables())
 
     def test_save_and_get_layout(self):
-        from database.db_operations import save_dashboard_layout, get_dashboard_layouts
+        from database.repository import save_dashboard_layout, get_dashboard_layouts
         layout = {"widgets": ["kpi_cards"], "kpis": ["roe"], "color": "#123"}
         self.assertTrue(save_dashboard_layout("compact", layout))
         layouts = get_dashboard_layouts()
@@ -290,7 +284,7 @@ class TestDashboardLayoutsDB(unittest.TestCase):
         ))
 
     def test_save_overwrites(self):
-        from database.db_operations import save_dashboard_layout, get_dashboard_layouts
+        from database.repository import save_dashboard_layout, get_dashboard_layouts
         save_dashboard_layout("compact", {"widgets": ["kpi_cards"], "kpis": ["roe"], "color": "#123"})
         save_dashboard_layout("compact", {"widgets": ["alerts"], "kpis": [], "color": "#999"})
         layouts = get_dashboard_layouts()
@@ -299,7 +293,7 @@ class TestDashboardLayoutsDB(unittest.TestCase):
         self.assertEqual(matches[0]["layout"]["widgets"], ["alerts"])
 
     def test_delete_layout(self):
-        from database.db_operations import (
+        from database.repository import (
             save_dashboard_layout, delete_dashboard_layout, get_dashboard_layouts
         )
         save_dashboard_layout("temp_layout", {"widgets": [], "kpis": [], "color": ""})
@@ -307,7 +301,7 @@ class TestDashboardLayoutsDB(unittest.TestCase):
         self.assertFalse(any(l["name"] == "temp_layout" for l in get_dashboard_layouts()))
 
     def test_get_layouts_empty(self):
-        from database.db_operations import get_dashboard_layouts
+        from database.repository import get_dashboard_layouts
         self.assertEqual(get_dashboard_layouts(), [])
 
 

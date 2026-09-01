@@ -21,7 +21,7 @@ from ui.resources.i18n import t
 from ui.plotly_export import export_analysis_html
 from modules import FinancialAnalyzer, ReportGenerator
 from modules.benchmarks import benchmark_analyzer
-from database.db_operations import get_company_dupont_history
+from database.repository import get_company_dupont_history
 
 
 class ChartWidget(PgChartWidget):

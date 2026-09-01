@@ -22,7 +22,7 @@ from modules.advanced_dashboard import (
     advanced_dashboard_engine, DEFAULT_KPIS, ALL_WIDGETS
 )
 from modules.benchmarks import benchmark_analyzer
-from database.db_operations import (
+from database.repository import (
     get_dashboard_layouts, save_dashboard_layout, delete_dashboard_layout,
     get_company_ratio_history
 )

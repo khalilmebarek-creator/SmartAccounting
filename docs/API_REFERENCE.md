@@ -1,6 +1,6 @@
 # مرجع الواجهات البرمجية — المنصة المحاسبية الذكية
 
-> **الإصدار**: v3.1.8 (آخر جلسة ميزات) — **المرجع يتطابق مع `modules/` الحالي (37 وحدة، 325 عملية)**.
+> **الإصدار**: v3.2.0 — **المرجع يتطابق مع `modules/` الحالي (37 وحدة، 325 عملية) وطبقة `database/` (SQLAlchemy Core)**.
 > **الترميز**: UTF-8. **اللغة**: Python 3.13+.
 > **الاستضافة**: انظر `docs/api/openapi.yaml` + `docs/api/index.html` (Swagger UI) لمعاينة تفاعلية.
 
@@ -571,6 +571,33 @@ res = TaxEngine().simulate(
 print(res["ibs"], res["tva"], res["cnas_total"])
 ```
 
+## 7. طبقة قاعدة البيانات (SQLAlchemy Core)
+
+> الحزمة `database/` توفر طبقة وصول بيانات موحّدة مبنية على **SQLAlchemy 2.0 Core**. تُعرّف الجداول في `models.py` (25 جدولاً)، ويُشغَّل المحرّك عبر `engine.py`، وتُنفَّذ كل عمليات CRUD في `repository.py` (المصدر الوحيد). `db_connection.py` طبقة قديمة لا تزال تستخدمها بعض وحدات `modules/`.
+
+### 7.1 `database/engine.py` — محرّك الاتصال
+- `get_engine() → Engine` — مُهيّئ ببطء، `StaticPool` + وضع WAL، يتتبّع `config.DATABASE_PATH`.
+- `dispose_engine()` — يغلق المحرّك الحالي؛ عند تغيّر `config.DATABASE_PATH` يُعاد إنشاؤه تلقائياً عند الاستدعاء التالي (أساسية لعزل الاختبارات).
+
+### 7.2 `database/models.py` — تعريف الجداول
+- `metadata` — كائن `MetaData` يضم 25 جدولاً: companies, fiscal_years, assets, liabilities, equity, income_statement, financial_ratios, audit_log, notes, tax_data, tax_obligations, scenario_results, reference_standards, competitor_data, dashboard_layouts, ledger_entries, partners, partner_transactions, invoices, invoice_items, inventory_items, inventory_movements, employees, payroll_runs, budget_items.
+- `create_all() → None` — ينشئ كل الجداول والفهارس في قاعدة البيانات الحالية (يدعوه `repository.create_tables()`).
+
+### 7.3 `database/repository.py` — عمليات CRUD (المصدر الوحيد)
+- `create_tables()` — ينشئ الجداول عبر `models.create_all()` (fallback خام احتياطي داخلي).
+- `save_analysis(company_name, fiscal_year, financial_data, ratios) → int|None` — يحفظ تحليلاً ويعيد `fiscal_year_id`.
+- `get_company_analyses(company_name) → list[dict]` — سجل التحليلات (شركة، سنة، نسب، أصول/خصوم/حقوق).
+- `get_company_dupont_history(company_name) → list[dict]` — تاريخ DuPont عبر السنوات.
+- `delete_analysis(company_name, year)` — يحذف تحليلاً.
+- `save_scenario_results(fiscal_year_id, scenarios) → bool` — يحفظ (best/base/worst) مطالِباً dict مفاتيحه أنواع السيناريوهات.
+- `get_scenario_results(fiscal_year_id) → dict` — يعيد النتائج مجمّعة بالسيناريو.
+- `save_tax_data / get_tax_data / save_tax_obligation / get_tax_obligations / update_obligation_status` — بيانات والتزامات جبائية.
+- `save_reference_standards / get_reference_standards / save_competitor / get_competitors / delete_competitor` — معايير مرجعية ومنافسون.
+- `get_company_ratio_history(company_name) → list` — تاريخ النسب.
+- `save_dashboard_layout / get_dashboard_layouts / delete_dashboard_layout` — تخطيطات اللوحة.
+
+> **قاعدة توحيدية**: دوال DB لا ترفع عادةً — تعيد `bool`/`list`/`dict` وتُسجّل الخطأ عبر `get_logger("repository").error(...)`.
+
 ---
 
-*آخر تحديث: 2026-08-01 — جلسة التوثيق الشامل (v3.1.6).*
+*آخر تحديث: 2026-08-31 — جلسة الهجرة الشاملة لـ SQLAlchemy Core + توثيق (v3.2.0).*

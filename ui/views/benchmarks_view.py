@@ -19,7 +19,7 @@ from ui.app_state import state, ThemeColors
 from ui.resources.i18n import t
 from ui.plotly_export import export_benchmarks_html
 from modules.benchmarks import benchmark_analyzer, ALGERIAN_SECTORS
-from database.db_operations import (
+from database.repository import (
     get_competitors, save_competitor, delete_competitor, get_company_ratio_history
 )
 

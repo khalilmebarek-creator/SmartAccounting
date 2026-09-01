@@ -5,7 +5,7 @@
   - مربع الحفظ الموحد (QFileDialog)
   - تنسيق رأس أوراق Excel (openpyxl)
   - بناء مصنف Excel متعدد الأوراق (رأس ملوّن + بيانات)
-  - حفظ أشكال matplotlib في PDF واحد (PdfPages)
+  - حفظ أشكال pyqtgraph في PDF واحد (QPdfWriter)
 """
 from PyQt6.QtWidgets import QFileDialog
 from openpyxl import Workbook

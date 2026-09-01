@@ -35,12 +35,6 @@ license.dat
 
 *.bat
 
-# Binary files
-*.exe
-*.zip
-*.7z
-*.ico
-
 # Nuitka logs
 nuitka_*.txt
 nuitka_*.xml
@@ -53,14 +47,11 @@ artifacts/
 htmlcov/
 .coverage.*
 
-# Binary files
-*.exe
-*.zip
-*.7z
-*.ico
-
 # PyInstaller generated
 *.manifest
+
+# Bandit scan artifacts
+bandit_*.json
 
 # Data (user files)
 users.json

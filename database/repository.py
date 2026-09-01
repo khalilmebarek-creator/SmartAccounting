@@ -4,6 +4,7 @@
 import json as _json
 import logging
 from sqlalchemy import text, insert, update, delete
+from database.models import companies as _companies_table, reference_standards as _ref_std_table, competitor_data as _competitor_table
 from database.engine import get_engine
 from utils.app_logger import get_logger
 
@@ -56,6 +57,17 @@ def _rows_to_dicts(rows):
 
 
 def create_tables():
+    try:
+        from database.models import create_all
+        create_all()
+        log.info("All tables/indexes created via SQLAlchemy models")
+        return True
+    except Exception as e:
+        log.error("Table creation failed via models: %s", e)
+        return False
+
+
+def _create_tables_fallback():
     engine = get_engine()
     _DDL = [
         """CREATE TABLE IF NOT EXISTS companies (
@@ -420,7 +432,7 @@ def save_analysis(company_name, fiscal_year, financial_data, ratios):
                     company_id = row[0]
                 else:
                     result = conn.execute(
-                        insert(text("companies")).values(company_name=company_name).prefix_with("OR IGNORE"),
+                        insert(_companies_table).values(company_name=company_name).prefix_with("OR IGNORE"),
                         {"company_name": company_name},
                     )
                     company_id = conn.execute(
@@ -849,7 +861,7 @@ def save_reference_standards(sector_code=None):
                         })
                     if rows:
                         conn.execute(
-                            insert(text("reference_standards")),
+                            insert(_ref_std_table),
                             rows,
                         )
                         total += len(rows)
@@ -920,7 +932,7 @@ def save_competitor(sector_code, competitor_name, ratios):
                         "ratio_value": float(value),
                     })
                 if rows:
-                    conn.execute(insert(text("competitor_data")), rows)
+                    conn.execute(insert(_competitor_table), rows)
         log.info("Competitor saved: %s (%s) - %d ratios", competitor_name, sector_code, len(ratios or {}))
         return True
     except Exception as e:

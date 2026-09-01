@@ -10,8 +10,8 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.db_connection import DatabaseConnection
-from database.db_schema import create_tables
-from database.db_operations import save_analysis, get_company_analyses, get_company_dupont_history
+from database.repository import create_tables
+from database.repository import save_analysis, get_company_analyses, get_company_dupont_history
 
 
 class TestDatabaseOperations(unittest.TestCase):
@@ -32,13 +32,8 @@ class TestDatabaseOperations(unittest.TestCase):
         config.DATABASE_PATH = cls.tmp_db.name
         
         # ✅ إعادة تهيئة كل الـ references للـ db
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
     
     @classmethod
     def tearDownClass(cls):
@@ -48,8 +43,8 @@ class TestDatabaseOperations(unittest.TestCase):
         config.DATABASE_PATH = cls.original_path
 
         # إغلاق الاتصالات المُجمّعة قبل حذف الملف المؤقت
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
 
         # حذف الملف المؤقت
         if os.path.exists(cls.tmp_db.name):
@@ -255,8 +250,8 @@ class TestConnectionPool(unittest.TestCase):
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 

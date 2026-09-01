@@ -95,9 +95,8 @@ class TestDataValidator(unittest.TestCase):
         zero_data['total_assets'] = 0
         zero_data['total_liabilities'] = 0
         zero_data['equity'] = 0
-        # راح يفشل توازن الميزانية، لكن نتأكد من السلوك
         result = self.validator.validate_financial_statement(zero_data)
-        # السلوك: قد يفشل في التوازن أو ينجح حسب المنطق
+        self.assertIsInstance(result, bool)
     
     def test_validate_financial_statement_missing_data(self):
         """اختبار بيانات ناقصة"""

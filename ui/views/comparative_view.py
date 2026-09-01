@@ -114,7 +114,7 @@ class ComparativeView(QWidget):
         if state.has_data():
             company = state.company_name
             try:
-                from database.db_operations import get_company_analyses
+                from database.repository import get_company_analyses
                 results = get_company_analyses(company)
                 years = sorted(set(r['year'] for r in results if r['year']))
                 for y in years:
@@ -133,7 +133,7 @@ class ComparativeView(QWidget):
             return
 
         try:
-            from database.db_operations import get_company_analyses
+            from database.repository import get_company_analyses
             company = state.company_name
             results = get_company_analyses(company)
             year_data = None

@@ -169,21 +169,15 @@ class TestReferenceStandardsDB(unittest.TestCase):
         import config
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        from database.db_connection import DatabaseConnection
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
@@ -201,11 +195,11 @@ class TestReferenceStandardsDB(unittest.TestCase):
                 conn.commit()
             finally:
                 conn.close()
-        from database.db_schema import create_tables
+        from database.repository import create_tables
         self.assertTrue(create_tables())
 
     def test_save_and_get_reference_standards(self):
-        from database.db_operations import save_reference_standards, get_reference_standards
+        from database.repository import save_reference_standards, get_reference_standards
         count = save_reference_standards("commercial")
         self.assertGreaterEqual(count, 10)
         rows = get_reference_standards("commercial")
@@ -216,16 +210,16 @@ class TestReferenceStandardsDB(unittest.TestCase):
         self.assertGreater(row["best_practice"], 0)
 
     def test_seed_all_sectors(self):
-        from database.db_operations import save_reference_standards
+        from database.repository import save_reference_standards
         count = save_reference_standards()
         self.assertGreaterEqual(count, 70)
 
     def test_get_reference_standards_unknown_sector(self):
-        from database.db_operations import get_reference_standards
+        from database.repository import get_reference_standards
         self.assertEqual(get_reference_standards("nonexistent_sector"), [])
 
     def test_get_reference_standards_auto_seeds(self):
-        from database.db_operations import get_reference_standards
+        from database.repository import get_reference_standards
         rows = get_reference_standards("services")
         self.assertGreaterEqual(len(rows), 10)
 
@@ -240,21 +234,15 @@ class TestCompetitorDB(unittest.TestCase):
         import config
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        from database.db_connection import DatabaseConnection
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
@@ -272,11 +260,11 @@ class TestCompetitorDB(unittest.TestCase):
                 conn.commit()
             finally:
                 conn.close()
-        from database.db_schema import create_tables
+        from database.repository import create_tables
         self.assertTrue(create_tables())
 
     def test_save_get_delete_competitor(self):
-        from database.db_operations import (
+        from database.repository import (
             save_competitor, get_competitors, delete_competitor,
         )
         name = "__test_comp__"
@@ -291,7 +279,7 @@ class TestCompetitorDB(unittest.TestCase):
         self.assertFalse(any(c["name"] == name for c in comps))
 
     def test_competitors_sector_scoped(self):
-        from database.db_operations import save_competitor, get_competitors, delete_competitor
+        from database.repository import save_competitor, get_competitors, delete_competitor
         save_competitor("commercial", "__scoped__", {"current_ratio": 1.0})
         try:
             comps = get_competitors("services")
@@ -300,14 +288,14 @@ class TestCompetitorDB(unittest.TestCase):
             delete_competitor("commercial", "__scoped__")
 
     def test_save_competitor_overwrites(self):
-        from database.db_operations import save_competitor, get_competitors
+        from database.repository import save_competitor, get_competitors
         save_competitor("commercial", "__ow__", {"current_ratio": 1.0})
         save_competitor("commercial", "__ow__", {"current_ratio": 3.0, "roe": 20.0})
         comps = get_competitors("commercial")
         found = [c for c in comps if c["name"] == "__ow__"][0]
         self.assertAlmostEqual(found["ratios"]["current_ratio"], 3.0)
         self.assertNotIn("net_profit_margin", found["ratios"])
-        from database.db_operations import delete_competitor
+        from database.repository import delete_competitor
         delete_competitor("commercial", "__ow__")
 
 
@@ -321,21 +309,15 @@ class TestCompanyRatioHistory(unittest.TestCase):
         import config
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        from database.db_connection import DatabaseConnection
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
@@ -353,15 +335,15 @@ class TestCompanyRatioHistory(unittest.TestCase):
                 conn.commit()
             finally:
                 conn.close()
-        from database.db_schema import create_tables
+        from database.repository import create_tables
         self.assertTrue(create_tables())
 
     def test_history_empty_for_unknown(self):
-        from database.db_operations import get_company_ratio_history
+        from database.repository import get_company_ratio_history
         self.assertEqual(get_company_ratio_history("__no_such_company__"), [])
 
     def test_history_after_saving_two_years(self):
-        from database.db_operations import save_analysis, get_company_ratio_history
+        from database.repository import save_analysis, get_company_ratio_history
         fy1 = save_analysis("TrendCo", 2023, {
             "current_assets": 100, "total_assets": 200,
             "current_liabilities": 50, "total_liabilities": 100,

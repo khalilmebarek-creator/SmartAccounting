@@ -10,10 +10,10 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from modules.scenarios import ScenarioAnalyzer
-from database.db_operations import (
+from database.repository import (
     save_analysis, save_scenario_results, get_scenario_results
 )
-from database.db_schema import create_tables
+from database.repository import create_tables
 from database.db_connection import DatabaseConnection
 
 
@@ -223,20 +223,15 @@ class TestScenarioDatabase(unittest.TestCase):
         cls.original_path = config.DATABASE_PATH
         config.DATABASE_PATH = cls.tmp_db.name
 
-        from database import db_connection as db_conn_module
-        from database import db_operations
-        from database import db_schema
-        new_db = DatabaseConnection()
-        db_conn_module.db = new_db
-        db_operations.db = new_db
-        db_schema.db = new_db
+        from database.engine import dispose_engine
+        dispose_engine()
 
     @classmethod
     def tearDownClass(cls):
         import config
         config.DATABASE_PATH = cls.original_path
-        from database import db_connection as db_conn_module
-        db_conn_module.close_pool()
+        from database.engine import dispose_engine
+        dispose_engine()
         if os.path.exists(cls.tmp_db.name):
             os.unlink(cls.tmp_db.name)
 
