@@ -431,6 +431,13 @@ class DataEntryView(QWidget):
         self.demo_btn.clicked.connect(self.load_default_data)
         buttons_layout.addWidget(self.demo_btn)
 
+        self.qr_btn = QPushButton(t("qr_share"))
+        self.qr_btn.setObjectName("secondaryBtn")
+        self.qr_btn.setMinimumSize(QSize(160, 42))
+        self.qr_btn.setToolTip(t("qr_info"))
+        self.qr_btn.clicked.connect(self._show_qr)
+        buttons_layout.addWidget(self.qr_btn)
+
         buttons_layout.addSpacing(20)
 
         self.undo_btn = QPushButton("↩ Undo")
@@ -549,6 +556,8 @@ class DataEntryView(QWidget):
         self.save_btn.setText(t("btn_save_db"))
         self.clear_btn.setText(t("btn_clear"))
         self.import_btn.setText(t("btn_import_excel"))
+        self.demo_btn.setText(t("btn_load_demo"))
+        self.qr_btn.setText(t("qr_share"))
         self._validate()
 
     def _connect_validation_signals(self):
@@ -834,6 +843,11 @@ class DataEntryView(QWidget):
         except Exception as e:
             self.overlay.hide()
             toast_error(self, f"{t('de_save_error')} {e}")
+
+    def _show_qr(self):
+        """فتح نافذة مشاركة البيانات عبر QR."""
+        from ui.views.qr_share_dialog import QrShareDialog
+        QrShareDialog(self).exec()
 
     def clear_fields(self):
         """مسح كل الحقول"""

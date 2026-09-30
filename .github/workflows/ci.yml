@@ -31,6 +31,11 @@ jobs:
           pip install -r requirements-dev.txt
           pip install pytest-qt
 
+      - name: Dependency vulnerability scan (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt
+
       - name: Run full test suite
         run: |
           xvfb-run -a python -m pytest tests -q

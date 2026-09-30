@@ -211,6 +211,20 @@ class TestAcknowledgeAndCustomReminders(unittest.TestCase):
             manager.acknowledge_reminder("r1")
             self.assertEqual(manager.acknowledged, ["r1"])
 
+    def test_unacknowledge_removes_and_saves(self):
+        with _isolated_manager() as (manager, path):
+            manager.acknowledge_reminder("r1")
+            manager.unacknowledge_reminder("r1")
+            self.assertEqual(manager.acknowledged, [])
+            with open(path, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+            self.assertNotIn("r1", saved.get("acknowledged", []))
+
+    def test_unacknowledge_unknown_ignored(self):
+        with _isolated_manager() as (manager, path):
+            manager.unacknowledge_reminder("ghost")
+            self.assertEqual(manager.acknowledged, [])
+
     def test_add_custom_reminder_success(self):
         with _isolated_manager() as (manager, path):
             result = manager.add_custom_reminder(

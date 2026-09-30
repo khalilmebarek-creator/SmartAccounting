@@ -214,6 +214,12 @@ class TaxReminderManager:
             self.acknowledged.append(reminder_id)
             self._save_reminders()
 
+    def unacknowledge_reminder(self, reminder_id: str):
+        """إلغاء تأكيد التذكير (تبديل الحالة)"""
+        if reminder_id in self.acknowledged:
+            self.acknowledged.remove(reminder_id)
+            self._save_reminders()
+
     def add_custom_reminder(self, name: str, due_date: str, description: str = "",
                             tax_type: str = "Custom") -> bool:
         """إضافة تذكير مخصص"""
