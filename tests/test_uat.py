@@ -101,9 +101,23 @@ class TestUatFullApp(unittest.TestCase):
 
     def test_ribbon_has_37_views(self):
         self._login()
-        self.assertEqual(len(self.win.ribbon_view_to_tab), 39)
+        self.assertEqual(len(self.win.ribbon_view_to_tab), 42)
         self.assertGreater(self.win.ribbon_panels.count(), 0)
         self.assertGreater(self.win.ribbon_tabs.count(), 0)
+
+    def test_direct_navigation_to_highest_views(self):
+        """الانتقال المباشر لأعلى الشاشات (دون تحميل ما قبلها) يعرض المحتوى الصحيح."""
+        self._login()
+        view_count = len(self.win._view_factories)
+        self.assertEqual(self.win.content.count(), view_count + 1)
+        for vid in (view_count - 1, view_count):
+            self.win._go_to_view(vid)
+            _pump(30)
+            self.assertEqual(self.win.content.currentIndex(), vid,
+                             f"view {vid} not shown (index={self.win.content.currentIndex()})")
+            cw = self.win.content.currentWidget()
+            wrapped = getattr(cw, '_wrapped_view', cw)
+            self.assertIsNotNone(wrapped, f"view {vid} has no content widget")
 
     # ---------- السيناريو 2: إدخال بيانات + حساب + انتشار الحالة ----------
 
@@ -145,7 +159,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            self.assertEqual(len(self.win.ribbon_view_to_tab), 39)
+            self.assertEqual(len(self.win.ribbon_view_to_tab), 42)
             self.assertEqual(Translator.get_language(), lang)
             # لا تعرض أسماء مفاتيح خام في الأزرار
             for i in range(self.win.ribbon_panels.count()):
@@ -163,7 +177,7 @@ class TestUatFullApp(unittest.TestCase):
             _set_language(lang)
             self.win.apply_language()
             _pump(80)
-            for vid in range(1, 40):
+            for vid in range(1, 43):
                 self.win._go_to_view(vid)
                 view = self.win._get_or_create_view(vid)
                 self.assertIsNotNone(view, f"lang={lang} screen {vid} broken")
