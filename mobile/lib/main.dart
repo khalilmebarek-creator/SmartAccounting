@@ -11,10 +11,12 @@ import 'core/i18n.dart';
 import 'core/theme.dart';
 import 'data/local_store.dart';
 import 'data/snapshot_loader.dart';
+import 'data/snapshot_model.dart';
 import 'data/tax_notifier.dart';
 import 'features/ai_health/ai_health_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/ias/ias_screen.dart';
+import 'features/qr_scan/qr_scan_screen.dart';
 import 'features/ratios/ratios_screen.dart';
 import 'features/tax_calendar/tax_calendar_screen.dart';
 
@@ -258,6 +260,16 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  Future<void> _scanQr(AppState state, String lang) async {
+    final snap = await Navigator.of(context).push<SnapshotData>(
+      MaterialPageRoute(builder: (_) => QrScanScreen(lang: lang)),
+    );
+    if (snap == null) return;
+    state.onSnapshotLoaded(snap);
+    if (mounted) _toast(context, I18n.t(lang, 'load_success'));
+    await _scheduleTaxNotifications(state, lang);
+  }
+
   Future<String?> _askPassword(BuildContext context, String lang) {
     final controller = TextEditingController();
     return showDialog<String>(
@@ -319,6 +331,11 @@ class _MainShellState extends State<MainShell> {
               tooltip: I18n.t(lang, 'load_file'),
               icon: const Icon(Icons.folder_open),
               onPressed: () => _loadFile(state, lang),
+            ),
+            IconButton(
+              tooltip: I18n.t(lang, 'qr_scan'),
+              icon: const Icon(Icons.qr_code_scanner),
+              onPressed: () => _scanQr(state, lang),
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.language),

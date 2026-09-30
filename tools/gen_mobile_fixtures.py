@@ -69,6 +69,9 @@ health_expected = {
     "recommendations": platform_analysis()["recommendations"],
 }
 
+from modules.qr_transfer import encode_payload
+qr_text = encode_payload(payload)
+
 out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                        "mobile", "test", "fixtures")
 os.makedirs(out_dir, exist_ok=True)
@@ -80,4 +83,7 @@ for name, obj in (
     with open(os.path.join(out_dir, name), "w", encoding="utf-8") as f:
         json.dump(obj, f, ensure_ascii=False)
     print(f"wrote {name}")
+with open(os.path.join(out_dir, "demo_snapshot_qr.txt"), "w", encoding="utf-8") as f:
+    f.write(qr_text)
+print("wrote demo_snapshot_qr.txt")
 print("OK")

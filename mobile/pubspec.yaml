@@ -1,7 +1,7 @@
 name: smart_accounting_mobile
 description: "SmartAccounting Mobile — companion monitor for the Smart Accounting Platform."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: ^3.12.2
@@ -19,6 +19,7 @@ dependencies:
   shared_preferences: ^2.5.5
   flutter_local_notifications: ^22.3.0
   timezone: ^0.11.1
+  mobile_scanner: ^7.0.0
 
 dev_dependencies:
   flutter_test:
