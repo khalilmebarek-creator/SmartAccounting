@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
-from ui.charts import (PgChartWidget,
+from ui.charts import (PgChartWidget, show_chart_dialog,
     draw_line, draw_grouped_bar, draw_area,
     _text_color, _edge_color, _mk_brush, _mk_pen, _mk_text_item)
 
@@ -229,12 +229,21 @@ class ScenariosView(QWidget):
 
         charts_grid = QGridLayout()
         charts_grid.setSpacing(15)
-        self.chart_line = PgChartWidget(t("scn_chart_line"))
-        charts_grid.addWidget(self.chart_line, 0, 0)
-        self.chart_bar = PgChartWidget(t("scn_chart_bar"))
-        charts_grid.addWidget(self.chart_bar, 0, 1)
-        self.chart_area = PgChartWidget(t("scn_chart_area"))
-        charts_grid.addWidget(self.chart_area, 1, 0)
+        self.chart_line_btn = QPushButton(t("scn_chart_line"))
+        self.chart_line_btn.setMinimumHeight(56)
+        self.chart_line_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_line_btn.clicked.connect(self._show_line_popup)
+        charts_grid.addWidget(self.chart_line_btn, 0, 0)
+        self.chart_bar_btn = QPushButton(t("scn_chart_bar"))
+        self.chart_bar_btn.setMinimumHeight(56)
+        self.chart_bar_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_bar_btn.clicked.connect(self._show_bar_popup)
+        charts_grid.addWidget(self.chart_bar_btn, 0, 1)
+        self.chart_area_btn = QPushButton(t("scn_chart_area"))
+        self.chart_area_btn.setMinimumHeight(56)
+        self.chart_area_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_area_btn.clicked.connect(self._show_area_popup)
+        charts_grid.addWidget(self.chart_area_btn, 1, 0)
         content_layout.addLayout(charts_grid)
 
     def _build_sensitivity(self, content_layout):
@@ -268,8 +277,11 @@ class ScenariosView(QWidget):
 
         sensitivity_grid = QGridLayout()
         sensitivity_grid.setSpacing(15)
-        self.chart_tornado = PgChartWidget(t("scn_sensitivity_tornado"))
-        sensitivity_grid.addWidget(self.chart_tornado, 0, 0)
+        self.chart_tornado_btn = QPushButton(t("scn_sensitivity_tornado"))
+        self.chart_tornado_btn.setMinimumHeight(56)
+        self.chart_tornado_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_tornado_btn.clicked.connect(self._show_tornado_popup)
+        sensitivity_grid.addWidget(self.chart_tornado_btn, 0, 0)
 
         steps_frame = QFrame()
         steps_frame.setObjectName("card")
@@ -423,9 +435,6 @@ class ScenariosView(QWidget):
             return
         self._fill_cards()
         self._fill_comparison()
-        self._draw_line_chart()
-        self._draw_bar_chart()
-        self._draw_area_chart()
         self.update_sensitivity()
 
     def _fill_cards(self):
@@ -462,39 +471,69 @@ class ScenariosView(QWidget):
     def _scenario_axis_labels(self):
         return [t("scn_best_case"), t("scn_base_case"), t("scn_worst_case")]
 
-    def _draw_line_chart(self):
-        self.chart_line.clear_plot()
+    def _draw_line_chart(self, chart):
+        chart.clear_plot()
         labels = self._scenario_axis_labels()
         revenue = [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")]
         net = [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")]
         x = [0, 1, 2]
-        draw_line(self.chart_line.plot_item, x, [revenue, net],
+        draw_line(chart.plot_item, x, [revenue, net],
                   labels=[t("scn_revenue"), t("scn_net_income")],
                   colors=['#3498DB', '#2ECC71'])
         tick_labels = [[(i, l) for i, l in enumerate(labels)]]
-        self.chart_line.plot_item.getAxis("bottom").setTicks(tick_labels)
+        chart.plot_item.getAxis("bottom").setTicks(tick_labels)
 
-    def _draw_bar_chart(self):
-        self.chart_bar.clear_plot()
+    def _show_line_popup(self):
+        if not self._scenarios:
+            QMessageBox.warning(self, t("scn_title"), t("scn_no_data"))
+            return
+        show_chart_dialog(
+            self, t("scn_chart_line"),
+            lambda: PgChartWidget(t("scn_chart_line")),
+            lambda c: self._draw_line_chart(c),
+        )
+
+    def _draw_bar_chart(self, chart):
+        chart.clear_plot()
         labels = self._scenario_axis_labels()
         npm = [self._scenarios[k]['net_profit_margin'] for k in ("best", "base", "worst")]
         roe = [self._scenarios[k]['roe'] for k in ("best", "base", "worst")]
-        draw_grouped_bar(self.chart_bar.plot_item, labels, [
+        draw_grouped_bar(chart.plot_item, labels, [
             {"label": t("scn_npm"), "values": npm, "color": "#3498DB"},
             {"label": t("scn_roe"), "values": roe, "color": "#F39C12"},
         ])
 
-    def _draw_area_chart(self):
-        self.chart_area.clear_plot()
+    def _show_bar_popup(self):
+        if not self._scenarios:
+            QMessageBox.warning(self, t("scn_title"), t("scn_no_data"))
+            return
+        show_chart_dialog(
+            self, t("scn_chart_bar"),
+            lambda: PgChartWidget(t("scn_chart_bar")),
+            lambda c: self._draw_bar_chart(c),
+        )
+
+    def _draw_area_chart(self, chart):
+        chart.clear_plot()
         labels = self._scenario_axis_labels()
         revenue = [self._scenarios[k]['revenue'] for k in ("best", "base", "worst")]
         net = [self._scenarios[k]['net_income'] for k in ("best", "base", "worst")]
         x = [0, 1, 2]
-        draw_area(self.chart_area.plot_item, x, [revenue, net],
+        draw_area(chart.plot_item, x, [revenue, net],
                   labels=[t("scn_revenue"), t("scn_net_income")],
                   colors=['#3498DB', '#2ECC71'])
         tick_labels = [[(i, l) for i, l in enumerate(labels)]]
-        self.chart_area.plot_item.getAxis("bottom").setTicks(tick_labels)
+        chart.plot_item.getAxis("bottom").setTicks(tick_labels)
+
+    def _show_area_popup(self):
+        if not self._scenarios:
+            QMessageBox.warning(self, t("scn_title"), t("scn_no_data"))
+            return
+        show_chart_dialog(
+            self, t("scn_chart_area"),
+            lambda: PgChartWidget(t("scn_chart_area")),
+            lambda c: self._draw_area_chart(c),
+        )
 
     def update_sensitivity(self):
         """تحديث تحليل الحساسية (تورنادو + جدول)"""
@@ -508,17 +547,16 @@ class ScenariosView(QWidget):
         except ValueError:
             self._sensitivity = []
             self._tornado = []
-        self._draw_tornado()
         self._fill_sensitivity_table()
 
-    def _draw_tornado(self):
-        self.chart_tornado.clear_plot()
+    def _draw_tornado(self, chart):
+        chart.clear_plot()
         if not self._tornado or not self._scenarios:
             t_item = pg.TextItem(t("scn_no_data"), color=_text_color(), anchor=(0.5, 0.5))
             t_item.setPos(0.5, 0.5)
-            self.chart_tornado.plot_item.addItem(t_item)
-            self.chart_tornado.plot_item.hideAxis("left")
-            self.chart_tornado.plot_item.hideAxis("bottom")
+            chart.plot_item.addItem(t_item)
+            chart.plot_item.hideAxis("left")
+            chart.plot_item.hideAxis("bottom")
             return
 
         base = self._scenarios['base']['net_income']
@@ -538,19 +576,29 @@ class ScenariosView(QWidget):
             color = '#E74C3C' if high < base else '#2ECC71'
             bg = BarGraphItem(y=i, x0=left, width=width, height=0.6,
                               brush=_mk_brush(color), pen=_mk_pen(_edge_color(), 0.5))
-            self.chart_tornado.plot_item.addItem(bg)
+            chart.plot_item.addItem(bg)
 
         base_line = InfiniteLine(pos=(base, 0), angle=90,
                                  pen=pg.mkPen(52, 152, 219, style=Qt.PenStyle.DashLine, width=1.2))
-        self.chart_tornado.plot_item.addItem(base_line)
+        chart.plot_item.addItem(base_line)
         t_label = _mk_text_item(f" {t('scn_base_case')}: {base:,.0f}", base, n - 0.2,
                                 color='#3498DB', size=8, anchor=(0, 1.0))
-        self.chart_tornado.plot_item.addItem(t_label)
+        chart.plot_item.addItem(t_label)
 
         tick_labels = [[(i, l) for i, l in enumerate(names)]]
-        self.chart_tornado.plot_item.getAxis("left").setTicks(tick_labels)
-        self.chart_tornado.plot_item.setLabel("bottom", t("scn_tornado_effect"))
-        self.chart_tornado.plot_item.showGrid(x=True, y=False, alpha=0.2)
+        chart.plot_item.getAxis("left").setTicks(tick_labels)
+        chart.plot_item.setLabel("bottom", t("scn_tornado_effect"))
+        chart.plot_item.showGrid(x=True, y=False, alpha=0.2)
+
+    def _show_tornado_popup(self):
+        if not self._tornado or not self._scenarios:
+            QMessageBox.warning(self, t("scn_title"), t("scn_no_data"))
+            return
+        show_chart_dialog(
+            self, t("scn_sensitivity_tornado"),
+            lambda: PgChartWidget(t("scn_sensitivity_tornado")),
+            lambda c: self._draw_tornado(c),
+        )
 
     def _fill_sensitivity_table(self):
         rows = self._sensitivity or []
@@ -709,8 +757,6 @@ class ScenariosView(QWidget):
             btn.setEnabled(True)
 
     def _clear_all(self):
-        for chart in (self.chart_line, self.chart_bar, self.chart_area, self.chart_tornado):
-            chart.clear_plot()
         self.comparison_table.setRowCount(0)
         self.sensitivity_table.setRowCount(0)
         for card in (self.best_card, self.base_card, self.worst_card):
@@ -739,12 +785,12 @@ class ScenariosView(QWidget):
             t("scn_worst_col"), t("scn_best_delta")
         ])
         self.charts_title.setText(t("scn_charts"))
-        self.chart_line.title_label.setText(t("scn_chart_line"))
-        self.chart_bar.title_label.setText(t("scn_chart_bar"))
-        self.chart_area.title_label.setText(t("scn_chart_area"))
+        self.chart_line_btn.setText(t("scn_chart_line"))
+        self.chart_bar_btn.setText(t("scn_chart_bar"))
+        self.chart_area_btn.setText(t("scn_chart_area"))
         self.sensitivity_title.setText(t("scn_sensitivity"))
         self.sensitivity_update_btn.setText(t("scn_sensitivity_update"))
-        self.chart_tornado.title_label.setText(t("scn_sensitivity_tornado"))
+        self.chart_tornado_btn.setText(t("scn_sensitivity_tornado"))
         self.sensitivity_table.setHorizontalHeaderLabels([
             t("scn_sensitivity_pct"), t("scn_sensitivity_net"),
             t("scn_sensitivity_npm"), t("scn_sensitivity_roe")

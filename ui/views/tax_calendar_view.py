@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QGroupBox, QFrame,
     QMessageBox, QDialog, QLineEdit, QTextEdit, QDateEdit,
-    QComboBox, QHeaderView, QGridLayout, QScrollArea
+    QComboBox, QHeaderView, QGridLayout
 )
 from PyQt6.QtPrintSupport import QPrinter, QPrintDialog
 from PyQt6.QtCore import Qt, QDate
@@ -183,12 +183,12 @@ class TaxCalendarView(BaseView):
         ])
         self.upcoming_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         self.upcoming_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.upcoming_table.setColumnWidth(0, 90)
+        self.upcoming_table.setColumnWidth(0, 110)
         self.upcoming_table.setColumnWidth(2, 110)
         self.upcoming_table.setColumnWidth(3, 80)
         self.upcoming_table.setColumnWidth(4, 100)
-        self.upcoming_table.setColumnWidth(5, 130)
-        self.upcoming_table.setColumnWidth(6, 120)
+        self.upcoming_table.setColumnWidth(5, 100)
+        self.upcoming_table.setColumnWidth(6, 150)
         self.upcoming_table.setAlternatingRowColors(True)
         self.upcoming_table.verticalHeader().setVisible(False)
         self.upcoming_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -203,16 +203,13 @@ class TaxCalendarView(BaseView):
         self._main_layout.addWidget(cal_sep)
 
         cal_group = QGroupBox(t("taxcal_yearly_overview"))
-        cal_scroll = QScrollArea()
-        cal_scroll.setWidgetResizable(True)
-        cal_scroll.setMaximumHeight(320)
-        self.calendar_widget = QWidget()
-        self.calendar_layout = QGridLayout(self.calendar_widget)
-        self.calendar_layout.setSpacing(8)
-        self.calendar_layout.setContentsMargins(10, 10, 10, 10)
-        cal_scroll.setWidget(self.calendar_widget)
         cal_group_layout = QVBoxLayout()
-        cal_group_layout.addWidget(cal_scroll)
+        self.calendar_layout = QGridLayout()
+        self.calendar_layout.setSpacing(10)
+        self.calendar_layout.setContentsMargins(0, 0, 0, 0)
+        for c in range(4):
+            self.calendar_layout.setColumnStretch(c, 1)
+        cal_group_layout.addLayout(self.calendar_layout)
         cal_group.setLayout(cal_group_layout)
         self._main_layout.addWidget(cal_group)
 
@@ -237,6 +234,15 @@ class TaxCalendarView(BaseView):
 
     def _month_priority(self, obligations):
         return "high" if any(o.get("tax_type") in self._PRIORITY_TYPES for o in obligations) else "normal"
+
+    def _localized_name(self, item):
+        """اسم التذكير حسب اللغة المختارة (ar/en/fr مع fallback)."""
+        lang = state.language
+        if lang == "ar":
+            return item.get("name_ar") or item.get("name_en", "")
+        if lang == "fr":
+            return item.get("name_fr") or item.get("name_en", "")
+        return item.get("name_en") or item.get("name_ar", "")
 
     def _build_calendar_overview(self, year=None):
         while self.calendar_layout.count():
@@ -274,51 +280,66 @@ class TaxCalendarView(BaseView):
 
             card = QFrame()
             card.setObjectName("card")
+            card.setMinimumHeight(96)
 
             card_layout = QVBoxLayout()
-            card_layout.setContentsMargins(8, 4, 8, 8)
-            card_layout.setSpacing(5)
+            card_layout.setContentsMargins(10, 8, 10, 10)
+            card_layout.setSpacing(6)
 
+            # شريط علوي ملوّن للأشهر ذات الأولوية العالية
             if priority == "high":
                 strip = QWidget()
-                strip.setFixedHeight(3)
-                strip.setStyleSheet(f"background-color: {error_color};")
+                strip.setFixedHeight(4)
+                strip.setStyleSheet(
+                    f"background-color: {error_color}; border-top-left-radius: 8px; "
+                    f"border-top-right-radius: 8px;"
+                )
                 card_layout.addWidget(strip)
 
             month_lbl = QLabel(t(month_keys[col]))
             month_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             font = QFont()
             font.setBold(True)
-            font.setPointSize(12 if is_current else 11)
+            font.setPointSize(14 if is_current else 13)
             month_lbl.setFont(font)
-            if is_current:
-                month_lbl.setStyleSheet(f"color: {info_color};")
+            month_lbl.setStyleSheet(
+                f"color: {info_color};" if is_current else f"color: {text_secondary};"
+            )
             card_layout.addWidget(month_lbl)
 
             if obligations:
                 for ob in obligations:
-                    name = ob.get("name_en", ob.get("name_ar", ""))
+                    name = self._localized_name(ob)
                     tax_type = ob.get("tax_type", "")
                     color_key = self._TAX_TYPE_COLORS.get(tax_type, "text_secondary")
                     color = ThemeColors.get(color_key)
                     ob_lbl = QLabel(f"• {name}")
-                    ob_lbl.setStyleSheet(f"font-size: 10px; color: {color};")
+                    ob_lbl.setStyleSheet(f"font-size: 13px; color: {color};")
                     ob_lbl.setWordWrap(True)
                     card_layout.addWidget(ob_lbl)
+                card_layout.addStretch()
                 count_text = f"{len(obligations)} {t('taxcal_items')}"
                 count_lbl = QLabel(count_text)
                 count_color = error_color if priority == "high" else info_color
-                count_lbl.setStyleSheet(f"font-size: 10px; color: {count_color}; font-weight: bold;")
+                count_lbl.setStyleSheet(
+                    f"font-size: 12px; color: {count_color}; font-weight: bold;"
+                )
                 count_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 card_layout.addWidget(count_lbl)
             else:
+                card_layout.addStretch()
                 empty_lbl = QLabel(t("taxcal_no_items"))
-                empty_lbl.setStyleSheet(f"font-size: 10px; color: {text_muted}; font-style: italic;")
+                empty_lbl.setStyleSheet(
+                    f"font-size: 12px; color: {text_muted}; font-style: italic;"
+                )
                 empty_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 card_layout.addWidget(empty_lbl)
+                card_layout.addStretch()
 
             card.setLayout(card_layout)
-            self.calendar_layout.addWidget(card, 0, col)
+            row = col // 4
+            column = col % 4
+            self.calendar_layout.addWidget(card, row, column)
 
     def refresh(self):
         try:
@@ -367,31 +388,28 @@ class TaxCalendarView(BaseView):
             days = rem["days_until"]
             severity = rem["severity"]
 
-            if severity == "urgent":
-                row_color = QColor(ThemeColors.get('error')).lighter(160)
-            elif severity == "warning":
-                row_color = QColor(ThemeColors.get('warning')).lighter(160)
-            else:
-                row_color = QColor(ThemeColors.get('info')).lighter(160)
-
-            type_item = QTableWidgetItem(rem.get("tax_type", ""))
+            # نوع الضريبة — نقطة ملوّنة حسب نوعها
+            tax_type = rem.get("tax_type", "")
+            color_key = self._TAX_TYPE_COLORS.get(tax_type, "text_secondary")
+            type_item = QTableWidgetItem(f"● {tax_type}")
+            type_item.setForeground(QColor(ThemeColors.get(color_key)))
             type_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            name = rem.get("name_en", rem.get("name_ar", ""))
-            name_item = QTableWidgetItem(name)
+            name_item = QTableWidgetItem(self._localized_name(rem))
 
             due_item = QTableWidgetItem(rem.get("due_date", ""))
             due_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            days_text = f"{days}" if days >= 0 else str(days)
-            days_item = QTableWidgetItem(days_text)
+            # الأيام المتبقية — ملوّنة حسب الإلحاح
+            days_item = QTableWidgetItem(f"{days}" if days >= 0 else str(days))
             days_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             if days <= 3:
-                days_item.setForeground(QColor(ThemeColors.get('error')))
+                days_color = ThemeColors.get('error')
             elif days <= 7:
-                days_item.setForeground(QColor(ThemeColors.get('warning')))
+                days_color = ThemeColors.get('warning')
             else:
-                days_item.setForeground(QColor(ThemeColors.get('info')))
+                days_color = ThemeColors.get('info')
+            days_item.setForeground(QColor(days_color))
             font = days_item.font()
             font.setBold(True)
             font.setPointSize(12)
@@ -400,23 +418,47 @@ class TaxCalendarView(BaseView):
             form_item = QTableWidgetItem(rem.get("form_number", ""))
             form_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            sev_text = f"🔴 {t('taxcal_urgent')}" if severity == "urgent" else (
-                f"🟠 {t('taxcal_warning')}" if severity == "warning" else f"🔵 {t('taxcal_info')}"
-            )
+            # الحالة — نص ملوّن عريض
+            if severity == "urgent":
+                sev_text = t('taxcal_urgent')
+                sev_color = ThemeColors.get('error')
+            elif severity == "warning":
+                sev_text = t('taxcal_warning')
+                sev_color = ThemeColors.get('warning')
+            else:
+                sev_text = t('taxcal_info')
+                sev_color = ThemeColors.get('info')
             sev_item = QTableWidgetItem(sev_text)
+            sev_item.setForeground(QColor(sev_color))
             sev_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            sev_font = sev_item.font()
+            sev_font.setBold(True)
+            sev_item.setFont(sev_font)
 
-            ack_btn = QPushButton(t("taxcal_acknowledge"))
-            ack_btn.setMinimumHeight(40)
             if rem.get("acknowledged"):
-                ack_btn.setText(t("taxcal_acknowledged"))
-                ack_btn.setEnabled(False)
-            ack_btn.setProperty("reminder_id", rem.get("id", ""))
-            ack_btn.clicked.connect(self._acknowledge)
-            self.upcoming_table.setCellWidget(i, 6, ack_btn)
+                ack_btn = QPushButton(f"✓ {t('taxcal_acknowledged')}")
+                ack_btn.setFlat(True)
+                ack_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                ack_btn.setStyleSheet(
+                    f"QPushButton {{ border: none; background: transparent; padding: 0px; "
+                    f"color: {ThemeColors.get('success')}; }}"
+                )
+                ack_btn.setProperty("reminder_id", rem.get("id", ""))
+                ack_btn.clicked.connect(self._unacknowledge)
+                self.upcoming_table.setCellWidget(i, 6, ack_btn)
+            else:
+                ack_btn = QPushButton(f"✗ {t('taxcal_pending')}")
+                ack_btn.setFlat(True)
+                ack_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+                ack_btn.setStyleSheet(
+                    f"QPushButton {{ border: none; background: transparent; padding: 0px; "
+                    f"color: {ThemeColors.get('error')}; }}"
+                )
+                ack_btn.setProperty("reminder_id", rem.get("id", ""))
+                ack_btn.clicked.connect(self._acknowledge)
+                self.upcoming_table.setCellWidget(i, 6, ack_btn)
 
             for col_idx, item in enumerate([type_item, name_item, due_item, days_item, form_item, sev_item]):
-                item.setBackground(row_color)
                 self.upcoming_table.setItem(i, col_idx, item)
 
     def _acknowledge(self):
@@ -426,8 +468,15 @@ class TaxCalendarView(BaseView):
         reminder_id = btn.property("reminder_id")
         if reminder_id:
             tax_reminders.acknowledge_reminder(reminder_id)
-            btn.setText(t("taxcal_acknowledged"))
-            btn.setEnabled(False)
+            self.refresh()
+
+    def _unacknowledge(self):
+        btn = self.sender()
+        if not btn:
+            return
+        reminder_id = btn.property("reminder_id")
+        if reminder_id:
+            tax_reminders.unacknowledge_reminder(reminder_id)
             self.refresh()
 
     def _add_reminder(self):
@@ -465,7 +514,7 @@ class TaxCalendarView(BaseView):
         for rem in reminders:
             html += "<tr>"
             html += f"<td style='text-align:center;'>{rem.get('tax_type', '')}</td>"
-            html += f"<td>{rem.get('name_en', rem.get('name_ar', ''))}</td>"
+            html += f"<td>{self._localized_name(rem)}</td>"
             html += f"<td style='text-align:center;'>{rem.get('due_date', '')}</td>"
             days = rem['days_until']
             color = "#e74c3c" if days <= 3 else ("#f39c12" if days <= 7 else "#3498db")
@@ -490,7 +539,7 @@ class TaxCalendarView(BaseView):
         for month_num in range(1, 13):
             obligations = cal_summary.get(month_num, [])
             month_name = t(month_keys[month_num - 1])
-            items = ", ".join([ob.get("name_en", ob.get("name_ar", "")) for ob in obligations]) if obligations else t("taxcal_no_items")
+            items = ", ".join([self._localized_name(ob) for ob in obligations]) if obligations else t("taxcal_no_items")
             html += f"<tr><td style='font-weight:bold; width:120px;'>{month_name}</td><td>{items}</td></tr>"
         html += "</table>"
         return html

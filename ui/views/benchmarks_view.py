@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
 import pyqtgraph as pg
-from ui.charts import (PgChartWidget, PgPolarWidget,
+from ui.charts import (PgChartWidget, PgPolarWidget, show_chart_dialog,
     draw_radar, draw_bar,
     _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
@@ -114,6 +114,7 @@ class BenchmarkView(BaseView):
         super().__init__()
         self.comparison_result = None
         self._labels = {}
+        self._last_radar_args = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -286,13 +287,17 @@ class BenchmarkView(BaseView):
         charts_layout = QHBoxLayout()
         charts_layout.setSpacing(15)
 
-        self.radar_widget = PgPolarWidget(t("bench_radar_title"))
-        self.radar_widget.setMinimumHeight(320)
-        charts_layout.addWidget(self.radar_widget, 1)
+        self.radar_btn = QPushButton(t("bench_radar_title"))
+        self.radar_btn.setMinimumHeight(56)
+        self.radar_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.radar_btn.clicked.connect(self._show_radar_popup)
+        charts_layout.addWidget(self.radar_btn, 1)
 
-        self.bar_widget = PgChartWidget(t("bench_bar_title"))
-        self.bar_widget.setMinimumHeight(300)
-        charts_layout.addWidget(self.bar_widget, 1)
+        self.bar_btn = QPushButton(t("bench_bar_title"))
+        self.bar_btn.setMinimumHeight(56)
+        self.bar_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.bar_btn.clicked.connect(self._show_bar_popup)
+        charts_layout.addWidget(self.bar_btn, 1)
 
         self.content_layout.addLayout(charts_layout)
 
@@ -313,9 +318,11 @@ class BenchmarkView(BaseView):
         self.trend_title.setObjectName("sectionTitle")
         self.content_layout.addWidget(self.trend_title)
 
-        self.trend_widget = PgChartWidget(t("bench_trend_title"))
-        self.trend_widget.setMinimumHeight(240)
-        self.content_layout.addWidget(self.trend_widget)
+        self.trend_btn = QPushButton(t("bench_trend_title"))
+        self.trend_btn.setMinimumHeight(56)
+        self.trend_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.trend_btn.clicked.connect(self._show_trend_popup)
+        self.content_layout.addWidget(self.trend_btn)
 
     def _build_competitors(self):
         """مقارنة المنافسين"""
@@ -386,11 +393,9 @@ class BenchmarkView(BaseView):
 
             self._update_score()
             self._populate_table()
-            self._draw_radar(company_ratios, sector_code)
-            self._draw_bar()
+            self._last_radar_args = (company_ratios, sector_code)
             self._fill_suggestions(company_ratios, sector_code)
             self._fill_strengths_weaknesses()
-            self._draw_trend()
             self._refresh_competitor_ranking()
 
         except Exception as e:
@@ -464,8 +469,8 @@ class BenchmarkView(BaseView):
             self.table.setItem(i, 5, QTableWidgetItem(f"{avg_val:.4f}"))
             self.table.setItem(i, 6, QTableWidgetItem(f"{max_val:.4f}"))
 
-    def _draw_radar(self, company_ratios, sector_code):
-        self.radar_widget.clear_plot()
+    def _draw_radar(self, chart, company_ratios, sector_code):
+        chart.clear_plot()
 
         radar_data = benchmark_analyzer.get_radar_data(company_ratios, sector_code)
         labels = radar_data.get("labels", [])
@@ -475,13 +480,23 @@ class BenchmarkView(BaseView):
         company_vals = radar_data["company"]
         sector_avg = radar_data["sector_avg"]
 
-        draw_radar(self.radar_widget, labels,
+        draw_radar(chart, labels,
                    [company_vals, sector_avg],
                    colors_list=["#3498DB", "#E74C3C"])
 
-    def _draw_bar(self):
-        self.bar_widget.clear_plot()
-        pi = self.bar_widget.plot_item
+    def _show_radar_popup(self):
+        if not self._last_radar_args:
+            QMessageBox.warning(self, t("warning"), t("bench_no_data"))
+            return
+        show_chart_dialog(
+            self, t("bench_radar_title"),
+            lambda: PgPolarWidget(t("bench_radar_title")),
+            lambda c: self._draw_radar(c, *self._last_radar_args),
+        )
+
+    def _draw_bar(self, chart):
+        chart.clear_plot()
+        pi = chart.plot_item
 
         if not self.comparison_result:
             return
@@ -535,6 +550,16 @@ class BenchmarkView(BaseView):
         pi.setXRange(0, 110)
         pi.setLabel("bottom", t("bench_bar_xlabel"))
         pi.showGrid(x=True, y=False, alpha=0.2)
+
+    def _show_bar_popup(self):
+        if not self.comparison_result:
+            QMessageBox.warning(self, t("warning"), t("bench_no_data"))
+            return
+        show_chart_dialog(
+            self, t("bench_bar_title"),
+            lambda: PgChartWidget(t("bench_bar_title")),
+            lambda c: self._draw_bar(c),
+        )
 
     def _fill_suggestions(self, company_ratios, sector_code):
         self.suggestions_list.clear()
@@ -611,9 +636,9 @@ class BenchmarkView(BaseView):
             st = status_text.get(w["status"], w["status"])
             self.weaknesses_list.addItem(f"  {label}  ·  {st}  ({w['score']}/100)")
 
-    def _draw_trend(self):
-        self.trend_widget.clear_plot()
-        pi = self.trend_widget.plot_item
+    def _draw_trend(self, chart):
+        chart.clear_plot()
+        pi = chart.plot_item
 
         company = state.company_name or ""
         sector_code = self.sector_combo.currentData()
@@ -661,6 +686,16 @@ class BenchmarkView(BaseView):
             pi.addItem(ann)
 
         pi.showGrid(x=False, y=True, alpha=0.2)
+
+    def _show_trend_popup(self):
+        if not self.comparison_result:
+            QMessageBox.warning(self, t("warning"), t("bench_no_data"))
+            return
+        show_chart_dialog(
+            self, t("bench_trend_title"),
+            lambda: PgChartWidget(t("bench_trend_title")),
+            lambda c: self._draw_trend(c),
+        )
 
     def _load_competitors(self):
         sector_code = self.sector_combo.currentData()
@@ -940,13 +975,13 @@ class BenchmarkView(BaseView):
             self.score_frame.hide()
             self.suggestions_title.hide()
             self.suggestions_list.hide()
-            self.radar_widget.hide()
-            self.bar_widget.hide()
+            self.radar_btn.hide()
+            self.bar_btn.hide()
             self.sw_title.hide()
             self.strengths_list.hide()
             self.weaknesses_list.hide()
             self.trend_title.hide()
-            self.trend_widget.hide()
+            self.trend_btn.hide()
             self.comp_title.hide()
             self.comp_add_btn.hide()
             self.comp_delete_btn.hide()
@@ -959,13 +994,13 @@ class BenchmarkView(BaseView):
         self.score_frame.show()
         self.suggestions_title.show()
         self.suggestions_list.show()
-        self.radar_widget.show()
-        self.bar_widget.show()
+        self.radar_btn.show()
+        self.bar_btn.show()
         self.sw_title.show()
         self.strengths_list.show()
         self.weaknesses_list.show()
         self.trend_title.show()
-        self.trend_widget.show()
+        self.trend_btn.show()
         self.comp_title.show()
         self.comp_add_btn.show()
         self.comp_delete_btn.show()
@@ -995,6 +1030,9 @@ class BenchmarkView(BaseView):
         self.suggestions_title.setText(t("bench_suggestions"))
         self.sw_title.setText(t("bench_sw_title"))
         self.trend_title.setText(t("bench_trend_title"))
+        self.radar_btn.setText(t("bench_radar_title"))
+        self.bar_btn.setText(t("bench_bar_title"))
+        self.trend_btn.setText(t("bench_trend_title"))
         self.comp_title.setText(t("bench_comp_title"))
         self.comp_add_btn.setText(t("bench_comp_add"))
         self.comp_delete_btn.setText(t("bench_comp_delete"))

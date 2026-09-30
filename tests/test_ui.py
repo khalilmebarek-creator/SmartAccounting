@@ -297,6 +297,20 @@ class TestTaxCalendarView(unittest.TestCase):
         self.assertIsNotNone(self.tcv.empty_guide)
         self.assertEqual(self.tcv.empty_guide.objectName(), "card")
 
+    def test_calendar_grid_has_12_months(self):
+        self.assertEqual(self.tcv.calendar_layout.count(), 12)
+
+    def test_calendar_grid_is_4_columns(self):
+        # الشهر الأول في (0,0)، الخامس في (1,0)، التاسع في (2,0) → شبكة 4 أعمدة
+        positions = {}
+        for i in range(self.tcv.calendar_layout.count()):
+            row, col, _, _ = self.tcv.calendar_layout.getItemPosition(i)
+            positions[i] = (row, col)
+        self.assertEqual(positions[0], (0, 0))
+        self.assertEqual(positions[4], (1, 0))
+        self.assertEqual(positions[8], (2, 0))
+        self.assertEqual(positions[11], (2, 3))
+
 
 class TestDataEntryView(unittest.TestCase):
 

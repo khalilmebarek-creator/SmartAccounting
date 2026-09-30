@@ -89,9 +89,9 @@ class TestDashboardView(unittest.TestCase):
         self.assertTrue(hasattr(self.view, "card_de"))
 
     def test_eight_charts_exist(self):
-        for name in ("chart_ratios", "chart_profitability", "chart_dupont",
-                     "chart_balance", "chart_expenses", "chart_radar",
-                     "chart_zscore", "chart_liquidity"):
+        for name in ("_show_ratios_popup", "_show_profitability_popup", "_show_dupont_popup",
+                     "_show_balance_popup", "_show_expenses_popup", "_show_radar_popup",
+                     "_show_zscore_popup", "_show_liquidity_popup"):
             self.assertTrue(hasattr(self.view, name), name)
 
     def test_export_button_exists(self):
@@ -239,7 +239,7 @@ class TestSettingsView(unittest.TestCase):
 
     def test_language_theme_combos(self):
         self.assertGreaterEqual(self.view.lang_combo.count(), 2)
-        self.assertGreaterEqual(self.view.theme_combo.count(), 2)
+        self.assertGreaterEqual(self.view.theme_combo.count(), 1)
 
     def test_api_fields_exist(self):
         self.assertIsInstance(self.view.api_key_input, QLineEdit)
@@ -914,8 +914,8 @@ class TestAnalysisView(unittest.TestCase):
             self.assertTrue(hasattr(self.view, name), name)
 
     def test_charts_exist(self):
-        for name in ("chart_waterfall", "chart_trend", "chart_gauge",
-                     "chart_industry"):
+        for name in ("_show_waterfall_popup", "_show_trend_popup", "_show_gauge_popup",
+                     "_show_industry_popup"):
             self.assertTrue(hasattr(self.view, name), name)
 
     def test_sector_combo_has_items(self):

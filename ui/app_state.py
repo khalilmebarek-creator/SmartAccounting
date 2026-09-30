@@ -92,7 +92,7 @@ class AppState:
         self.scenarios = {}
 
         self.language = "ar"
-        self.theme = "light"
+        self.theme = "modern"
         self.api_key = ""
         self.api_url = "https://api.openai.com/v1/chat/completions"
         self.model = "gpt-3.5-turbo"
@@ -107,7 +107,7 @@ class AppState:
         data = _safe_read(SETTINGS_FILE)
         if data:
             self.language = data.get("language", "ar")
-            self.theme = data.get("theme", "light")
+            self.theme = data.get("theme", "modern")
             self.api_key = decrypt(data.get("api_key", ""))
             self.api_url = data.get("api_url", "https://api.openai.com/v1/chat/completions")
             self.model = data.get("model", "gpt-3.5-turbo")

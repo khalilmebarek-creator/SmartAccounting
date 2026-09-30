@@ -106,7 +106,7 @@ class SettingsView(QWidget):
         self.theme_combo_label = QLabel(t("settings_theme"))
         self.theme_combo_label.setMinimumWidth(140)
         self.theme_combo = QComboBox()
-        self.theme_combo.addItems([t("settings_theme_light"), t("settings_theme_dark")])
+        self.theme_combo.addItems([t("settings_theme_modern")])
         self.theme_combo.setMinimumWidth(200)
         self.theme_combo.setMinimumHeight(40)
         theme_layout.addWidget(self.theme_combo_label)
@@ -398,8 +398,7 @@ class SettingsView(QWidget):
         if idx >= 0:
             self.lang_combo.setCurrentIndex(idx)
 
-        theme_idx = 0 if state.theme == "light" else 1
-        self.theme_combo.setCurrentIndex(theme_idx)
+        self.theme_combo.setCurrentIndex(0)
 
         self.api_key_input.setText(state.api_key)
         self.api_url_input.setText(state.api_url)
@@ -428,11 +427,7 @@ class SettingsView(QWidget):
         else:
             state.language = "en"
 
-        theme_text = self.theme_combo.currentText()
-        if "فاتح" in theme_text or "Light" in theme_text:
-            state.theme = "light"
-        else:
-            state.theme = "dark"
+        state.theme = "modern"
 
         state.api_key = self.api_key_input.text().strip()
         api_url = self.api_url_input.text().strip() or "https://api.openai.com/v1/chat/completions"
@@ -483,8 +478,8 @@ class SettingsView(QWidget):
 
         current_theme_idx = self.theme_combo.currentIndex()
         self.theme_combo.clear()
-        self.theme_combo.addItems([t("settings_theme_light"), t("settings_theme_dark")])
-        self.theme_combo.setCurrentIndex(current_theme_idx)
+        self.theme_combo.addItems([t("settings_theme_modern")])
+        self.theme_combo.setCurrentIndex(min(current_theme_idx, 0))
         self.backup_group.setTitle(t("backup_title"))
         self.backup_btn.setText(t("backup_create"))
         self.restore_btn.setText(t("backup_restore"))

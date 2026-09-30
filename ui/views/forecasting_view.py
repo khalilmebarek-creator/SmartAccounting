@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 import pyqtgraph as pg
-from ui.charts import (PgChartWidget, draw_line,
+from ui.charts import (PgChartWidget, draw_line, show_chart_dialog,
     _text_color, _chart_bg, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
@@ -25,6 +25,7 @@ class ForecastingView(QWidget):
     def __init__(self):
         super().__init__()
         self.forecaster = None
+        self._last_forecast = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -85,9 +86,11 @@ class ForecastingView(QWidget):
         self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         main_layout.addWidget(self.results_table)
 
-        self.chart = PgChartWidget(t("forecast_chart_title"))
-        self.chart.setMinimumHeight(300)
-        main_layout.addWidget(self.chart)
+        self.chart_btn = QPushButton(t("forecast_chart_title"))
+        self.chart_btn.setMinimumHeight(56)
+        self.chart_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_btn.clicked.connect(self._show_chart_popup)
+        main_layout.addWidget(self.chart_btn)
 
         self.setLayout(main_layout)
 
@@ -109,7 +112,17 @@ class ForecastingView(QWidget):
         proj_pess = self.forecaster.project_revenue([rates[0]] * years)
 
         self._fill_table(proj_opt, proj_base, proj_pess, years)
-        self._draw_chart(proj_opt, proj_base, proj_pess, years)
+        self._last_forecast = (proj_opt, proj_base, proj_pess, years)
+
+    def _show_chart_popup(self):
+        if not self._last_forecast:
+            QMessageBox.warning(self, t("warning"), t("forecast_no_data"))
+            return
+        show_chart_dialog(
+            self, t("forecast_chart_title"),
+            lambda: PgChartWidget(t("forecast_chart_title")),
+            lambda c: self._draw_chart(c, *self._last_forecast),
+        )
 
     def _fill_table(self, proj_opt, proj_base, proj_pess, years):
         self.results_table.setRowCount(years)
@@ -126,9 +139,9 @@ class ForecastingView(QWidget):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
                 self.results_table.setItem(i, col, item)
 
-    def _draw_chart(self, proj_opt, proj_base, proj_pess, years):
-        self.chart.clear_plot()
-        pi = self.chart.plot_item
+    def _draw_chart(self, chart, proj_opt, proj_base, proj_pess, years):
+        chart.clear_plot()
+        pi = chart.plot_item
         base_rev = state.financial_data.get("revenue", 0)
         x = [0] + list(range(1, years + 1))
 
@@ -141,7 +154,7 @@ class ForecastingView(QWidget):
                 y = [base_rev] + [p["projected_revenue"] for p in proj["projections"]]
                 draw_line(pi, x, y, labels=label, colors=color)
 
-        self.chart.title_label.setText(t("forecast_chart_title"))
+        chart.title_label.setText(t("forecast_chart_title"))
 
     def retranslate(self):
         self.title.setText(t("forecast_title"))

@@ -107,15 +107,32 @@ class LoginView(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
+        self.setObjectName("loginView")
         outer = QVBoxLayout()
         outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         container = QWidget()
+        container.setObjectName("loginCard")
         container.setMaximumWidth(500)
         container.setMinimumWidth(400)
         container_layout = QVBoxLayout()
         container_layout.setContentsMargins(40, 40, 40, 40)
         container_layout.setSpacing(20)
+
+        bg = ThemeColors.get("bg")
+        primary = ThemeColors.get("primary")
+        card_bg = ThemeColors.get("card_bg")
+        self.setStyleSheet(f"""
+            QWidget#loginView {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 {bg}, stop:0.7 {bg}, stop:1 {primary});
+            }}
+            QWidget#loginCard {{
+                background: {card_bg};
+                border-radius: 16px;
+                border: 1px solid rgba(255,255,255,0.08);
+            }}
+        """)
 
         import os
         base = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

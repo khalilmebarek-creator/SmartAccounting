@@ -43,4 +43,7 @@ VIEW_REGISTRY = {
     37: ("einvoicing", "ui.views.einvoicing_view", "EInvoicingView"),
     38: ("ias", "ui.views.ias_reports_view", "IASReportsView"),
     39: ("ai_platform", "ui.views.ai_platform_view", "AIPlatformView"),
+    40: ("executive_report", "ui.views.executive_report_view", "ExecutiveReportView"),
+    41: ("financial_statements", "ui.views.financial_statements_view", "FinancialStatementsView"),
+    42: ("vendor", "ui.views.vendor_view", "VendorView"),
 }

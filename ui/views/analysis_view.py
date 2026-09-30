@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 import pyqtgraph as pg
-from ui.charts import (PgChartWidget,
+from ui.charts import (PgChartWidget, show_chart_dialog,
     draw_waterfall, draw_line, draw_bar, draw_grouped_bar, draw_gauge,
     _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
@@ -172,14 +172,23 @@ class DuPontView(QWidget):
         charts_grid = QGridLayout()
         charts_grid.setSpacing(15)
 
-        self.chart_waterfall = ChartWidget(t("ana_waterfall"))
-        charts_grid.addWidget(self.chart_waterfall, 0, 0)
+        self.chart_waterfall_btn = QPushButton(t("ana_waterfall"))
+        self.chart_waterfall_btn.setMinimumHeight(56)
+        self.chart_waterfall_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_waterfall_btn.clicked.connect(self._show_waterfall_popup)
+        charts_grid.addWidget(self.chart_waterfall_btn, 0, 0)
 
-        self.chart_trend = ChartWidget(t("ana_trend"))
-        charts_grid.addWidget(self.chart_trend, 0, 1)
+        self.chart_trend_btn = QPushButton(t("ana_trend"))
+        self.chart_trend_btn.setMinimumHeight(56)
+        self.chart_trend_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_trend_btn.clicked.connect(self._show_trend_popup)
+        charts_grid.addWidget(self.chart_trend_btn, 0, 1)
 
-        self.chart_gauge = ChartWidget(t("ana_gauge"))
-        charts_grid.addWidget(self.chart_gauge, 1, 0, 1, 2)
+        self.chart_gauge_btn = QPushButton(t("ana_gauge"))
+        self.chart_gauge_btn.setMinimumHeight(56)
+        self.chart_gauge_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_gauge_btn.clicked.connect(self._show_gauge_popup)
+        charts_grid.addWidget(self.chart_gauge_btn, 1, 0, 1, 2)
 
         content_layout.addLayout(charts_grid)
 
@@ -223,9 +232,11 @@ class DuPontView(QWidget):
         sector_row.addStretch()
         content_layout.addLayout(sector_row)
 
-        self.chart_industry = ChartWidget(t("ana_industry_title"))
-        self.chart_industry.setMinimumSize(350, 320)
-        content_layout.addWidget(self.chart_industry)
+        self.chart_industry_btn = QPushButton(t("ana_industry_title"))
+        self.chart_industry_btn.setMinimumHeight(56)
+        self.chart_industry_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_industry_btn.clicked.connect(self._show_industry_popup)
+        content_layout.addWidget(self.chart_industry_btn)
 
         self.industry_summary = QLabel(t("ana_industry_no_sector"))
         self.industry_summary.setWordWrap(True)
@@ -432,13 +443,13 @@ class DuPontView(QWidget):
         self.roe_card.title_label.setText(t("ana_roe_label"))
         self.roe_card.sub_label.setText(t("ana_roe_result"))
         self.charts_title.setText(t("ana_charts_title"))
-        self.chart_waterfall.set_title(t("ana_waterfall"))
-        self.chart_trend.set_title(t("ana_trend"))
-        self.chart_gauge.set_title(t("ana_gauge"))
+        self.chart_waterfall_btn.setText(t("ana_waterfall"))
+        self.chart_trend_btn.setText(t("ana_trend"))
+        self.chart_gauge_btn.setText(t("ana_gauge"))
         self.interpretation_title.setText(t("ana_interpretation"))
         self.industry_title.setText(t("ana_industry_title"))
         self.industry_hint.setText(t("ana_industry_placeholder"))
-        self.chart_industry.set_title(t("ana_industry_title"))
+        self.chart_industry_btn.setText(t("ana_industry_title"))
         self.rec_title.setText(t("ana_recommendations"))
         self.wc_title.setText(t("ana_wc_title"))
         self.wc_value.title_label.setText(t("ana_wc"))
@@ -482,17 +493,12 @@ class DuPontView(QWidget):
         else:
             self.interp_label.setText(t("ana_no_interpretation"))
 
-        # الرسوم البيانية
-        self._draw_waterfall()
-        self._draw_trend()
-        self._draw_gauge()
-
         # التوصيات (حسب القطاع المختار)
         recommendations = self.analyzer.dupont_recommendations(state.dupont, sector_code=self._sector_code)
         self._fill_recommendations(recommendations)
 
-        # مقارنة القطاع
-        self._draw_industry()
+        # مقارنة القطاع (الملخص فقط — الرسم في نافذة منبثقة)
+        self._update_industry_summary()
 
         # رأس المال العامل
         if state.working_capital:
@@ -506,10 +512,49 @@ class DuPontView(QWidget):
             self.wc_cycle.value_label.setText(self.wc_cycle.format_str.format(cycle))
 
     def _clear_all_charts(self):
-        for chart in [self.chart_waterfall, self.chart_trend, self.chart_gauge, self.chart_industry]:
-            chart.plot_item.clear()
+        pass
 
-    def _draw_waterfall(self):
+    def _show_waterfall_popup(self):
+        if not state.dupont:
+            QMessageBox.warning(self, t("analysis_title"), t("dashboard_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ana_waterfall"),
+            lambda: ChartWidget(t("ana_waterfall")),
+            lambda c: self._draw_waterfall(c),
+        )
+
+    def _show_trend_popup(self):
+        if not state.dupont:
+            QMessageBox.warning(self, t("analysis_title"), t("dashboard_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ana_trend"),
+            lambda: ChartWidget(t("ana_trend")),
+            lambda c: self._draw_trend(c),
+        )
+
+    def _show_gauge_popup(self):
+        if not state.dupont:
+            QMessageBox.warning(self, t("analysis_title"), t("dashboard_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ana_gauge"),
+            lambda: ChartWidget(t("ana_gauge")),
+            lambda c: self._draw_gauge(c),
+        )
+
+    def _show_industry_popup(self):
+        if not self._has_data():
+            QMessageBox.warning(self, t("analysis_title"), t("dashboard_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ana_industry_title"),
+            lambda: ChartWidget(t("ana_industry_title")),
+            lambda c: self._draw_industry(c),
+        )
+
+    def _draw_waterfall(self, chart):
         dp = state.dupont
         waterfall = self.analyzer.dupont_waterfall(
             dp.get('net_profit_margin', 0),
@@ -522,9 +567,9 @@ class DuPontView(QWidget):
         values = [waterfall['base'], waterfall['turnover_effect'],
                   waterfall['leverage_effect'], waterfall['total']]
 
-        draw_waterfall(self.chart_waterfall.plot_item, labels, values)
+        draw_waterfall(chart.plot_item, labels, values)
 
-    def _draw_trend(self):
+    def _draw_trend(self, chart):
         history = []
         if state.company_name:
             try:
@@ -533,9 +578,9 @@ class DuPontView(QWidget):
                 history = []
 
         if not history:
-            self.chart_trend.plot_item.clear()
+            chart.plot_item.clear()
             txt = _mk_text_item(t("ana_no_history"), 0, 0, size=10, anchor=(0.5, 0.5))
-            self.chart_trend.plot_item.addItem(txt)
+            chart.plot_item.addItem(txt)
             return
 
         years = [h['year'] for h in history]
@@ -544,7 +589,7 @@ class DuPontView(QWidget):
         at = [h['asset_turnover'] for h in history]
         em = [h['equity_multiplier'] for h in history]
 
-        draw_line(self.chart_trend.plot_item, years,
+        draw_line(chart.plot_item, years,
                   [roe, npm, at, em],
                   labels=[t("ana_waterfall_total"), t("ana_industry_npm"),
                           t("ana_industry_at"), t("ana_industry_em")],
@@ -561,7 +606,7 @@ class DuPontView(QWidget):
         except Exception:
             return None
 
-    def _draw_gauge(self):
+    def _draw_gauge(self, chart):
         roe = state.dupont.get('roe', 0)
         sector_avg = self._sector_roe_average()
 
@@ -574,28 +619,26 @@ class DuPontView(QWidget):
             ('#F39C12', ''),
             ('#2ECC71', ''),
         ]
-        draw_gauge(self.chart_gauge.plot_item, roe, zones, max_val=top)
+        draw_gauge(chart.plot_item, roe, zones, max_val=top)
 
         if sector_avg is not None:
             indicator = pg.InfiniteLine(pos=(sector_avg, 0), angle=90,
                                         pen=_mk_pen('#8E44AD', width=3))
-            self.chart_gauge.plot_item.addItem(indicator)
+            chart.plot_item.addItem(indicator)
             lbl = _mk_text_item(
                 f"{t('ana_gauge_sector')}: {sector_avg:.1f}%",
                 sector_avg, 0.7, color='#8E44AD', size=8, anchor=(0.5, 1.0))
-            self.chart_gauge.plot_item.addItem(lbl)
+            chart.plot_item.addItem(lbl)
 
-    def _draw_industry(self):
+    def _draw_industry(self, chart):
         if not self._has_data():
-            self.chart_industry.plot_item.clear()
-            self.industry_summary.setText(t("ana_industry_no_sector"))
+            chart.plot_item.clear()
             return
 
         if not self._sector_code:
-            self.chart_industry.plot_item.clear()
+            chart.plot_item.clear()
             txt = _mk_text_item(t("ana_industry_no_sector"), 0, 0, size=11, anchor=(0.5, 0.5))
-            self.chart_industry.plot_item.addItem(txt)
-            self.industry_summary.setText("")
+            chart.plot_item.addItem(txt)
             return
 
         industry = self.analyzer.dupont_industry_comparison(state.dupont, self._sector_code)
@@ -608,32 +651,47 @@ class DuPontView(QWidget):
             'equity_multiplier': t('ana_industry_em'),
         }
 
-        status_text = {'above': t('ana_status_above'), 'below': t('ana_status_below'),
-                       'aligned': t('ana_status_aligned'), 'n/a': '—'}
-
         company_vals = []
         sector_vals = []
         groups = []
-        summary_lines = []
         for component in components:
             cmp_data = industry.get(component, {})
-            company_val = cmp_data.get('company_value', 0)
-            sector_val = cmp_data.get('sector_average', 0)
-            status = cmp_data.get('status', 'n/a')
-
-            company_vals.append(company_val)
-            sector_vals.append(sector_val)
+            company_vals.append(cmp_data.get('company_value', 0))
+            sector_vals.append(cmp_data.get('sector_average', 0))
             groups.append(label_map[component])
-
-            summary_lines.append(
-                f"{label_map[component]}: {company_val:.2f} vs {sector_val:.2f} — {status_text.get(status, '—')}"
-            )
 
         series_data = [
             {'label': t('ana_industry_company'), 'values': company_vals, 'color': '#95A5A6'},
             {'label': t('ana_industry_avg'), 'values': sector_vals, 'color': '#3498DB'},
         ]
-        draw_grouped_bar(self.chart_industry.plot_item, groups, series_data)
+        draw_grouped_bar(chart.plot_item, groups, series_data)
+
+    def _update_industry_summary(self):
+        if not self._has_data() or not self._sector_code:
+            self.industry_summary.setText(t("ana_industry_no_sector"))
+            return
+
+        industry = self.analyzer.dupont_industry_comparison(state.dupont, self._sector_code)
+
+        label_map = {
+            'roe': t('ana_industry_roe'),
+            'net_profit_margin': t('ana_industry_npm'),
+            'asset_turnover': t('ana_industry_at'),
+            'equity_multiplier': t('ana_industry_em'),
+        }
+        status_text = {'above': t('ana_status_above'), 'below': t('ana_status_below'),
+                       'aligned': t('ana_status_aligned'), 'n/a': '—'}
+
+        summary_lines = []
+        for component in ['roe', 'net_profit_margin', 'asset_turnover', 'equity_multiplier']:
+            cmp_data = industry.get(component, {})
+            company_val = cmp_data.get('company_value', 0)
+            sector_val = cmp_data.get('sector_average', 0)
+            status = cmp_data.get('status', 'n/a')
+            summary_lines.append(
+                f"{label_map[component]}: {company_val:.2f} vs {sector_val:.2f} — {status_text.get(status, '—')}"
+            )
+
         self.industry_summary.setText("\n".join(f"• {line}" for line in summary_lines))
 
     def _build_report_text(self):

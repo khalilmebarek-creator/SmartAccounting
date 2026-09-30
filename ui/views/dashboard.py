@@ -3,9 +3,9 @@
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton
+    QLabel, QFrame, QSizePolicy, QScrollArea, QPushButton, QDialog
 )
-from PyQt6.QtCore import (pyqtSignal)
+from PyQt6.QtCore import (pyqtSignal, Qt)
 from PyQt6.QtGui import QFont
 
 from ui.charts import (PgChartWidget, PgPieWidget, PgPolarWidget,
@@ -140,7 +140,7 @@ class SummaryCard(QFrame):
 
 
 class DashboardView(QWidget):
-    """لوحة التحكم الرئيسية مع الرسوم البيانية"""
+    """لوحة التحكم الرئيسية مع الرسوم البيانية (كأزرار تفتح نوافذ)"""
 
     export_pdf_clicked = pyqtSignal()
 
@@ -174,7 +174,7 @@ class DashboardView(QWidget):
 
         self._build_summary_cards()
         self._build_export_button()
-        self._build_charts()
+        self._build_chart_buttons()
 
         self.content_layout.addStretch()
         scroll.setWidget(scroll_content)
@@ -223,45 +223,123 @@ class DashboardView(QWidget):
 
         self.content_layout.addLayout(btn_layout)
 
-    def _build_charts(self):
-        """بناء الرسوم البيانية"""
+    def _build_chart_buttons(self):
+        """بناء أزرار الرسوم البيانية — كل زر يفتح نافذة منبثقة بالرسم"""
         self.charts_section = self._section_label(t("charts_title"))
         self.content_layout.addWidget(self.charts_section)
 
-        charts_grid = QGridLayout()
-        charts_grid.setSpacing(15)
+        buttons = [
+            (t("chart_ratios"), self._show_ratios_popup),
+            (t("chart_profitability"), self._show_profitability_popup),
+            (t("chart_dupont"), self._show_dupont_popup),
+            (t("chart_balance"), self._show_balance_popup),
+            (t("chart_expenses"), self._show_expenses_popup),
+            (t("chart_radar"), self._show_radar_popup),
+            (t("chart_zscore"), self._show_zscore_popup),
+            (t("chart_liquidity"), self._show_liquidity_popup),
+        ]
 
-        self.chart_ratios = ChartWidget(t("chart_ratios"))
-        charts_grid.addWidget(self.chart_ratios, 0, 0)
+        grid = QGridLayout()
+        grid.setSpacing(10)
+        for idx, (title, handler) in enumerate(buttons):
+            btn = QPushButton(title)
+            btn.setObjectName("chartBtn")
+            btn.setMinimumHeight(56)
+            btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn.clicked.connect(handler)
+            grid.addWidget(btn, idx // 4, idx % 4)
 
-        self.chart_profitability = PieChartWidget(t("chart_profitability"))
-        charts_grid.addWidget(self.chart_profitability, 0, 1)
-
-        self.chart_dupont = ChartWidget(t("chart_dupont"))
-        charts_grid.addWidget(self.chart_dupont, 1, 0)
-
-        self.chart_balance = PieChartWidget(t("chart_balance"))
-        charts_grid.addWidget(self.chart_balance, 1, 1)
-
-        self.chart_expenses = PieChartWidget(t("chart_expenses"))
-        charts_grid.addWidget(self.chart_expenses, 2, 0)
-
-        self.chart_radar = RadarChartWidget(t("chart_radar"))
-        charts_grid.addWidget(self.chart_radar, 2, 1)
-
-        self.chart_zscore = ChartWidget(t("chart_zscore"))
-        charts_grid.addWidget(self.chart_zscore, 3, 0)
-
-        self.chart_liquidity = ChartWidget(t("chart_liquidity"))
-        charts_grid.addWidget(self.chart_liquidity, 3, 1)
-
-        self.content_layout.addLayout(charts_grid)
+        self.content_layout.addLayout(grid)
 
     def _section_label(self, text):
         """إنشاء عنوان قسم"""
         label = QLabel(text)
         label.setObjectName("sectionTitle")
         return label
+
+    # ── النوافذ المنبثقة للرسوم ─────────────────────────────────────────────
+
+    def _chart_dialog(self, title, make_chart, draw):
+        """نافذة منبثقة تحتوي على رسم واحد + زر إغلاق."""
+        dlg = QDialog(self)
+        dlg.setWindowTitle(title)
+        dlg.setMinimumSize(760, 540)
+        lay = QVBoxLayout(dlg)
+        lay.setContentsMargins(16, 16, 16, 16)
+        lay.setSpacing(12)
+
+        chart = make_chart()
+        if hasattr(chart, 'title_label'):
+            chart.title_label.setVisible(False)
+        lay.addWidget(chart, 1)
+
+        close_btn = QPushButton(t("guide_close"))
+        close_btn.setMinimumHeight(40)
+        close_btn.setMaximumWidth(160)
+        close_btn.clicked.connect(dlg.accept)
+        row = QHBoxLayout()
+        row.addStretch()
+        row.addWidget(close_btn)
+        lay.addLayout(row)
+
+        draw(chart)
+        dlg.exec()
+
+    def _show_ratios_popup(self):
+        self._chart_dialog(
+            t("chart_ratios"),
+            lambda: ChartWidget(t("chart_ratios")),
+            lambda c: self._draw_ratios_bar(c, state.ratios or {}),
+        )
+
+    def _show_profitability_popup(self):
+        self._chart_dialog(
+            t("chart_profitability"),
+            lambda: PieChartWidget(t("chart_profitability")),
+            lambda c: self._draw_profitability_pie(c, state.ratios or {}),
+        )
+
+    def _show_dupont_popup(self):
+        self._chart_dialog(
+            t("chart_dupont"),
+            lambda: ChartWidget(t("chart_dupont")),
+            lambda c: self._draw_dupont_waterfall(c, state.ratios or {}),
+        )
+
+    def _show_balance_popup(self):
+        self._chart_dialog(
+            t("chart_balance"),
+            lambda: PieChartWidget(t("chart_balance")),
+            lambda c: self._draw_balance_pie(c, state.financial_data),
+        )
+
+    def _show_expenses_popup(self):
+        self._chart_dialog(
+            t("chart_expenses"),
+            lambda: PieChartWidget(t("chart_expenses")),
+            lambda c: self._draw_expenses_pie(c, state.financial_data),
+        )
+
+    def _show_radar_popup(self):
+        self._chart_dialog(
+            t("chart_radar"),
+            lambda: RadarChartWidget(t("chart_radar")),
+            lambda c: self._draw_radar(c, state.ratios or {}),
+        )
+
+    def _show_zscore_popup(self):
+        self._chart_dialog(
+            t("chart_zscore"),
+            lambda: ChartWidget(t("chart_zscore")),
+            lambda c: self._draw_zscore_gauge(c),
+        )
+
+    def _show_liquidity_popup(self):
+        self._chart_dialog(
+            t("chart_liquidity"),
+            lambda: ChartWidget(t("chart_liquidity")),
+            lambda c: self._draw_liquidity_chart(c, state.financial_data),
+        )
 
     def _export_html(self):
         from PyQt6.QtWidgets import QFileDialog, QMessageBox
@@ -373,18 +451,10 @@ class DashboardView(QWidget):
         self.card_cr.set_texts(t("card_cr_title"), t("card_cr_sub"))
         self.card_npm.set_texts(t("card_npm_title"), t("card_npm_sub"))
         self.card_de.set_texts(t("card_de_title"), t("card_de_sub"))
-        self.chart_ratios.set_title(t("chart_ratios"))
-        self.chart_profitability.set_title(t("chart_profitability"))
-        self.chart_dupont.set_title(t("chart_dupont"))
-        self.chart_balance.set_title(t("chart_balance"))
-        self.chart_expenses.set_title(t("chart_expenses"))
-        self.chart_radar.set_title(t("chart_radar"))
-        self.chart_zscore.set_title(t("chart_zscore"))
-        self.chart_liquidity.set_title(t("chart_liquidity"))
         self.refresh()
 
     def refresh(self):
-        """ تحديث كل البيانات والرسوم"""
+        """ تحديث كل البيانات (الكروت فقط — الرسوم تُرسم عند الفتح)"""
         if not state.has_data():
             fingerprint = repr(state.__dict__)
             if fingerprint == self._dash_fingerprint:
@@ -410,51 +480,54 @@ class DashboardView(QWidget):
         self.card_npm.value_label.setText(f"{ratios.get('net_profit_margin', 0):.2f}%")
         self.card_de.value_label.setText(f"{ratios.get('debt_to_equity', 0):.2f}")
 
-        self._draw_ratios_bar(ratios)
-        self._draw_profitability_pie(ratios)
-        self._draw_dupont_waterfall(ratios)
-        self._draw_balance_pie(state.financial_data)
-        self._draw_expenses_pie(state.financial_data)
-        self._draw_radar(ratios)
-        self._draw_zscore_gauge()
-        self._draw_liquidity_chart(state.financial_data)
-
     def _clear_all(self):
-        """مسح كل الرسوم"""
+        """مسح كروت الملخص"""
         self.card_roe.value_label.setText("--")
         self.card_cr.value_label.setText("--")
         self.card_npm.value_label.setText("--")
         self.card_de.value_label.setText("--")
-        for chart in [self.chart_ratios, self.chart_profitability, self.chart_dupont,
-                      self.chart_balance, self.chart_expenses, self.chart_radar,
-                      self.chart_zscore, self.chart_liquidity]:
-            chart.clear_chart()
 
-    def _draw_ratios_bar(self, ratios):
-        """رسم بياني شريطي للنسب المالية"""
+    # ── دوال رسم الرسوم (تستقبل عنصر الرسم كمعامل) ──────────────────────────
+
+    def _charts_for_export(self):
+        """يعيد قائمة بكل الرسوم مرسومة (تُستخدم لتصدير PDF)."""
+        ratios = state.ratios or {}
+        fd = state.financial_data
+        charts = []
+
+        c = ChartWidget(t("chart_ratios")); self._draw_ratios_bar(c, ratios); charts.append(c)
+        c = PieChartWidget(t("chart_profitability")); self._draw_profitability_pie(c, ratios); charts.append(c)
+        c = ChartWidget(t("chart_dupont")); self._draw_dupont_waterfall(c, ratios); charts.append(c)
+        c = PieChartWidget(t("chart_balance")); self._draw_balance_pie(c, fd); charts.append(c)
+        c = PieChartWidget(t("chart_expenses")); self._draw_expenses_pie(c, fd); charts.append(c)
+        c = RadarChartWidget(t("chart_radar")); self._draw_radar(c, ratios); charts.append(c)
+        c = ChartWidget(t("chart_zscore")); self._draw_zscore_gauge(c); charts.append(c)
+        c = ChartWidget(t("chart_liquidity")); self._draw_liquidity_chart(c, fd); charts.append(c)
+
+        return charts
+
+    def _draw_ratios_bar(self, chart, ratios):
         labels = ['Current\nRatio', 'Quick\nRatio', 'ROA', 'ROE', 'Asset\nTurnover']
         keys = ['current_ratio', 'quick_ratio', 'roa', 'roe', 'asset_turnover']
         values = [ratios.get(k, 0) for k in keys]
         colors = ['#3498DB', '#2ECC71', '#E74C3C', '#F39C12', '#9B59B6']
-        draw_bar(self.chart_ratios.plot_item, labels, values, colors)
+        draw_bar(chart.plot_item, labels, values, colors)
 
-    def _draw_profitability_pie(self, ratios):
-        """رسم بياني دائري لنسب الربحية"""
+    def _draw_profitability_pie(self, chart, ratios):
         labels = ['Gross Margin', 'Net Margin', 'ROA', 'ROE']
         keys = ['gross_profit_margin', 'net_profit_margin', 'roa', 'roe']
         values = [max(ratios.get(k, 0), 0) for k in keys]
         colors = ['#27AE60', '#3498DB', '#E74C3C', '#F39C12']
         if sum(values) == 0:
-            self.chart_profitability.clear_chart()
+            chart.clear_chart()
         else:
-            draw_pie_widget(self.chart_profitability.pie_widget, labels, values, colors)
+            draw_pie_widget(chart.pie_widget, labels, values, colors)
 
-    def _draw_dupont_waterfall(self, ratios):
-        """رسم بياني شريطي لتحليل DuPont"""
+    def _draw_dupont_waterfall(self, chart, ratios):
         if not state.dupont:
-            self.chart_dupont.plot_item.clear()
+            chart.plot_item.clear()
             t_item = _mk_text_item(t("dash_no_data_dupont"), 0.5, 0.5, size=12)
-            self.chart_dupont.plot_item.addItem(t_item)
+            chart.plot_item.addItem(t_item)
         else:
             dp = state.dupont
             labels = ['Net Profit\nMargin %', 'Asset\nTurnover', 'Equity\nMultiplier', 'ROE %']
@@ -465,29 +538,27 @@ class DashboardView(QWidget):
                 dp.get('roe', 0)
             ]
             colors = ['#2ECC71', '#3498DB', '#E74C3C', '#F39C12']
-            draw_bar(self.chart_dupont.plot_item, labels, values, colors)
+            draw_bar(chart.plot_item, labels, values, colors)
 
-    def _draw_balance_pie(self, data):
-        """رسم بياني دائري لهيكل الميزانية"""
+    def _draw_balance_pie(self, chart, data):
         if not data:
-            self.chart_balance.clear_chart()
+            chart.clear_chart()
             return
 
         total_liab = data.get('total_liabilities', 0)
         equity = data.get('equity', 0)
 
         if total_liab == 0 and equity == 0:
-            self.chart_balance.clear_chart()
+            chart.clear_chart()
         else:
             labels = [t("dash_liabilities"), t("dash_equity")]
             values = [total_liab, equity]
             colors = ['#E74C3C', '#3498DB']
-            draw_pie_widget(self.chart_balance.pie_widget, labels, values, colors)
+            draw_pie_widget(chart.pie_widget, labels, values, colors)
 
-    def _draw_expenses_pie(self, data):
-        """رسم بياني دائري لتوزيع المصروفات"""
+    def _draw_expenses_pie(self, chart, data):
         if not data:
-            self.chart_expenses.clear_chart()
+            chart.clear_chart()
             return
 
         cogs = data.get('cost_of_goods_sold', 0)
@@ -496,7 +567,7 @@ class DashboardView(QWidget):
         opex = max(gross - net, 0) if gross > 0 else 0
 
         if cogs == 0 and opex == 0:
-            self.chart_expenses.clear_chart()
+            chart.clear_chart()
         else:
             labels = [t("dash_cogs"), t("dash_opex"), t("dash_net_profit")]
             values = [cogs, opex, max(net, 0)]
@@ -504,19 +575,19 @@ class DashboardView(QWidget):
             filtered = [(l, v, c) for l, v, c in zip(labels, values, colors) if v > 0]
             if filtered:
                 f_labels, f_values, f_colors = zip(*filtered)
-                draw_pie_widget(self.chart_expenses.pie_widget, list(f_labels), list(f_values), list(f_colors))
+                draw_pie_widget(chart.pie_widget, list(f_labels), list(f_values), list(f_colors))
             else:
-                self.chart_expenses.clear_chart()
+                chart.clear_chart()
 
-    def _draw_radar(self, ratios):
+    def _draw_radar(self, chart, ratios):
         categories = ['ROE', 'ROA', 'NPM', 'Current\nRatio', 'Quick\nRatio', 'Asset\nTurnover']
         keys = ['roe', 'roa', 'net_profit_margin', 'current_ratio', 'quick_ratio', 'asset_turnover']
         raw_values = [max(ratios.get(k, 0), 0) for k in keys]
         max_ref = [25, 15, 25, 3, 2.5, 2]
         values = [min(r / m * 100, 100) for r, m in zip(raw_values, max_ref)]
-        draw_radar(self.chart_radar.polar_widget, categories, [values], colors_list=["#3498DB"])
+        draw_radar(chart.polar_widget, categories, [values], colors_list=["#3498DB"])
 
-    def _draw_zscore_gauge(self):
+    def _draw_zscore_gauge(self, chart):
         fd = state.financial_data
         from modules.calculations import CalculationEngine
         engine = CalculationEngine()
@@ -546,17 +617,17 @@ class DashboardView(QWidget):
 
         zones = [('#E74C3C', 'Danger'), ('#F39C12', 'Grey'), ('#2ECC71', 'Safe')]
         shifted_z = z + 3
-        draw_gauge(self.chart_zscore.plot_item, shifted_z, zones, max_val=8)
+        draw_gauge(chart.plot_item, shifted_z, zones, max_val=8)
         t_val = _mk_text_item(f"Z-Score = {z:.2f}", 4, 0.3, color=color, bold=True, size=11)
-        self.chart_zscore.plot_item.addItem(t_val)
+        chart.plot_item.addItem(t_val)
         t_cls = _mk_text_item(classification.upper(), 4, -0.3, color=color, bold=False, size=10)
-        self.chart_zscore.plot_item.addItem(t_cls)
+        chart.plot_item.addItem(t_cls)
 
-    def _draw_liquidity_chart(self, data):
+    def _draw_liquidity_chart(self, chart, data):
         if not data:
-            self.chart_liquidity.plot_item.clear()
+            chart.plot_item.clear()
             t_item = _mk_text_item(t("dash_no_data_chart"), 0.5, 0.5, size=12)
-            self.chart_liquidity.plot_item.addItem(t_item)
+            chart.plot_item.addItem(t_item)
             return
 
         ca = data.get('current_assets', 0)
@@ -567,4 +638,4 @@ class DashboardView(QWidget):
         labels = [t("dash_current_assets"), t("dash_inventory"), t("dash_quick_assets"), t("dash_current_liab")]
         values = [ca, inv, qa, cl]
         colors = ['#3498DB', '#E74C3C', '#2ECC71', '#F39C12']
-        draw_horizontal_bar(self.chart_liquidity.plot_item, labels, values, colors)
+        draw_horizontal_bar(chart.plot_item, labels, values, colors)

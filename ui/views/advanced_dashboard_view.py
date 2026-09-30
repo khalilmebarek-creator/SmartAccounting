@@ -8,11 +8,11 @@ from PyQt6.QtWidgets import (
     QMessageBox, QScrollArea, QCheckBox, QLineEdit,
     QListWidget, QListWidgetItem, QSizePolicy,
 )
-from PyQt6.QtCore import (QTimer, QRectF)
+from PyQt6.QtCore import (QTimer, QRectF, Qt)
 from PyQt6.QtGui import QFont, QColor
 
 from ui.views._base import BaseView
-from ui.charts import (PgChartWidget, PgPieWidget, PgPolarWidget,
+from ui.charts import (PgChartWidget, PgPieWidget, PgPolarWidget, show_chart_dialog,
     draw_line, draw_pie_widget, draw_radar,
     _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import state, ThemeColors
@@ -150,6 +150,8 @@ class AdvancedDashboardView(BaseView):
         self._period = "monthly"
         self._accent_color = _THEME_COLORS[0]
         self._widget_frames = {}
+        self._last_fd = None
+        self._last_ratios = None
         self.setup_ui()
         self._reload_saved_layouts()
         self._auto_refresh_timer = QTimer(self)
@@ -313,13 +315,26 @@ class AdvancedDashboardView(BaseView):
 
         rl.addLayout(title_row)
 
-        self.chart_revenue = ChartWidget("")
-        self.chart_revenue.title_label.hide()
+        self.chart_revenue = QPushButton(t("advd_chart_revenue"))
+        self.chart_revenue.setMinimumHeight(56)
+        self.chart_revenue.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_revenue.clicked.connect(self._show_revenue_popup)
         rl.addWidget(self.chart_revenue)
 
-        self.chart_expense = PieChartWidget(t("advd_chart_expense"))
-        self.chart_profitability = ChartWidget(t("advd_chart_profitability"))
-        self.chart_radar = RadarChartWidget(t("advd_chart_radar"))
+        self.chart_expense = QPushButton(t("advd_chart_expense"))
+        self.chart_expense.setMinimumHeight(56)
+        self.chart_expense.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_expense.clicked.connect(self._show_expense_popup)
+
+        self.chart_profitability = QPushButton(t("advd_chart_profitability"))
+        self.chart_profitability.setMinimumHeight(56)
+        self.chart_profitability.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_profitability.clicked.connect(self._show_profitability_popup)
+
+        self.chart_radar = QPushButton(t("advd_chart_radar"))
+        self.chart_radar.setMinimumHeight(56)
+        self.chart_radar.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_radar.clicked.connect(self._show_radar_popup)
 
         charts_grid = QGridLayout()
         charts_grid.setSpacing(15)
@@ -447,12 +462,10 @@ class AdvancedDashboardView(BaseView):
 
         fd = state.financial_data or {}
         ratios = state.ratios or {}
+        self._last_fd = fd
+        self._last_ratios = ratios
         self._update_kpi_cards(fd, ratios)
         self._update_health(fd, ratios)
-        self._draw_revenue_trend(fd)
-        self._draw_expense_breakdown(fd)
-        self._draw_profitability_trend()
-        self._draw_radar(ratios)
         self._update_alerts(fd, ratios)
 
     def _clear_all(self):
@@ -464,9 +477,6 @@ class AdvancedDashboardView(BaseView):
             card.status_label.setText("")
             card.value_label.setStyleSheet("color: #888;")
         self.alerts_list.clear()
-        for chart in (self.chart_revenue, self.chart_expense,
-                      self.chart_profitability, self.chart_radar):
-            chart.clear_chart()
 
     def _update_kpi_cards(self, fd, ratios):
         kpis = {k["key"]: k for k in advanced_dashboard_engine.compute_kpis(fd, ratios)}
@@ -495,55 +505,86 @@ class AdvancedDashboardView(BaseView):
             health["rating_ar"] if state.language == "ar" else health["rating_en"]
         )
 
-    def _draw_revenue_trend(self, fd):
+    def _draw_revenue_trend(self, chart, fd=None):
+        fd = fd if fd is not None else (self._last_fd or {})
         trend = advanced_dashboard_engine.revenue_trend(fd, period=self._period)
         if not trend["values"]:
-            self.chart_revenue.plot_item.clear()
+            chart.plot_item.clear()
             return
         x = list(range(len(trend["labels"])))
-        draw_line(self.chart_revenue.plot_item, x, [trend["values"]],
+        draw_line(chart.plot_item, x, [trend["values"]],
                   labels=[_plain_title(t("advd_chart_revenue"))],
                   colors=[self._accent_color], fill=True)
         tick_labels = [[(i, l) for i, l in enumerate(trend["labels"])]]
-        self.chart_revenue.plot_item.getAxis("bottom").setTicks(tick_labels)
+        chart.plot_item.getAxis("bottom").setTicks(tick_labels)
 
-    def _draw_expense_breakdown(self, fd):
+    def _show_revenue_popup(self):
+        show_chart_dialog(
+            self, t("advd_chart_revenue"),
+            lambda: ChartWidget(t("advd_chart_revenue")),
+            lambda c: self._draw_revenue_trend(c),
+        )
+
+    def _draw_expense_breakdown(self, chart, fd=None):
+        fd = fd if fd is not None else (self._last_fd or {})
         e = advanced_dashboard_engine.expense_breakdown(fd)
         labels = [t("advd_expense_cogs"), t("advd_expense_opex"), t("advd_expense_net")]
         values = [max(v, 0) for v in e["values"]]
         colors = ["#E74C3C", "#F39C12", "#2ECC71"]
         if sum(values) == 0:
-            self.chart_expense.clear_chart()
+            chart.clear_chart()
         else:
-            draw_pie_widget(self.chart_expense.pie_widget,
+            draw_pie_widget(chart.pie_widget,
                             [l for l, v in zip(labels, values) if v > 0],
                             [v for v in values if v > 0],
                             [c for c, v in zip(colors, values) if v > 0])
 
-    def _draw_profitability_trend(self):
+    def _show_expense_popup(self):
+        show_chart_dialog(
+            self, t("advd_chart_expense"),
+            lambda: PieChartWidget(t("advd_chart_expense")),
+            lambda c: self._draw_expense_breakdown(c),
+        )
+
+    def _draw_profitability_trend(self, chart):
         history = get_company_ratio_history(state.company_name)
         trend = advanced_dashboard_engine.profitability_trend(history)
         if not trend["years"]:
-            self.chart_profitability.plot_item.clear()
+            chart.plot_item.clear()
             return
         x = list(range(len(trend["years"])))
-        draw_line(self.chart_profitability.plot_item, x,
+        draw_line(chart.plot_item, x,
                   [trend["series"]["roe"], trend["series"]["net_profit_margin"]],
                   labels=["ROE %", "NPM %"],
                   colors=["#3498DB", "#F39C12"])
         tick_labels = [[(i, l) for i, l in enumerate(trend["years"])]]
-        self.chart_profitability.plot_item.getAxis("bottom").setTicks(tick_labels)
+        chart.plot_item.getAxis("bottom").setTicks(tick_labels)
 
-    def _draw_radar(self, ratios):
+    def _show_profitability_popup(self):
+        show_chart_dialog(
+            self, t("advd_chart_profitability"),
+            lambda: ChartWidget(t("advd_chart_profitability")),
+            lambda c: self._draw_profitability_trend(c),
+        )
+
+    def _draw_radar(self, chart, ratios=None):
+        ratios = ratios if ratios is not None else (self._last_ratios or {})
         sector = self.sector_combo.currentData()
         data = advanced_dashboard_engine.ratios_radar(ratios, sector)
         if not data["labels"]:
-            self.chart_radar.clear_chart()
+            chart.clear_chart()
             return
-        draw_radar(self.chart_radar.polar_widget, data["labels"],
+        draw_radar(chart.polar_widget, data["labels"],
                    [data["company"], data["sector_avg"]],
                    colors_list=[self._accent_color, "#95A5A6"],
                    legend_labels=[t("bench_legend_company"), t("bench_trend_sector_avg")])
+
+    def _show_radar_popup(self):
+        show_chart_dialog(
+            self, t("advd_chart_radar"),
+            lambda: RadarChartWidget(t("advd_chart_radar")),
+            lambda c: self._draw_radar(c),
+        )
 
     def _update_alerts(self, fd, ratios):
         self.alerts_list.clear()
@@ -593,16 +634,11 @@ class AdvancedDashboardView(BaseView):
 
     def _apply_accent_color(self):
         self._accent_color = self.color_combo.currentData() or _THEME_COLORS[0]
-        if state.has_data():
-            self._draw_revenue_trend(state.financial_data or {})
-            self._draw_radar(state.ratios or {})
 
     def _set_period(self, period):
         self._period = period
         self.period_btn_monthly.setChecked(period == "monthly")
         self.period_btn_quarterly.setChecked(period == "quarterly")
-        if state.has_data():
-            self._draw_revenue_trend(state.financial_data or {})
 
     def _on_sector_changed(self, index):
         if state.has_data():
@@ -692,10 +728,14 @@ class AdvancedDashboardView(BaseView):
         try:
             from PyQt6.QtGui import QPdfWriter, QPainter
             charts = []
-            for c in (self.chart_revenue, self.chart_expense,
-                      self.chart_profitability, self.chart_radar):
-                if c.isVisible():
-                    charts.append(c)
+            if self.chart_revenue.isVisible():
+                c = ChartWidget(t("advd_chart_revenue")); self._draw_revenue_trend(c); charts.append(c)
+            if self.chart_expense.isVisible():
+                c = PieChartWidget(t("advd_chart_expense")); self._draw_expense_breakdown(c); charts.append(c)
+            if self.chart_profitability.isVisible():
+                c = ChartWidget(t("advd_chart_profitability")); self._draw_profitability_trend(c); charts.append(c)
+            if self.chart_radar.isVisible():
+                c = RadarChartWidget(t("advd_chart_radar")); self._draw_radar(c); charts.append(c)
             if not charts:
                 return
             pdf = QPdfWriter(file_path)
@@ -783,9 +823,10 @@ class AdvancedDashboardView(BaseView):
         self.chart_revenue_title.setText(t("advd_chart_revenue"))
         self.period_btn_monthly.setText(t("advd_period_monthly"))
         self.period_btn_quarterly.setText(t("advd_period_quarterly"))
-        self.chart_expense.set_title(t("advd_chart_expense"))
-        self.chart_profitability.set_title(t("advd_chart_profitability"))
-        self.chart_radar.set_title(t("advd_chart_radar"))
+        self.chart_revenue.setText(t("advd_chart_revenue"))
+        self.chart_expense.setText(t("advd_chart_expense"))
+        self.chart_profitability.setText(t("advd_chart_profitability"))
+        self.chart_radar.setText(t("advd_chart_radar"))
         self.layout_name_input.setPlaceholderText(t("advd_layout_name"))
         self.save_layout_btn.setText(t("advd_layout_save"))
         self.load_layout_btn.setText(t("advd_layout_load"))

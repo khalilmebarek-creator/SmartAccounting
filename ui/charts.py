@@ -15,6 +15,51 @@ from PyQt6.QtCore import Qt, QRectF
 from ui.app_state import ThemeColors
 
 
+_open_chart_windows = []
+
+
+def show_chart_dialog(parent, title, make_chart, draw):
+    """نافذة رسم منبثقة قابلة للتصغير/التكبير/الإغلاق (مشتركة لكل الشاشات)."""
+    from PyQt6.QtWidgets import QWidget, QPushButton, QHBoxLayout
+    from PyQt6.QtCore import Qt
+    from ui.resources.i18n import t
+
+    dlg = QWidget()
+    dlg.setWindowTitle(title)
+    dlg.setWindowFlags(
+        Qt.WindowType.Window
+        | Qt.WindowType.WindowTitleHint
+        | Qt.WindowType.WindowSystemMenuHint
+        | Qt.WindowType.WindowMinimizeButtonHint
+        | Qt.WindowType.WindowMaximizeButtonHint
+        | Qt.WindowType.WindowCloseButtonHint
+    )
+    dlg.setMinimumSize(760, 540)
+    dlg.resize(900, 640)
+    lay = QVBoxLayout(dlg)
+    lay.setContentsMargins(16, 16, 16, 16)
+    lay.setSpacing(12)
+
+    chart = make_chart()
+    if hasattr(chart, 'title_label'):
+        chart.title_label.setVisible(False)
+    lay.addWidget(chart, 1)
+
+    close_btn = QPushButton(t("guide_close"))
+    close_btn.setMinimumHeight(40)
+    close_btn.setMaximumWidth(160)
+    close_btn.clicked.connect(dlg.close)
+    row = QHBoxLayout()
+    row.addStretch()
+    row.addWidget(close_btn)
+    lay.addLayout(row)
+
+    draw(chart)
+    dlg.show()
+    _open_chart_windows.append(dlg)
+
+
+
 class PgChartWidget(QFrame):
     """كارت يحتوي على رسم بياني pyqtgraph"""
 

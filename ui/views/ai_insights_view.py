@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from ui.views._base import BaseView
-from ui.charts import (PgChartWidget,
+from ui.charts import (PgChartWidget, show_chart_dialog,
     draw_line, draw_bar,
     _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import state, ThemeColors
@@ -70,6 +70,8 @@ class AIInsightsView(BaseView):
         self._revenue_series = []
         self._expense_series = []
         self._profit_series = []
+        self._last_forecasts = None
+        self._last_seasonality = None
         self.setup_ui()
         self.refresh()
 
@@ -172,9 +174,21 @@ class AIInsightsView(BaseView):
         layout = QVBoxLayout(tab)
         layout.setSpacing(12)
 
-        self.fc_chart_revenue = ChartWidget("")
-        self.fc_chart_expenses = ChartWidget("")
-        self.fc_chart_profit = ChartWidget("")
+        self.fc_chart_revenue = QPushButton(t("ai_fc_sales"))
+        self.fc_chart_revenue.setMinimumHeight(56)
+        self.fc_chart_revenue.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.fc_chart_revenue.clicked.connect(self._show_sales_popup)
+
+        self.fc_chart_expenses = QPushButton(t("ai_fc_expenses"))
+        self.fc_chart_expenses.setMinimumHeight(56)
+        self.fc_chart_expenses.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.fc_chart_expenses.clicked.connect(self._show_expenses_popup)
+
+        self.fc_chart_profit = QPushButton(t("ai_fc_profit"))
+        self.fc_chart_profit.setMinimumHeight(56)
+        self.fc_chart_profit.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.fc_chart_profit.clicked.connect(self._show_profit_popup)
+
         grid = QGridLayout()
         grid.setSpacing(15)
         grid.addWidget(self.fc_chart_revenue, 0, 0)
@@ -262,8 +276,10 @@ class AIInsightsView(BaseView):
         info_row.addWidget(self._growth_box(t("ai_pat_cyclical"), self.pat_cycle))
         layout.addLayout(info_row)
 
-        self.chart_seasonality = ChartWidget("")
-        self.chart_seasonality.title_label.hide()
+        self.chart_seasonality = QPushButton(t("ai_pat_seasonality"))
+        self.chart_seasonality.setMinimumHeight(56)
+        self.chart_seasonality.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_seasonality.clicked.connect(self._show_seasonality_popup)
         layout.addWidget(self.chart_seasonality)
 
         self.pat_risk_title = QLabel(t("ai_pat_risk"))
@@ -358,22 +374,12 @@ class AIInsightsView(BaseView):
         self.pat_trend.setText("--")
         self.pat_season.setText("--")
         self.pat_cycle.setText("--")
-        self._clear_chart(self.fc_chart_revenue)
-        self._clear_chart(self.fc_chart_expenses)
-        self._clear_chart(self.fc_chart_profit)
-        self._clear_chart(self.chart_seasonality)
 
     def _clear_chart(self, chart):
         chart.clear_chart()
 
     def _draw_forecasts(self, forecasts):
-        self._draw_forecast_chart(self.fc_chart_revenue, t("ai_fc_sales"),
-                                  self._revenue_series, forecasts.get("revenue", {}))
-        self._draw_forecast_chart(self.fc_chart_expenses, t("ai_fc_expenses"),
-                                  self._expense_series, forecasts.get("expenses", {}))
-        self._draw_forecast_chart(self.fc_chart_profit, t("ai_fc_profit"),
-                                  self._profit_series, forecasts.get("profit", {}))
-
+        self._last_forecasts = forecasts
         self.fc_growth_revenue.setText(f"{forecasts.get('revenue', {}).get('growth_rate_pct', 0):+.2f}%")
         self.fc_growth_expenses.setText(f"{forecasts.get('expenses', {}).get('growth_rate_pct', 0):+.2f}%")
         self.fc_growth_profit.setText(f"{forecasts.get('profit', {}).get('growth_rate_pct', 0):+.2f}%")
@@ -411,6 +417,39 @@ class AIInsightsView(BaseView):
         draw_line(plot, all_x, [y_hist, y_fc, y_upper, y_lower],
                   [None, _plain_title(title), t("ai_fc_confidence"), None],
                   ["#2196F3", "#E74C3C", "#E74C3C", "#E74C3C"], fill=True)
+
+    def _show_sales_popup(self):
+        if not self._last_forecasts:
+            QMessageBox.warning(self, t("warning"), t("ai_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ai_fc_sales"),
+            lambda: ChartWidget(t("ai_fc_sales")),
+            lambda c: self._draw_forecast_chart(c, t("ai_fc_sales"),
+                                               self._revenue_series, self._last_forecasts.get("revenue", {})),
+        )
+
+    def _show_expenses_popup(self):
+        if not self._last_forecasts:
+            QMessageBox.warning(self, t("warning"), t("ai_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ai_fc_expenses"),
+            lambda: ChartWidget(t("ai_fc_expenses")),
+            lambda c: self._draw_forecast_chart(c, t("ai_fc_expenses"),
+                                               self._expense_series, self._last_forecasts.get("expenses", {})),
+        )
+
+    def _show_profit_popup(self):
+        if not self._last_forecasts:
+            QMessageBox.warning(self, t("warning"), t("ai_no_data"))
+            return
+        show_chart_dialog(
+            self, t("ai_fc_profit"),
+            lambda: ChartWidget(t("ai_fc_profit")),
+            lambda c: self._draw_forecast_chart(c, t("ai_fc_profit"),
+                                               self._profit_series, self._last_forecasts.get("profit", {})),
+        )
 
     def _fill_anomalies(self, anomalies):
         series = anomalies.get("profit", [])
@@ -450,7 +489,7 @@ class AIInsightsView(BaseView):
         self.pat_cycle.setText(f"{t('ai_pat_cycle_length')}: {cycle.get('cycle_length', '—')}")
 
         indexes = season.get("indexes", [])
-        self._draw_seasonality(indexes, t("ai_pat_seasonality"))
+        self._last_seasonality = (indexes, t("ai_pat_seasonality"))
 
         risks = patterns.get("risk_indicators", [])
         self.pat_risk_table.setRowCount(len(risks))
@@ -460,15 +499,26 @@ class AIInsightsView(BaseView):
             self.pat_risk_table.setItem(row, 1, QTableWidgetItem(str(r.get("value", ""))))
             self.pat_risk_table.setItem(row, 2, QTableWidgetItem(r.get("level", "")))
 
-    def _draw_seasonality(self, indexes, title):
+    def _draw_seasonality(self, chart, indexes, title):
         if not indexes:
-            self._clear_chart(self.chart_seasonality)
+            chart.clear_plot()
             return
-        self.chart_seasonality.clear_plot()
-        self.chart_seasonality.set_title(title)
+        chart.clear_plot()
+        chart.set_title(title)
         labels = [t(k) for k in _MONTH_KEYS[:len(indexes)]]
-        draw_bar(self.chart_seasonality.plot_item, labels, indexes,
+        draw_bar(chart.plot_item, labels, indexes,
                  ["#8E44AD"] * len(indexes))
+
+    def _show_seasonality_popup(self):
+        if not self._last_seasonality:
+            QMessageBox.warning(self, t("warning"), t("ai_no_data"))
+            return
+        indexes, title = self._last_seasonality
+        show_chart_dialog(
+            self, title,
+            lambda: ChartWidget(title),
+            lambda c: self._draw_seasonality(c, indexes, title),
+        )
 
     def _fill_recommendations(self, recs):
         self.rec_table.setRowCount(len(recs))
@@ -516,8 +566,13 @@ class AIInsightsView(BaseView):
             writer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
             painter = QPainter()
             painter.begin(writer)
-            charts = [self.fc_chart_revenue, self.fc_chart_expenses,
-                      self.fc_chart_profit, self.chart_seasonality]
+            charts = []
+            if self._last_forecasts:
+                c = ChartWidget(t("ai_fc_sales")); self._draw_forecast_chart(c, t("ai_fc_sales"), self._revenue_series, self._last_forecasts.get("revenue", {})); charts.append(c)
+                c = ChartWidget(t("ai_fc_expenses")); self._draw_forecast_chart(c, t("ai_fc_expenses"), self._expense_series, self._last_forecasts.get("expenses", {})); charts.append(c)
+                c = ChartWidget(t("ai_fc_profit")); self._draw_forecast_chart(c, t("ai_fc_profit"), self._profit_series, self._last_forecasts.get("profit", {})); charts.append(c)
+            if self._last_seasonality:
+                c = ChartWidget(t("ai_pat_seasonality")); self._draw_seasonality(c, *self._last_seasonality); charts.append(c)
             charts = [c for c in charts if c.isVisible()]
             page_w = painter.device().width()
             page_h = painter.device().height()
@@ -614,9 +669,10 @@ class AIInsightsView(BaseView):
         self.export_pdf_btn.setText(t("ai_export_pdf"))
         self.export_excel_btn.setText(t("ai_export_excel"))
 
-        self.fc_chart_revenue.set_title(t("ai_fc_sales"))
-        self.fc_chart_expenses.set_title(t("ai_fc_expenses"))
-        self.fc_chart_profit.set_title(t("ai_fc_profit"))
+        self.fc_chart_revenue.setText(t("ai_fc_sales"))
+        self.fc_chart_expenses.setText(t("ai_fc_expenses"))
+        self.fc_chart_profit.setText(t("ai_fc_profit"))
+        self.chart_seasonality.setText(t("ai_pat_seasonality"))
         self.an_series_title.setText(t("ai_an_series"))
         self.an_tx_title.setText(t("ai_an_transactions"))
         self.pat_risk_title.setText(t("ai_pat_risk"))

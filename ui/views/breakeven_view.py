@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import (QFont)
 
 import pyqtgraph as pg
-from ui.charts import (PgChartWidget, draw_line,
+from ui.charts import (PgChartWidget, draw_line, show_chart_dialog,
     _text_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 
 from ui.app_state import state, ThemeColors
@@ -26,6 +26,7 @@ class BreakEvenView(QWidget):
     def __init__(self):
         super().__init__()
         self.analyzer = None
+        self._last_result = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -96,9 +97,11 @@ class BreakEvenView(QWidget):
         results_group.setLayout(results_layout)
         main_layout.addWidget(results_group)
 
-        self.chart = PgChartWidget(t("breakeven_chart_title"))
-        self.chart.setMinimumHeight(300)
-        main_layout.addWidget(self.chart)
+        self.chart_btn = QPushButton(t("breakeven_chart_title"))
+        self.chart_btn.setMinimumHeight(56)
+        self.chart_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_btn.clicked.connect(self._show_chart_popup)
+        main_layout.addWidget(self.chart_btn)
 
         self.setLayout(main_layout)
 
@@ -128,11 +131,21 @@ class BreakEvenView(QWidget):
         color = ThemeColors.get('success') if result["is_profitable"] else ThemeColors.get('error')
         self.labels["breakeven_status"].setStyleSheet(f"color: {color}; font-weight: bold;")
 
-        self._draw_chart(result)
+        self._last_result = result
 
-    def _draw_chart(self, result):
-        self.chart.clear_plot()
-        pi = self.chart.plot_item
+    def _show_chart_popup(self):
+        if not self._last_result:
+            QMessageBox.warning(self, t("warning"), t("forecast_no_data"))
+            return
+        show_chart_dialog(
+            self, t("breakeven_chart_title"),
+            lambda: PgChartWidget(t("breakeven_chart_title")),
+            lambda c: self._draw_chart(c, self._last_result),
+        )
+
+    def _draw_chart(self, chart, result):
+        chart.clear_plot()
+        pi = chart.plot_item
 
         rev = result["current_revenue"]
         be = result["breakeven_revenue"]
@@ -181,7 +194,7 @@ class BreakEvenView(QWidget):
             item_upper.setFillLevel(0)
 
         title = t("breakeven_chart_title") if t("breakeven_chart_title") != "breakeven_chart_title" else "Break-Even Chart"
-        self.chart.title_label.setText(title)
+        chart.title_label.setText(title)
 
     def retranslate(self):
         self.title.setText(t("breakeven_title"))

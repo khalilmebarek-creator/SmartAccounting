@@ -15,7 +15,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtPrintSupport import QPrinter
 
 from ui.views._base import BaseView
-from ui.charts import (PgChartWidget,
+from ui.charts import (PgChartWidget, show_chart_dialog,
     draw_bar, draw_grouped_bar, draw_line,
     _text_color, _edge_color, _chart_bg, _hex_to_rgb, _mk_brush, _mk_pen, _mk_text_item)
 from ui.app_state import ThemeColors
@@ -69,6 +69,8 @@ class CostCenterProfitabilityView(BaseView):
         self._result = None
         self._comparison = None
         self._trend = None
+        self._last_centers = None
+        self._last_periods = None
         self.setup_ui()
         self.refresh()
 
@@ -231,9 +233,11 @@ class CostCenterProfitabilityView(BaseView):
         self.analysis_table.setMinimumHeight(44 * 5 + 30)
         layout.addWidget(self.analysis_table)
 
-        self.chart_profitability = PgChartWidget("")
-        self.chart_profitability.setMinimumHeight(280)
-        layout.addWidget(self.chart_profitability)
+        self.chart_profitability_btn = QPushButton(t("cost_profit_tab_analysis"))
+        self.chart_profitability_btn.setMinimumHeight(56)
+        self.chart_profitability_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_profitability_btn.clicked.connect(self._show_profitability_popup)
+        layout.addWidget(self.chart_profitability_btn)
 
         self.tabs.addTab(tab, t("cost_profit_tab_analysis"))
 
@@ -338,9 +342,11 @@ class CostCenterProfitabilityView(BaseView):
         info_row.addWidget(self.card_growth)
         layout.addLayout(info_row)
 
-        self.chart_trend = PgChartWidget("")
-        self.chart_trend.setMinimumHeight(280)
-        layout.addWidget(self.chart_trend)
+        self.chart_trend_btn = QPushButton(t("cost_profit_tab_trend"))
+        self.chart_trend_btn.setMinimumHeight(56)
+        self.chart_trend_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.chart_trend_btn.clicked.connect(self._show_trend_popup)
+        layout.addWidget(self.chart_trend_btn)
 
         self.tabs.addTab(tab, t("cost_profit_tab_trend"))
 
@@ -525,7 +531,7 @@ class CostCenterProfitabilityView(BaseView):
             self.analysis_table.setItem(row, 8, QTableWidgetItem(f"{c['revenue_share_pct']:.1f}%"))
             self.analysis_table.setItem(row, 9, QTableWidgetItem(f"{c['profit_share_pct']:.1f}%"))
 
-        self._draw_profitability_chart(centers)
+        self._last_centers = centers
 
     def _set_card(self, card, title, value):
         card.title_label.setText(title)
@@ -537,8 +543,8 @@ class CostCenterProfitabilityView(BaseView):
         table.setItem(row, col, item)
         return item
 
-    def _draw_profitability_chart(self, centers):
-        plot = self.chart_profitability.plot_item
+    def _draw_profitability_chart(self, chart, centers):
+        plot = chart.plot_item
         plot.clear()
         labels = [_plain(c["name"][:12]) for c in centers]
         series_data = [
@@ -547,7 +553,17 @@ class CostCenterProfitabilityView(BaseView):
             {"label": t("cost_profit_profit"), "values": [c["profit"] for c in centers], "color": "#2196F3"},
         ]
         draw_grouped_bar(plot, labels, series_data, bar_width=0.8)
-        self.chart_profitability.title_label.setText(t("cost_profit_tab_analysis"))
+        chart.title_label.setText(t("cost_profit_tab_analysis"))
+
+    def _show_profitability_popup(self):
+        if not self._last_centers:
+            QMessageBox.warning(self, t("warning"), t("cost_profit_no_data"))
+            return
+        show_chart_dialog(
+            self, t("cost_profit_tab_analysis"),
+            lambda: PgChartWidget(t("cost_profit_tab_analysis")),
+            lambda c: self._draw_profitability_chart(c, self._last_centers),
+        )
 
     def _autofill_comparison_tables(self):
         names = [c["name"] for c in self._result["centers"]]
@@ -658,10 +674,10 @@ class CostCenterProfitabilityView(BaseView):
                        t(_DIRECTION_KEYS[trend["direction"]]))
         self._set_card(self.card_growth, t("cost_profit_growth_rate"),
                        f"{trend['growth_rate_pct']:+.1f}%")
-        self._draw_trend_chart(trend["periods"])
+        self._last_periods = trend["periods"]
 
-    def _draw_trend_chart(self, periods):
-        plot = self.chart_trend.plot_item
+    def _draw_trend_chart(self, chart, periods):
+        plot = chart.plot_item
         x = [p["period"] for p in periods]
         y_series = [
             [p["revenue"] for p in periods],
@@ -675,7 +691,17 @@ class CostCenterProfitabilityView(BaseView):
         ]
         colors = ["#2196F3", "#E74C3C", "#27AE60"]
         draw_line(plot, x, y_series, labels=labels, colors=colors)
-        self.chart_trend.title_label.setText(t("cost_profit_tab_trend"))
+        chart.title_label.setText(t("cost_profit_tab_trend"))
+
+    def _show_trend_popup(self):
+        if not self._last_periods:
+            QMessageBox.warning(self, t("warning"), t("cost_profit_no_data"))
+            return
+        show_chart_dialog(
+            self, t("cost_profit_tab_trend"),
+            lambda: PgChartWidget(t("cost_profit_tab_trend")),
+            lambda c: self._draw_trend_chart(c, self._last_periods),
+        )
 
     # ===== تصدير =====
 
@@ -695,7 +721,15 @@ class CostCenterProfitabilityView(BaseView):
             writer.setPageSize(QPageSize(QPageSize.PageSizeId.A4))
             painter = QPainter()
             painter.begin(writer)
-            charts = [self.chart_profitability, self.chart_trend]
+            charts = []
+            if self._last_centers:
+                c = PgChartWidget(t("cost_profit_tab_analysis"))
+                self._draw_profitability_chart(c, self._last_centers)
+                charts.append(c)
+            if self._last_periods:
+                c = PgChartWidget(t("cost_profit_tab_trend"))
+                self._draw_trend_chart(c, self._last_periods)
+                charts.append(c)
             page_w = painter.device().width()
             page_h = painter.device().height()
             h_per_chart = page_h // max(len(charts), 1)
@@ -813,6 +847,8 @@ class CostCenterProfitabilityView(BaseView):
         self.run_btn.setText(t("cost_profit_run"))
         self.compare_btn.setText(t("cost_profit_compare_btn"))
         self.trend_btn.setText(t("cost_profit_run"))
+        self.chart_profitability_btn.setText(t("cost_profit_tab_analysis"))
+        self.chart_trend_btn.setText(t("cost_profit_tab_trend"))
         self.export_pdf_btn.setText(t("cost_profit_export_pdf"))
         self.export_excel_btn.setText(t("cost_profit_export_excel"))
         self.no_data_label.setText(t("cost_profit_no_data"))
