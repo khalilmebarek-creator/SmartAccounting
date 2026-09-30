@@ -2,11 +2,11 @@
 ; =====================================================
 
 #define MyAppName "Smart Accounting Platform"
-#define MyAppVersion "3.2.0"
+#define MyAppVersion "3.2.1"
 #define MyAppPublisher "Smart Accounting Team"
 #define MyAppURL "https://github.com/accounting-platform"
 #define MyAppExeName "SmartAccounting.exe"
-#define MyAppDescription "Ù…Ù†ØµØ© Ø§Ù„Ù…Ø­Ø§Ø³Ø¨Ø© Ø§Ù„Ø°ÙƒÙŠØ© - Smart Accounting Platform"
+#define MyAppDescription "منصة المحاسبة الذكية - Smart Accounting Platform"
 
 [Setup]
 AppId={{B3A7F4E2-9C1D-4A5F-8E2B-6D9F3C7A1E5B}

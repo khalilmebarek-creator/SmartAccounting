@@ -1,9 +1,13 @@
 # PROJECT_MAP.md — المنصة المحاسبية الذكية
-> آخر تحديث: 2026-08-31 | الإصدار: v3.2.0
+> آخر تحديث: 2026-09-30 | الإصدار: v3.2.1
 
 ---
 
 ## SESSION LOG (آخر الجلسات)
+- **جلسة 104 (2026-09-30):** **ماسح QR في تطبيق الجوال Flutter** (استكمال ميزة نقل البيانات عبر QR من الجلسة 103) — (1) `mobile/lib/data/qr_payload.dart` (`decodeQrSnapshot`: عكس سلسلة سطح المكتب بالضبط — base64Url → gzip → jsonDecode → `SnapshotData.fromPayload`)؛ (2) `mobile/lib/features/qr_scan/qr_scan_screen.dart` (شاشة مسح كاملة عبر `mobile_scanner` 7.4.2 + إطار توجيهي + تمرير SnapshotData عبر Navigator.pop)؛ (3) زر `Icons.qr_code_scanner` في AppBar الرئيسي (`_scanQr`) يطبق الـ snapshot عبر `state.onSnapshotLoaded` + جدولة تنبيهات الجباية؛ (4) أذونات الكاميرا في AndroidManifest (`CAMERA` + `uses-feature camera required`)؛ (5) 3 مفاتيح i18n جديدة `qr_scan/qr_scan_title/qr_invalid` ×3 لغات؛ (6) **TDD**: `test/qr_payload_test.dart` (3 اختبارات — فكّ payload فيكس حقيقي مولّد من محرك سطح المكتب عبر `tools/gen_mobile_fixtures.py` (أضاف `demo_snapshot_qr.txt` عبر `qr_transfer.encode_payload`) + رفض نصوص عشوائية + رفض base64 غير-gzip)؛ (7) رفع إصدار الجوال pubspec → **1.1.0+2** + بناء APK arm64 (24.8MB — كبر من 18.2MB بسبب mobile_scanner) → `installer_output/SmartAccountingMobile-v1.2.apk` — **flutter analyze نظيف + 59 اختباراً Dart أخضر** (كان 56) + نسخة سطح المكتب غير متأثرة (2115 اختباراً) + PROJECT_MAP
+- **جلسة 103 (2026-09-12):** صقل شامل للمشروع — (1) **توحيد الثيم**: `modern` (بنفسجي/أسود) أصبح الافتراضي والوحيد + حذف light/dark من الإعدادات والتبديل؛ (2) **تحويل 8 شاشات رسوم إلى أزرار تفتح نوافذ** عبر مساعد مشترك `show_chart_dialog` في `ui/charts.py` (نافذة مستقلة بأزرار تصغير/تكبير/إغلاق) — التعادل/التنبؤات/ربحية المراكز/المعايير/السيناريوهات/DuPont/اللوحة المتقدمة/الرؤى الذكية؛ (3) **إعادة تصميم التقويم الجبائي**: شبكة 4×3 للأشهر + جدول مواعيد موحّد اللون + تبديل تأكيد/قيد الانتظار + أسماء مترجمة `_localized_name`؛ (4) **إعادة تصميم مراكز التكلفة**: نمط BaseView + حقول بلا مربعات/أسهم (كتابة فقط) + `NoWheelSpinBox`؛ (5) **نقل البيانات عبر QR (Desktop→Mobile)**: `modules/qr_transfer.py` (gzip+base64) + `QrShareDialog` + زر في إدخال البيانات + مكتبة `qrcode[pil]`؛ (6) **إدارة اشتراكات البائع (شاشة 42)**: `modules/vendor_store.py` (توليد مفاتيح RSA موقّعة + تتبع عملاء) + `vendor_view.py` + Ctrl+Shift+K؛ (7) **تدقيق أمني**: pip-audit كشف CVE-2026-69247 في cryptography 49 → ترقية 50.0.2 + خطوة pip-audit في CI (Bandit 0 HIGH + pip-audit نظيف)؛ (8) **وثيقة تحضير الدفاع** `docs/DEFENSE_PREP.md` (منهجية النماذج + 30 سؤالاً متوقعاً) — **2115 اختباراً أخضر** (42 شاشة + 2294 مفتاح i18n ×3)
+- **جلسة 102 (2026-09-12):** حزمة صقل شاملة (4 طلبات) — (1) **نافذة إقلاع احترافية**: `ui/splash.py` (`ModernSplashScreen` + `AnimatedBarLogo` شعار أعمدة بيانية متحرك بـ QPainter/QTimer) + دمج في `run_ui.py` (~3 ثوانٍ ثم MainWindow)؛ (2) **التقرير التنفيذي الشامل (شاشة 40)**: `modules/executive_report.py` (build_report/render_text/render_html يجمع الصحة+الملخص+النسب+القوائم+الجباية+التوصيات) + `executive_report_view.py` (معاينة + PDF/Excel عبر exporters) + Ctrl+Shift+I؛ (3) **القوائم المالية المرئية (شاشة 41)**: `financial_statements_view.py` (بطاقات KPI + أشرطة مقارنة `_CompareBar` + صفوف ملوّنة) + Ctrl+Shift+J؛ (4) **تحسين شاشة الدخول**: خلفية متدرجة حسب الثيم + بطاقة loginCard؛ (5) **إصلاحات**: `run_ui.py` نسخة 2.5.0→APP_VERSION + إصلاح ترميز `config.py` APP_TITLE (soft-hyphen) + بغّ `ias_reports.py` (`_safe()` على dict)؛ (6) **توحيد الثيمات** (جلسة فحص بصري): استبدال الألوان الصلبة في `financial_statements_view.py` و`render_html` بـ `ThemeColors.get()` (متوافقة مع Light/Dark/Modern — تباين ≥3.5:1)؛ (7) **رفع الإصدار v3.2.1** (config/i18n/pyproject/installer/build + docs + CHANGELOG) — **2101 اختباراً أخضر** (41 شاشة + 2260 مفتاح i18n ×3)
+- **جلسة 101 (2026-09-12):** إضافة نافذة إقلاع احترافية (Splash Screen) — `ui/splash.py` (`ModernSplashScreen` بـ PyQt6: شعار 📊 + اسم التطبيق `t("app_name")` + ترجمة `splash_subtitle` + شريط تقدّم QProgressBar + رسائل حالة) + دمج في `ui/run_ui.py` (splash → خطوات 25/50/75/100 عبر QTimer ~3 ثوانٍ → MainWindow) + 6 مفاتيح i18n `splash_*` ×3 لغات + `tests/test_splash.py` (5 اختبارات: أعلام النافذة/الحجم/بدء شريط التقدّم/تحديث الشريط/عنوان التطبيق) — **2089 اختباراً أخضر**
 - **جلسة 100 (2026-08-31):** مراجعة شاملة + هجرة SQLAlchemy (Phase A/B/C) — حذف db_operations.py + db_schema.py → repository.py (SQLAlchemy Core مصدر واحد) + إصلاح `insert(text(...))` → جداول models.py + 9 اختبارات SQLAlchemy جديدة (test_sqlalchemy_repository.py) + تنظيف أدوات هجرة مؤقتة — **2084 اختباراً أخضر**
 - **جلسة 99 (2026-08-19):** تكامل pyqtgraph + SQLAlchemy Core + Plotly — **2075 اختباراً أخضر**
 
@@ -178,12 +182,16 @@ Accounting_Platform/
 │   ├── invoicing.py               # فواتير بيع/شراء + عناصر + TVA + حالات + CSV + DB
 │   ├── inventory.py               # عناصر + حركات + متوسط تكلفة + تنبيهات + DB
 │   ├── payroll.py                 # موظفون + CNAS/IRG + كشوفات + CSV + DB
-│   └── budgeting.py               # بنود + مقارنة بالفعلي + انحراف + CSV + DB
+│   ├── budgeting.py               # بنود + مقارنة بالفعلي + انحراف + CSV + DB
+│   ├── executive_report.py        # التقرير التنفيذي الشامل (تجميع كل التحليلات)
+│   ├── qr_transfer.py             # نقل البيانات عبر QR (gzip + base64 + صورة)
+│   ├── vendor_store.py            # إدارة اشتراكات البائع (مفاتيح RSA + عملاء)
 │
 ├── ui/
-│   ├── main_window.py               # 35 views + قوائم/اختصارات/انتقالات/ثيم
+│   ├── main_window.py               # 42 views + قوائم/اختصارات/انتقالات/ثيم
 │   ├── app_state.py                 # State + settings
-│   ├── run_ui.py                    # GUI entry
+│   ├── run_ui.py                    # GUI entry (splash → MainWindow)
+│   ├── splash.py                     # نافذة إقلاع احترافية (شعار + تقدّم + ~3s)
 │   ├── resources/
 │   │   ├── i18n.py                  # 300+ keys (AR/EN/FR)
 │   │   ├── style.qss / style_dark.qss / style_modern.qss
@@ -222,6 +230,12 @@ Accounting_Platform/
 │       ├── inventory_view.py          # عناصر + حركات + تنبيهات + CSV
 │       ├── payroll_view.py            # موظفون + تشغيل رواتب + كشوفات + CSV
 │       ├── budgeting_view.py          # بنود + مقارنة بالفعلي + CSV
+│       ├── ias_reports_view.py        # تقارير IAS/IFRS (4 تبويبات + PDF/Excel)
+│       ├── ai_platform_view.py        # منصة الذكاء الاصطناعي (صحة + رادار + توصيات)
+│       ├── executive_report_view.py   # التقرير التنفيذي الشامل (معاينة + PDF/Excel)
+│       ├── financial_statements_view.py  # القوائم المالية المرئية (بطاقات + أشرطة)
+│       ├── qr_share_dialog.py         # نافذة مشاركة البيانات عبر QR
+│       ├── vendor_view.py             # إدارة اشتراكات البائع (مفاتيح + عملاء)
 │       └── (scenarios, forecasting, breakeven, export)
 │
 ├── utils/
@@ -409,7 +423,7 @@ Accounting_Platform/
 
 ## EXECUTION LOG
 
-> **آخر حالة (2026-08-31):** v3.2.0 — **2084 اختباراً** (سطح المكتب) + **56 اختباراً Flutter** (mobile/) + **تطبيق جوال Android** (arm64 18.2MB) + تغطية وحدات 100% + 2205 مفتاح i18n × 3 + **هجرة SQLAlchemy Core كاملة** (repository.py مصدر CRUD وحيد + models.create_all + إصلاح بغّ insert(TextClause)) + **هجرة PyQt5 → PyQt6 6.11.0** (68 ملفاً + enums + QAction/QShortcut→QtGui + exec_→exec + QDesktopWidget→QScreen + QEvent.Type) + **شريط Ribbon 7 تبويبات** + **إصلاح انهيار matplotlib** + **ML مفعّل كاملاً** + **تقارير IAS/IFRS** + **منصة ذكاء اصطناعي متكاملة** + **توحيد تصميم الشاشات المحاسبية الأربع (34-37)** + **تمرير عمودي QScrollArea لكل الشاشات** (BaseView + wrap_in_scroll لـ QWidget).
+> **آخر حالة (2026-09-12):** v3.2.1 — **2115 اختباراً** (سطح المكتب) + **56 اختباراً Flutter** (mobile/) + **تطبيق جوال Android** (arm64 18.2MB) + تغطية وحدات 100% + 2294 مفتاح i18n × 3 + **هجرة SQLAlchemy Core كاملة** + **PyQt6 6.11.0** + **نافذة إقلاع احترافية (AnimatedBarLogo)** + **التقرير التنفيذي الشامل (شاشة 40)** + **القوائم المالية المرئية (شاشة 41)** + **إدارة اشتراكات البائع (شاشة 42)** + **نقل البيانات عبر QR (Desktop→Mobile)** + **رسوم في نوافذ منبثقة (8 شاشات)** + **ثيم بنفسجي موحّد** + **شريط Ribbon 7 تبويبات** + **تقارير IAS/IFRS** + **منصة ذكاء اصطناعي متكاملة** + **تمرير عمودي QScrollArea لكل الشاشات** + **تدقيق أمني (Bandit 0 HIGH + pip-audit نظيف)**.
 
 | # | التاريخ | الإجراء | النتيجة |
 |---|---------|---------|---------|

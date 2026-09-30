@@ -1,10 +1,10 @@
-# Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…Ø´Ø±ÙˆØ¹
+# إعدادات المشروع
 # ===============
 
 import os
 
-APP_TITLE = "Ø§Ù„Ù…Ù†ØµØ© Ø§Ù„Ù…Ø­Ø§Ø³Ø¨ÙŠØ© Ø§Ù„Ø°ÙƒÙŠØ©"
-APP_VERSION = "3.2.0"
+APP_TITLE = "المنصة المحاسبية الذكية"
+APP_VERSION = "3.2.1"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_NAME = "accounting_platform.db"

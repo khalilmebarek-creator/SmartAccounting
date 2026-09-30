@@ -1,17 +1,17 @@
 {
-  "version": "3.2.0",
-  "date": "2026-08-19",
+  "version": "3.2.1",
+  "date": "2026-09-30",
   "min_version": "3.0.0",
-  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.2.0",
-  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.0/SmartAccounting-Setup-v3.2.0.exe",
-  "mobile_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.0/SmartAccountingMobile-v1.1.apk",
+  "download_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/tag/v3.2.1",
+  "installer_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.1/SmartAccounting-Setup-v3.2.1.exe",
+  "mobile_url": "https://github.com/khalilmebarek-creator/SmartAccounting/releases/download/v3.2.1/SmartAccountingMobile-v1.2.apk",
   "changelog": [
-    "📈 تحويل كامل من matplotlib إلى pyqtgraph: 12 شاشة + 34 رسماً بيانياً (شريط/خط/مساحة/شلال/دائري/رادار/مقياس) — أداء أسرع وذاكرة أقل",
-    "🗄️ SQLAlchemy Core: محرك engine.py + metadata 23 جدول + repository.py 20 دالة CRUD — db_connection.py مدعوم بـ SQLAlchemy raw_connection",
-    "🌐 تصدير Plotly تفاعلي HTML: 4 شاشات (لوحة التحكم + التحليل + السيناريوهات + المعايير المرجعية) — رسوم تفاعلية في المتصفح",
-    "🔄 هجرة PyQt5 → PyQt6 6.11.0 كاملة (68 ملف) + إصلاح ChatView hang",
-    "🛡️ تخفيف Bandit + CodeQL: 0 HIGH + SHA-256 بدل MD5 + حذف كلمات المرور الافتراضية",
-    "📱 تطبيق جوال SmartAccounting Mobile v1.1 (Android): 5 شاشات + 53 اختباراً",
-    "✅ 2075 اختباراً على سطح المكتب — تغطية 100%"
+    "🎬 نافذة إقلاع احترافية: شعار أعمدة بيانية متحرك + شريط تقدّم خلال ~3 ثوانٍ",
+    "📄 التقرير التنفيذي الشامل (شاشة 40): صحة مالية + ملخص + نسب + قوائم + جباية + توصيات",
+    "💹 القوائم المالية المرئية (شاشة 41): أشرطة مقارنة + بطاقات ملوّنة",
+    "📱 ماسح QR في تطبيق الجوال (v1.2) + نقل بيانات QR من سطح المكتب + اشتراكات البائع (شاشة 42)",
+    "🎨 توحيد الثيم الحديث + نوافذ رسوم منبثقة + تقويم جبائي ومراكز تكلفة معاد تصميمها",
+    "🛡️ تدقيق أمني: pip-audit + cryptography 50 (إصلاح CVE-2026-69247)",
+    "✅ 2115 اختباراً على سطح المكتب — تغطية 100%"
   ]
 }

@@ -1,21 +1,26 @@
 # PROJECT_MAP.md — SmartAccounting Mobile (تطبيق الجوال)
 
-> آخر تحديث: 2026-08-12 | الإصدار: 1.1.0
+> آخر تحديث: 2026-09-30 | الإصدار: 1.1.0+2
 
 ## TECH_STACK
 
 | المكوّن | الإصدار | ملاحظات |
 |---------|---------|---------|
 | Flutter SDK (stable) | 3.44.7 | Dart 3.12.2 — مُثبت في `C:\Users\khalile\flutter` |
-| JDK | Temurin 17.0.20 | في `C:\Users\khalile\android\jdk17` |
+| JDK | Temurin 17.0.20 | في `C:\Users\khalile\android\jdk17` — يجب ضبط `JAVA_HOME` قبل أي بناء Gradle |
 | Android SDK | platform 36 / build-tools 36.0.0 | في `C:\Users\khalile\android\sdk` |
 | AGP / Gradle / Kotlin | 8.9.1 / 8.11.1 / 2.1.20 | AGP 9 مرفوض: تعارض file_picker (يتطلب builtInKotlin) مع flutter_local_notifications (يطبّق KGP بنفسه) |
+| mobile_scanner | 7.4.2 | QR — يتطلب إذن CAMERA + uses-feature camera في AndroidManifest |
 | cryptography (Dart) | 2.9.0 | Argon2id + AES-256-GCM — فك تشفير SACF1 من سطح المكتب |
 | file_picker | 11.0.3 | واجهة 11: استدعاء static `FilePicker.pickFiles()` (لا `.platform`) |
 | flutter_local_notifications | 22.3.0 | يتطلب timezone + TZDateTime + coreLibraryDesugaring |
 | timezone | 0.11.1 | مطلوب لـ zonedSchedule |
 | shared_preferences / path_provider | 2.5.5 / 2.1.6 | اللغة/الثيم + تخزين آخر snapshot |
 | crypto | 3.0.7 | sha256 لفحص checksum |
+
+## SESSION LOG
+- **جلسة 104 (2026-09-30):** ماسح QR — `data/qr_payload.dart` (`decodeQrSnapshot` يعكس `qr_transfer.encode_payload`: base64Url → gzip → jsonDecode → `SnapshotData.fromPayload`) + `features/qr_scan/qr_scan_screen.dart` (mobile_scanner + إطار + pop بـ SnapshotData) + زر `Icons.qr_code_scanner` في AppBar (`_scanQr` → `onSnapshotLoaded` + جدولة التنبيهات) + إذن CAMERA + 3 مفاتيح i18n ×3 + `test/qr_payload_test.dart` (3 اختبارات بفيكس حقيقي من محرك سطح المكتب) + ترقية pubspec إلى **1.1.0+2** + APK arm64 24.8MB → `installer_output/SmartAccountingMobile-v1.2.apk` — **59 اختباراً أخضر + analyze نظيف**
+- **جلسة 90 (2026-08-12):** إنشاء التطبيق (43 اختباراً + APK arm64 18MB → `SmartAccountingMobile-v1.1.apk`)
 
 ## SYSTEM_FLOW — رحلة المستخدم
 
