@@ -8,6 +8,8 @@ import logging
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from config import APP_VERSION
+
 CRASH_SENTINEL = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".crash_pending"
 )
@@ -45,13 +47,13 @@ def main():
     ctypes.windll.kernel32.CreateMutexW(None, False, MUTEX_NAME)
 
     from PyQt6.QtWidgets import QApplication
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import Qt, QTimer
     from PyQt6.QtGui import QFont
 
     sys.excepthook = _global_exception_hook
 
     app = QApplication(sys.argv)
-    app.setApplicationVersion("2.5.0")
+    app.setApplicationVersion(APP_VERSION)
 
     from ui.app_state import state
     from ui.resources.i18n import Translator, t
@@ -61,15 +63,33 @@ def main():
     app.setFont(font)
     app.setApplicationName(t("app_name"))
 
+    from ui.splash import ModernSplashScreen
     from ui.main_window import MainWindow
+
+    splash = ModernSplashScreen()
+    splash.show()
     window = MainWindow()
-    window.showMaximized()
 
-    _cleanup_crash_sentinel()
+    steps = [
+        (t("splash_init"), 25),
+        (t("splash_modules"), 50),
+        (t("splash_interface"), 75),
+        (t("splash_finish"), 100),
+    ]
 
-    window.status_bar.showMessage(t("status_ready") + " 🚀")
+    def _step(index=0):
+        if index < len(steps):
+            message, progress = steps[index]
+            splash.update_progress(progress, message)
+            QTimer.singleShot(700, lambda: _step(index + 1))
+        else:
+            splash.close()
+            window.showMaximized()
+            _cleanup_crash_sentinel()
+            window.status_bar.showMessage(t("status_ready") + " 🚀")
+            _nudge_license_check(window)
 
-    _nudge_license_check(window)
+    QTimer.singleShot(200, lambda: _step(0))
 
     sys.exit(app.exec())
 

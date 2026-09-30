@@ -326,7 +326,7 @@ class MainWindow(QMainWindow):
 
         self.content.addWidget(self.login_view)
 
-        for _ in range(1, 38):
+        for _ in range(1, len(self._view_factories) + 1):
             placeholder = QWidget()
             self.content.addWidget(placeholder)
 
@@ -366,9 +366,9 @@ class MainWindow(QMainWindow):
         self.status_bar.addPermanentWidget(self.theme_toggle_btn)
 
     def _toggle_theme(self):
-        themes = ["light", "dark", "modern"]
+        themes = ["modern"]
         idx = themes.index(state.theme) if state.theme in themes else 0
-        state.theme = themes[(idx + 1) % 3]
+        state.theme = themes[(idx + 1) % len(themes)]
         state.save_settings()
         self.apply_theme()
 
@@ -459,6 +459,9 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+F",
             "Ctrl+Shift+G",
             "Ctrl+Shift+H",
+            "Ctrl+Shift+I",
+            "Ctrl+Shift+J",
+            "Ctrl+Shift+K",
         ]
         labels = [t(f"sidebar_{self._view_factories[vid][0]}") for vid in sorted(self._view_factories)]
         for action, key in zip(labels, view_keys):
@@ -512,6 +515,9 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+F"), self, lambda: self._go_to_view(37))
         QShortcut(QKeySequence("Ctrl+Shift+G"), self, lambda: self._go_to_view(38))
         QShortcut(QKeySequence("Ctrl+Shift+H"), self, lambda: self._go_to_view(39))
+        QShortcut(QKeySequence("Ctrl+Shift+I"), self, lambda: self._go_to_view(40))
+        QShortcut(QKeySequence("Ctrl+Shift+J"), self, lambda: self._go_to_view(41))
+        QShortcut(QKeySequence("Ctrl+Shift+K"), self, lambda: self._go_to_view(42))
         QShortcut(QKeySequence("Ctrl+T"), self, self._toggle_theme)
         QShortcut(QKeySequence("F1"), self, self.show_shortcuts_dialog)
         QShortcut(QKeySequence("Ctrl+L"), self, self._do_logout)
@@ -559,6 +565,9 @@ class MainWindow(QMainWindow):
             "Ctrl+Shift+F",
             "Ctrl+Shift+G",
             "Ctrl+Shift+H",
+            "Ctrl+Shift+I",
+            "Ctrl+Shift+J",
+            "Ctrl+Shift+K",
         ]
         view_ids = sorted(self._view_factories.keys())
         for i, vid in enumerate(view_ids):
@@ -644,10 +653,10 @@ class MainWindow(QMainWindow):
         ("nav_group_main", (1, 2, 23)),
         ("nav_group_accounting", (30, 31, 32, 33, 34, 35, 36, 37)),
         ("nav_group_analysis", (3, 4, 10, 11, 13, 14, 15, 16, 25)),
-        ("nav_group_reports", (17, 18, 22, 38)),
+        ("nav_group_reports", (17, 18, 22, 38, 40, 41)),
         ("nav_group_tax", (9, 19)),
         ("nav_group_tools", (8, 24, 5, 6, 20, 21, 26, 27, 39)),
-        ("nav_group_system", (7, 12, 28, 29)),
+        ("nav_group_system", (7, 12, 28, 29, 42)),
     )
 
     def _build_ribbon(self):
@@ -889,16 +898,7 @@ class MainWindow(QMainWindow):
         try:
             from ui.exporters import write_charts_pdf
 
-            charts = [
-                self._get_or_create_view(2).chart_ratios,
-                self._get_or_create_view(2).chart_profitability,
-                self._get_or_create_view(2).chart_dupont,
-                self._get_or_create_view(2).chart_balance,
-                self._get_or_create_view(2).chart_expenses,
-                self._get_or_create_view(2).chart_radar,
-                self._get_or_create_view(2).chart_zscore,
-                self._get_or_create_view(2).chart_liquidity,
-            ]
+            charts = self._get_or_create_view(2)._charts_for_export()
             write_charts_pdf(file_path, charts)
 
             QMessageBox.information(

@@ -103,7 +103,10 @@ def generate_income_statement() -> Dict[str, Any]:
     tax = 0.0
     ts = state.tax_summary or {}
     for k in ("ibs", "tva_amount", "total_taxes"):
-        tax += _safe(ts.get(k))
+        v = ts.get(k)
+        if isinstance(v, dict):
+            v = v.get("tax_amount", 0)
+        tax += _safe(v)
 
     pbt = ni + tax if ni > 0 else 0
 
