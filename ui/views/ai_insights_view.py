@@ -35,6 +35,12 @@ _RISK_LABEL_KEYS = {
     "negative_months": "ai_msg_risk_negative_months",
 }
 
+_METHOD_LABEL_KEYS = {
+    "linear": "ai_method_linear",
+    "moving_average": "ai_method_moving_average",
+    "exp_smoothing": "ai_method_exp_smoothing",
+}
+
 _MONTH_KEYS = [
     "tax_month_jan", "tax_month_feb", "tax_month_mar", "tax_month_apr",
     "tax_month_may", "tax_month_jun", "tax_month_jul", "tax_month_aug",
@@ -91,6 +97,7 @@ class AIInsightsView(BaseView):
             t("ai_method_linear"),
             t("ai_method_moving_average"),
             t("ai_method_exp_smoothing"),
+            t("ai_method_auto"),
         ])
         controls.addWidget(self.method_combo)
 
@@ -326,7 +333,7 @@ class AIInsightsView(BaseView):
 
     def _method(self):
         idx = self.method_combo.currentIndex()
-        return ["linear", "moving_average", "exp_smoothing"][idx if 0 <= idx < 3 else 0]
+        return ["linear", "moving_average", "exp_smoothing", "auto"][idx if 0 <= idx < 4 else 0]
 
     def _months(self):
         return int(self.months_combo.currentText())
@@ -532,6 +539,18 @@ class AIInsightsView(BaseView):
 
     def _fill_alerts(self, alerts):
         self.alerts_list.clear()
+        adaptive = self._result.get("adaptive") if self._result else None
+        if adaptive:
+            for metric in ("revenue", "expenses", "profit"):
+                info = adaptive.get(metric)
+                if not info:
+                    continue
+                m = info.get("method", "linear")
+                label = t(_METHOD_LABEL_KEYS.get(m, "ai_method_linear"))
+                self.alerts_list.addItem(
+                    f"🧠 {t('ai_adaptive_chosen').format(method=label)}"
+                )
+                break
         for a in alerts:
             type_key = f"ai_type_{a.get('type', '')}"
             msg_key = f"ai_msg_{a.get('message', '')}"
@@ -662,6 +681,7 @@ class AIInsightsView(BaseView):
             t("ai_method_linear"),
             t("ai_method_moving_average"),
             t("ai_method_exp_smoothing"),
+            t("ai_method_auto"),
         ])
         self.method_combo.setCurrentIndex(current_method)
         self.months_label.setText(t("ai_months"))

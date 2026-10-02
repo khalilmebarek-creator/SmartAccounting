@@ -501,7 +501,13 @@ class AIInsightsEngine:
     def generate_insights(self, revenue_history, expense_history, profit_history,
                           transactions=None, ratios=None, months=6, method="linear"):
         """توليد موحّد لكل الرؤى الذكية"""
-        forecasts = self.forecast_all(revenue_history, expense_history, profit_history, months, method)
+        adaptive_meta = None
+        if method == "auto":
+            from modules.adaptive_forecast import adaptive_forecast
+            forecasts, adaptive_meta = adaptive_forecast(
+                revenue_history, expense_history, profit_history, months)
+        else:
+            forecasts = self.forecast_all(revenue_history, expense_history, profit_history, months, method)
 
         series_anomalies = self.detect_anomalies(profit_history)
         transaction_anomalies = self.detect_transaction_anomalies(transactions) if transactions else []
@@ -524,6 +530,7 @@ class AIInsightsEngine:
             "patterns": patterns,
             "recommendations": recommendations,
             "alerts": alerts,
+            "adaptive": adaptive_meta,
         }
 
 
