@@ -50,7 +50,7 @@ Les logiciels comptables locaux disponibles présentent :
 | G2 — Conformité fiscale | Absence de moteur de calcul IBS/TVA/IRG/CNAS automatisé avec calendrier |
 | G3 — Accessibilité financière | Les solutions existantes coûtent > 100 USD/mois, inadaptées aux PME algériennes |
 | G4 — Profondeur analytique | Pas de combinaison ratios + DuPont + Z-Score + scénarios + benchmarking sectoriel |
-| G5 — Vérifiabilité | Aucun logiciel local ne fournit 1800 tests automatisés + 100% de couverture module |
+| G5 — Vérifiabilité | Aucun logiciel local ne fournit 2142 tests automatisés + 100% de couverture module |
 
 ---
 
@@ -146,7 +146,7 @@ Simulation financière sur 3 scénarios (mieux/actuel/pire) avec :
 
 #### G. Architecture technique innovante
 
-1. **Chargement paresseux des vues** (lazy loading) : les 35 écrans ne sont instanciés que lors de leur première consultation, réduisant le temps de démarrage de 778 ms à 44 ms.
+1. **Chargement paresseux des vues** (lazy loading) : les 42 écrans ne sont instanciés que lors de leur première consultation, réduisant le temps de démarrage de 778 ms à 44 ms.
 
 2. **Système de sécurité à plusieurs niveaux** :
    - Dérivation de clé PBKDF2 (100 000 itérations + salt)
@@ -163,7 +163,7 @@ Simulation financière sur 3 scénarios (mieux/actuel/pire) avec :
 
 4. **Export unifié** : couche d'exportation unique (PDF/Excel/CSV/HTML) avec support arabe (police Amiri), gestion des encodages (UTF-8, cp1252 fallback).
 
-5. **Internationalisation** : 1925 clés i18n × 3 langues (arabe RTL, français, anglais), direction automatique du texte.
+5. **Internationalisation** : 2296 clés i18n × 3 langues (arabe RTL, français, anglais), direction automatique du texte.
 
 6. **Base de données locale** : SQLite en mode WAL avec pool de connexions, opérations batch (executemany), 15 tables relationnelles.
 
@@ -176,14 +176,14 @@ Simulation financière sur 3 scénarios (mieux/actuel/pire) avec :
 ```
 ┌─────────────────────────────────────────────────┐
 │              PRÉSENTATION (UI)                   │
-│  35 écrans PyQt5 + thèmes (clair/sombre/moderne) │
+│  42 écrans PyQt6 + thèmes (clair/sombre/moderne) │
 │  Direction RTL arabe + raccourcis clavier         │
 ├─────────────────────────────────────────────────┤
 │           CONTRÔLEURS / SERVICES                 │
-│  MainWindow + AppState + 35 vues                 │
+│  MainWindow + AppState + 42 vues                 │
 │  Lazy-loading factory + signaux pyqtSignal       │
 ├─────────────────────────────────────────────────┤
-│          MOTEURS MÉTIER (37 modules)             │
+│          MOTEURS MÉTIER (56 modules)             │
 │  TaxEngine │ CalculationEngine │ AIInsights      │
 │  FinancialAnalyzer │ ScenarioAnalyzer            │
 │  BenchmarkEngine │ CostCenterProfitability       │
@@ -382,7 +382,7 @@ d) le système de rôles implémente au moins quatre rôles (administrateur, ges
 
 Le système selon la revendication 1, caractérisé en ce que :
 
-a) le système de chargement différé utilise un pattern de factory combiné à un proxy de module (PEP 562) pour retarder l'instanciation des 35 composants d'interface jusqu'à leur première utilisation ;
+a) le système de chargement différé utilise un pattern de factory combiné à un proxy de module (PEP 562) pour retarder l'instanciation des 42 composants d'interface jusqu'à leur première utilisation ;
 
 b) la base de données locale opère en mode Write-Ahead Logging (WAL) avec un pool de connexions préétablies et des opérations d'insertion groupée (executemany) pour les lots de données ;
 
@@ -438,13 +438,13 @@ b) un système de direction automatique du texte assurant l'affichage de droite 
 
 c) un système de thèmes visuels comprenant au moins trois thèmes (clair, sombre, moderne) applicables à l'ensemble des composants d'interface ;
 
-d) un système de raccourcis clavier couvrant au moins les 35 écrans du système.
+d) un système de raccourcis clavier couvrant au moins les 42 écrans du système.
 
 ---
 
 ## 6. RÉSUMÉ (ABSTRACT)
 
-L'invention concerne un système et un procédé automatisé d'analyse financière destiné aux PME algériennes, intégrant un moteur de conformité fiscale paramétrable (IBS, TVA, IRG, CNAS, CNAC, VF) avec calendrier fiscal automatisé, un moteur d'analyse financière calculant 20 ratios + décomposition DuPont + Altman Z-Score, un moteur d'intelligence artificielle légère (prévision par 3 méthodes + détection d'anomalies par z-score/IQR + alertes), un benchmarking sectoriel sur 7 secteurs algériens avec comparaison concurrentielle, une simulation de scénarios multi-variables, un système de sécurité multi-niveaux (PBKDF2, AES-256, 2FA, 4 rôles), une synchronisation cloud chiffrée (AES-GCM), et une internationalisation trilingue (arabe RTL/français/anglais) avec 1925 clés. Le système fonctionne hors-ligne en tant qu'exécutable autonome avec base SQLite locale, atteignant un temps de démarrage de 44 ms et une occupation mémoire de 45 Mo.
+L'invention concerne un système et un procédé automatisé d'analyse financière destiné aux PME algériennes, intégrant un moteur de conformité fiscale paramétrable (IBS, TVA, IRG, CNAS, CNAC, VF) avec calendrier fiscal automatisé, un moteur d'analyse financière calculant 20 ratios + décomposition DuPont + Altman Z-Score, un moteur d'intelligence artificielle légère (prévision par 3 méthodes + détection d'anomalies par z-score/IQR + alertes), un benchmarking sectoriel sur 7 secteurs algériens avec comparaison concurrentielle, une simulation de scénarios multi-variables, un système de sécurité multi-niveaux (PBKDF2, AES-256, 2FA, 4 rôles), une synchronisation cloud chiffrée (AES-GCM), et une internationalisation trilingue (arabe RTL/français/anglais) avec 2296 clés. Le système fonctionne hors-ligne en tant qu'exécutable autonome avec base SQLite locale, atteignant un temps de démarrage de 44 ms et une occupation mémoire de 45 Mo.
 
 ---
 
@@ -469,7 +469,7 @@ Les figures sont décrites en annexe et comprennent :
 
 | Paramètre | Valeur |
 |-----------|--------|
-| Nombre d'écrans | 35 |
+| Nombre d'écrans | 42 |
 | Nombre de modules métier | 37 |
 | Nombre de ratios financiers | 20 + Z-Score + DuPont |
 | Nombre de tests automatisés | 1 800 |
@@ -486,8 +486,8 @@ Les figures sont décrites en annexe et comprennent :
 | Tests d'export | 9 |
 | Tests de performance | 4 |
 | Date de première version | Juillet 2025 |
-| Version du prototype | v3.1.7 |
-| Framework d'interface | PyQt5 |
+| Version du prototype | v3.2.1 |
+| Framework d'interface | PyQt6 |
 | Base de données | SQLite (WAL mode) |
 | Langage de programmation | Python 3.11 |
 | Système de build | Nuitka standalone |
@@ -507,7 +507,7 @@ L'invention présente les éléments de novéauté suivants par rapport à l'ét
 
 3. **Premier système d'exportation unifié** pour logiciel comptable algérien supportant PDF arabe (police Amiri) + Excel + CSV + HTML avec gestion automatique des encodages.
 
-4. **Premier système d'internationalisation** trilingue avec 1925 clés × 3 langues et direction automatique RTL dans un contexte de logiciel comptable.
+4. **Premier système d'internationalisation** trilingue avec 2296 clés × 3 langues et direction automatique RTL dans un contexte de logiciel comptable.
 
 ### 9.2 Activité inventive
 

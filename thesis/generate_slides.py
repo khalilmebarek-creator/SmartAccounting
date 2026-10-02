@@ -137,7 +137,7 @@ def section_number(draw, num, x=100, y=100):
     draw.text((x, y), str(num), font=f, fill=WHITE, anchor="mm")
 
 
-def bottom_bar(draw, text="Smart Accounting Platform v3.1.7"):
+def bottom_bar(draw, text="Smart Accounting Platform v3.2.1"):
     draw.rectangle([(0, H - 50), (W, H)], fill=BLUE)
     f = font(ARIAL, 20)
     draw.text((W // 2, H - 25), text, font=f, fill=WHITE, anchor="mm")
@@ -159,12 +159,12 @@ def slide_01():
     # title
     draw.text((W // 2, 420), "Smart Accounting Platform", font=f1, fill=WHITE, anchor="mm")
     draw.text((W // 2, 480), "المنصة المحاسبية الذكية", font=f2, fill=GOLD, anchor="mm")
-    draw.text((W // 2, 540), "v3.1.7", font=f4, fill=GRAY, anchor="mm")
+    draw.text((W // 2, 540), "v3.2.1", font=f4, fill=GRAY, anchor="mm")
     # stats row
     stats = [
-        ("35", "Screens", "شاشات"),
+        ("42", "Screens", "شاشات"),
         ("20", "Ratios", "نسب مالية"),
-        ("1800", "Tests", "اختبارات"),
+        ("2142", "Tests", "اختبارات"),
         ("3", "Languages", "لغات"),
         ("44ms", "Startup", "إقلاع"),
     ]
@@ -239,7 +239,7 @@ def slide_03():
     img, draw = slide_bg()
     section_number(draw, 2)
     draw.text((180, 70), "Navigation & Shortcuts", font=font(ARIAL_B, 48), fill=WHITE, anchor="lt")
-    draw.text((180, 125), "التنقل والاختصارات — 35 شاشة", font=font(AMIRI, 30), fill=GOLD, anchor="lt")
+    draw.text((180, 125), "التنقل والاختصارات — 42 شاشة", font=font(AMIRI, 30), fill=GOLD, anchor="lt")
 
     # sidebar mockup
     sx, sy = 80, 200
@@ -284,9 +284,9 @@ def slide_03():
         draw.text((rx + 200, ky + 5), desc, font=font(ARIAL, 16), fill=WHITE, anchor="lt")
         ky += 44
 
-    # right side — 35 screens count
+    # right side — 42 screens count
     draw_rounded_rect(draw, (rx + 540, 250, rx + 860, 750), BG2)
-    draw.text((rx + 700, 280), "35", font=font(ARIAL_B, 120), fill=GOLD, anchor="mt")
+    draw.text((rx + 700, 280), "42", font=font(ARIAL_B, 120), fill=GOLD, anchor="mt")
     draw.text((rx + 700, 430), "Interactive", font=font(ARIAL_B, 32), fill=WHITE, anchor="mt")
     draw.text((rx + 700, 470), "Screens", font=font(ARIAL_B, 32), fill=WHITE, anchor="mt")
     draw.text((rx + 700, 530), "شاشات تفاعلية", font=font(AMIRI_B, 28), fill=GOLD, anchor="mt")
@@ -726,8 +726,8 @@ def slide_10():
     draw_rounded_rect(draw, (rx, by, rx + 1100, by + 400), BG2)
     draw.text((rx + 550, by + 15), "🏗️ Architecture", font=font(ARIAL_B, 28), fill=WHITE, anchor="mt")
     layers = [
-        ("Presentation", "ui/views (35 screens, lazy-loaded)", BLUE),
-        ("Business Logic", "modules/ (37 engines)", GREEN),
+        ("Presentation", "ui/views (42 screens, lazy-loaded)", BLUE),
+        ("Business Logic", "modules/ (56 modules)", GREEN),
         ("Data Layer", "SQLite + WAL + connection pool", ORANGE),
         ("Persistence", "accounting_platform.db", PURPLE),
     ]
@@ -741,14 +741,14 @@ def slide_10():
     # Performance metrics
     py = 660
     draw_rounded_rect(draw, (80, py, 1840, py + 320), BG2)
-    draw.text((960, py + 15), "⚡ Performance Metrics (v3.1.7)", font=font(ARIAL_B, 24), fill=WHITE, anchor="mt")
+    draw.text((960, py + 15), "⚡ Performance Metrics (v3.2.1)", font=font(ARIAL_B, 24), fill=WHITE, anchor="mt")
     metrics = [
         ("44ms", "Cold Start", "إقلاع", GREEN),
         ("<100ms", "View Load", "تحميل مشهد", GREEN),
         ("45MB", "Peak Memory", "ذاكرة ذروة", GREEN),
         ("4.6×", "DB Write Gain", "تحسين الكتابة", GREEN),
         ("17×", "DB Read Gain", "تحسين القراءة", GREEN),
-        ("1800", "Tests Passing", "اختبارات ناجحة", GREEN),
+        ("2142", "Tests Passing", "اختبارات ناجحة", GREEN),
         ("100%", "Module Coverage", "تغطية الوحدات", GREEN),
         ("39s", "Full Suite Time", "وقت الاختبار", GREEN),
     ]
@@ -773,12 +773,12 @@ def slide_11():
     draw.text((W // 2, 200), "SAP", font=font(ARIAL_B, 44), fill=GOLD, anchor="mm")
     draw.text((W // 2, 330), "Smart Accounting Platform", font=font(ARIAL_B, 64), fill=WHITE, anchor="mm")
     draw.text((W // 2, 400), "المنصة المحاسبية الذكية", font=font(AMIRI_B, 40), fill=GOLD, anchor="mm")
-    draw.text((W // 2, 460), "v3.1.7", font=font(ARIAL_B, 30), fill=GRAY, anchor="mm")
+    draw.text((W // 2, 460), "v3.2.1", font=font(ARIAL_B, 30), fill=GRAY, anchor="mm")
 
     # feature summary
     features = [
-        "35 Interactive Screens  •  20 Financial Ratios  •  6 Tax Calculators",
-        "AI-Powered Insights  •  3 Languages (AR/EN/FR)  •  1800 Tests",
+        "42 Interactive Screens  •  20 Financial Ratios  •  6 Tax Calculators",
+        "AI-Powered Insights  •  3 Languages (AR/EN/FR)  •  2142 Tests",
         "100% Algerian Tax Compliance  •  Cloud Sync  •  PDF/Excel Export",
     ]
     fy = 530
@@ -790,9 +790,9 @@ def slide_11():
     draw_rounded_rect(draw, (W // 2 - 400, 680, W // 2 + 400, 840), BG2)
     draw.text((W // 2, 700), "📦 Download Options", font=font(ARIAL_B, 24), fill=GOLD, anchor="mt")
     downloads = [
-        ("Installer", "66.9 MB", "Inno Setup — silent install"),
+        ("Installer", "186 MB", "Inno Setup — silent install"),
         ("Portable", "109 MB", "No installation needed"),
-        ("Standalone", "143 MB", "Nuitka compiled exe"),
+        ("Standalone", "420 MB", "Nuitka compiled exe"),
     ]
     dx = W // 2 - 360
     for name, size, desc in downloads:

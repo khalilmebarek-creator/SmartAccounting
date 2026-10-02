@@ -105,7 +105,7 @@ One-paragraph preview of chapters I–VIII.
 
 ### 4.1 System Overview
 - Figure 4.1: layered architecture (presentation ui/views → controllers/services → modules/engines → persistence db/state) with lazy loading.
-- Figure 4.2: package/module diagram (37 modules grouped by domain).
+- Figure 4.2: package/module diagram (56 modules grouped by domain).
 - Figure 4.3: data flow for a typical analysis request (view → engine → state/db → chart/PDF).
 
 ### 4.2 Technology Stack & Justification
@@ -165,7 +165,7 @@ One-paragraph preview of chapters I–VIII.
 **Objective:** evidence-based validation of correctness, quality, and performance.
 
 ### 6.1 Testing Strategy
-- Pyramid: unit (37 modules) → integration (workflows, DB integrity, concurrency, stress) → UI (35 views) → UAT (9 end-to-end journeys) → performance (4 regression tests).
+- Pyramid: unit (56 modules) → integration (workflows, DB integrity, concurrency, stress) → UI (42 views) → UAT (9 end-to-end journeys) → performance (4 regression tests).
 - Table 6.1: test suite inventory (test files, counts, focus) — total 2142.
 - CI: GitHub Actions (Ubuntu, Python 3.11, xvfb-run) + coverage informational.
 

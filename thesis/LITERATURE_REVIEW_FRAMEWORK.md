@@ -96,7 +96,7 @@
 - **G2** Compliance automation: no built-in G50/G57/DAS templates + reminders.
 - **G3** Affordability/portability: international suites need servers or licenses; offline free-standing executable matters for SME constraints (intermittent connectivity).
 - **G4** Analytics depth: 20 ratios + DuPont + Z-Score + scenarios + benchmarking in one tool.
-- **G5** Engineering rigor: open test-driven development (1800 tests, 100% coverage) is absent from proprietary local packages.
+- **G5** Engineering rigor: open test-driven development (2142 tests, 100% coverage) is absent from proprietary local packages.
 
 ---
 

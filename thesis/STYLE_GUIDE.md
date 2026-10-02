@@ -40,14 +40,14 @@ Companion to `thesis_template.docx` and aligned with the national thesis regulat
 - Write impersonally: "the platform was evaluated…" / "the experiment shows…" (avoid "I/we" except in acknowledgment).
 - Use precise reporting verbs: propose, demonstrate, validate, measure, reveal, contradict.
 - Define every acronym at first use (TVA, IBS, IRG, CNAS, CNAC, VF, DAS, AIS, ROE, RSS, UAT, RTL).
-- No marketing superlatives ("powerful", "revolutionary"); prefer measurable claims ("cold start 44 ms", "1800/1800 tests pass").
+- No marketing superlatives ("powerful", "revolutionary"); prefer measurable claims ("cold start 44 ms", "2142/2142 tests pass").
 - Claims need a citation or a measurement; distinguish **designed** vs **implemented** vs **measured** vs **verified by test**.
 
 ## 5. Figures & Tables
 - Numbering: "Figure 2.3" = chapter.figure-index; "Table 4.1" likewise (registers in OUTLINE.md).
 - Caption above tables (Table X: …), below figures (Figure X: …), 11 pt, centered, same font.
 - Every figure/table must be referenced in text before it appears ("…as shown in Figure 4.1").
-- Sources under figures/tables ("Source: Ministry of Industry and Mines, Bulletin n° 42" or "Source: Author (platform output, v3.1.7)").
+- Sources under figures/tables ("Source: Ministry of Industry and Mines, Bulletin n° 42" or "Source: Author (platform output, v3.2.1)").
 - Screenshots: capture at 100% zoom, GUI in Arabic version for authenticity + English captions.
 - Diagrams: use one consistent notation (UML for architecture/use-cases; flowchart for algorithms).
 
@@ -63,7 +63,7 @@ Companion to `thesis_template.docx` and aligned with the national thesis regulat
 - [ ] Every section ends with a bridging sentence to the next.
 - [ ] No paragraph longer than ~150 words.
 - [ ] Each claim × citation × figure × table cross-checked.
-- [ ] Terminology consistent (platform name: *Smart Accounting Platform*; version format v3.1.7).
+- [ ] Terminology consistent (platform name: *Smart Accounting Platform*; version format v3.2.1).
 - [ ] PDF/Word export keeps Arabic rendering intact (embed Arabic-capable font when exporting the bilingual abstract).
 
 ## 8. Plagiarism & Integrity

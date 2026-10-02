@@ -182,7 +182,7 @@ def build():
 
     # Abstract EN
     heading(doc, "Abstract", 1, center=True)
-    para(doc, "[English abstract 150–250 words: background, problem, objectives, methodology, key results — 35 screens, 20 ratios, Algerian tax engine, 1800 tests, 100% coverage.]")
+    para(doc, "[English abstract 150–250 words: background, problem, objectives, methodology, key results — 42 screens, 20 ratios, Algerian tax engine, 2142 tests, 100% coverage.]")
     # Abstract FR
     heading(doc, "Résumé", 2)
     para(doc, "[Résumé en français — équivalent du résumé anglais.]")
@@ -248,7 +248,7 @@ def build():
     # Appendices
     heading(doc, "APPENDICES", 1, center=True)
     for letter, title in [("A", "Installation & User Guide"),
-                          ("B", "Screen Catalogue (35 screens)"),
+                          ("B", "Screen Catalogue (42 screens)"),
                           ("C", "Tax Calculation Test Vectors"),
                           ("D", "Coverage Report Summary"),
                           ("E", "Innovation / Startup Dossier Notes (Arrêté 1275)")]:

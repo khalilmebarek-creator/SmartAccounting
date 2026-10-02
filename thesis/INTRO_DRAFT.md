@@ -24,27 +24,27 @@ Third, **the absence of decision-support tools**. Even when SMEs maintain accoun
 
 The overall objective of this thesis is to design, implement, and validate a desktop accounting platform that reconciles Algerian tax compliance with advanced financial analysis for SMEs. Specifically, the research pursues five objectives:
 
-- **O1** — Design a modular, testable architecture for a lightweight desktop accounting platform that supports 35 interactive screens across data entry, analysis, tax, and administration domains.
+- **O1** — Design a modular, testable architecture for a lightweight desktop accounting platform that supports 42 interactive screens across data entry, analysis, tax, and administration domains.
 - **O2** — Implement an Algerian tax-compliance engine covering IBS (19/23/26%), TVA (19/9/6/0%), IRG (progressive brackets with proportional deduction), CNAS/CNAC social contributions, the Versement Forfaitaire, and an automated tax calendar with reminders and declaration templates (G50, G57, DAS).
 - **O3** — Provide an advanced financial analysis layer: 20 financial ratios, DuPont decomposition, Altman Z-Score, comparative and cash-flow analysis, scenario and benchmarking analysis, and cost-center profitability.
 - **O4** — Integrate lightweight, explainable AI capabilities — forecasting (linear regression, moving average, exponential smoothing with 95% confidence intervals), anomaly detection (z-score and IQR rules), and risk-pattern identification — without external ML services or heavy dependencies.
-- **O5** — Validate the platform through rigorous software-engineering practice: 1800 automated tests, 100% coverage of the 37 engine modules, performance regression tests (cold start of 44 ms, resident memory ≤45 MB), and end-to-end user acceptance journeys in three languages.
+- **O5** — Validate the platform through rigorous software-engineering practice: 2142 automated tests, 100% coverage of the 56 modules, performance regression tests (cold start of 44 ms, resident memory ≤45 MB), and end-to-end user acceptance journeys in three languages.
 
 ## 1.4 Methodology (Summary)
 
-The research follows the design-science paradigm for information systems: the problem is formalized as a requirements specification (Chapter III); an artifact — the Smart Accounting Platform — is designed (Chapter IV) and implemented (Chapter V); and the artifact is validated through automated testing, performance measurement, and user acceptance testing (Chapter VI). Iterative releases (v1.0 through v3.1.7) allowed continuous feedback integration.
+The research follows the design-science paradigm for information systems: the problem is formalized as a requirements specification (Chapter III); an artifact — the Smart Accounting Platform — is designed (Chapter IV) and implemented (Chapter V); and the artifact is validated through automated testing, performance measurement, and user acceptance testing (Chapter VI). Iterative releases (v1.0 through v3.2.1) allowed continuous feedback integration.
 
 ## 1.5 Expected Contributions
 
 The thesis is expected to deliver:
 
 - **Scientific contribution** — a localized model of tax-compliance automation for Algerian SME software (encoded rules, calendar, declaration templates), and a reusable pattern for lightweight explainable AI in desktop financial applications.
-- **Practical contribution** — a deployable product distributed as a standalone executable (Nuitka, 143 MB), a silent auto-update mechanism, and a portable edition, usable by non-specialists.
+- **Practical contribution** — a deployable product distributed as a standalone executable (Nuitka, 420 MB), a silent auto-update mechanism, and a portable edition, usable by non-specialists.
 - **Commercial contribution** — a product aligned with the national mechanism "One Diploma, One Startup / One Diploma, One Patent" (Arrêté ministériel n° 1275 of 27 September 2022), with documented innovation potential for startup status or software patent registration.
 
 ## 1.6 Thesis Structure
 
-The remainder of this thesis is organized as follows. Chapter II reviews the literature on accounting information systems, financial ratio analysis, tax-compliance systems, and AI in finance, and identifies the research gap. Chapter III analyzes the problem and specifies functional and non-functional requirements. Chapter IV presents the proposed architecture and technology choices. Chapter V details the implementation of the core algorithms, database design, security mechanisms, and packaging. Chapter VI reports the testing strategy and results, including the 1800-test suite and performance measurements. Chapter VII evaluates the platform against the objectives and discusses limitations. Chapter VIII concludes and outlines future work, including cloud deployment, mobile access, and e-filing integration.
+The remainder of this thesis is organized as follows. Chapter II reviews the literature on accounting information systems, financial ratio analysis, tax-compliance systems, and AI in finance, and identifies the research gap. Chapter III analyzes the problem and specifies functional and non-functional requirements. Chapter IV presents the proposed architecture and technology choices. Chapter V details the implementation of the core algorithms, database design, security mechanisms, and packaging. Chapter VI reports the testing strategy and results, including the 2142-test suite and performance measurements. Chapter VII evaluates the platform against the objectives and discusses limitations. Chapter VIII concludes and outlines future work, including cloud deployment, mobile access, and e-filing integration.
 
 ---
 
@@ -64,4 +64,4 @@ The remainder of this thesis is organized as follows. Chapter II reviews the lit
 | Penalties 10% + 3%/month | Platform tax engine (cnas.penalties) |
 | IBS instalments 20/03, 20/06, 20/11; balance 30/04; DAS 31/01 | Platform tax engine (tax_calendar) |
 | Startup/patent mechanism | Arrêté ministériel n° 1275, 27/09/2022 (mod. arrêté n° 008) |
-| 35 screens, 37 modules, 1800 tests, 100% coverage, 44 ms startup, ≤45 MB RSS | Project v3.1.7 (docs/, PROJECT_MAP.md) |
+| 42 screens, 56 modules, 2142 tests, 100% coverage, 44 ms startup, ≤45 MB RSS | Project v3.2.1 (docs/, PROJECT_MAP.md) |

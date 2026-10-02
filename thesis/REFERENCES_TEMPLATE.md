@@ -32,15 +32,15 @@ Use this file as the master list; copy final entries into the thesis's Bibliogra
 
 ## C. Software & Technical Documentation
 
-23. Riverbank Computing. (2024). *PyQt5 documentation*. https://www.riverbankcomputing.com/documentation/
+23. Riverbank Computing. (2024). *PyQt6 documentation*. https://www.riverbankcomputing.com/documentation/
 24. The SQLite Team. (2024). *SQLite documentation* (WAL mode, connection pooling). https://www.sqlite.org/docs.html
 25. Nuitka Project. (2024). *Nuitka: Python compiler documentation*. https://nuitka.net/
 26. JR Software. (2024). *Inno Setup documentation*. https://jrsoftware.org/ishelp/
-27. The matplotlib development team. (2024). *Matplotlib documentation*. https://matplotlib.org/stable/
+27. The pyqtgraph development team. (2024). *Matplotlib documentation*. https://pyqtgraph.org/stable/
 28. The pandas development team. (2024). *pandas documentation*. https://pandas.pydata.org/docs/
 29. openpyxl contributors. (2024). *openpyxl documentation*. https://openpyxl.readthedocs.io/
 30. FPDF / PyFPDF contributors. (2024). *FPDF documentation for Arabic (RTL) PDF generation*. https://pyfpdf.github.io/
-31. Smart Accounting Platform. (2026). *Project documentation v3.1.7* (PROJECT_MAP.md, docs/PERFORMANCE_REPORT.md, docs/API_REFERENCE.md). `[Author's own work]`
+31. Smart Accounting Platform. (2026). *Project documentation v3.2.1* (PROJECT_MAP.md, docs/PERFORMANCE_REPORT.md, docs/API_REFERENCE.md). `[Author's own work]`
 
 ## D. Filling Template (copy-paste blocks)
 
@@ -57,7 +57,7 @@ Use this file as the master list; copy final entries into the thesis's Bibliogra
 > Organization. (Year). *Title of page*. Site name. Retrieved Month Day, Year, from https://url
 
 **Thesis artifact:**
-> Author, A. A. (2026). *Smart Accounting Platform v3.1.7* [Computer software]. Repository: https://github.com/…
+> Author, A. A. (2026). *Smart Accounting Platform v3.2.1* [Computer software]. Repository: https://github.com/…
 
 **Checklist:**
 - [ ] Every in-text citation appears in the list and vice versa.

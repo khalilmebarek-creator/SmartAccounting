@@ -75,7 +75,7 @@
   - [ ] شريحة الأهداف (Objectives)
   - [ ] شريحة البنية (Architecture)
   - [ ] شريحة الميزات الرئيسية (Key features)
-  - [ ] شريحة النتائج (Results: 35 screens / 1800 tests / 44ms)
+  - [ ] شريحة النتائج (Results: 42 screens / 2142 tests / 44ms)
   - [ ] شريحة المقارنة (Comparison with existing solutions)
   - [ ] شريحة البراءة (Patent)
   - [ ] شريحة الاستنتاج + الأعمال المستقبلية
