@@ -2,7 +2,8 @@
 # ========================
 # خطط سنوية لكل بند + مقارنة فعلي/مخطط + انحرافات ونسب تنفيذ
 
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("budgeting")
@@ -198,7 +199,7 @@ class BudgetManager:
     # ===== قاعدة البيانات =====
 
     def _ensure_table(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {BUDGET_TABLE} (
                 budget_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 budget_year INTEGER NOT NULL,
@@ -208,24 +209,28 @@ class BudgetManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(budget_year, item_name)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_table(conn)
-                conn.execute(f"DELETE FROM {BUDGET_TABLE}")
-                conn.execute(
-                    "DELETE FROM sqlite_sequence WHERE name = ?",
-                    (BUDGET_TABLE,),
-                )
-                for item in self._items:
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_table(conn)
+                    conn.execute(text(f"DELETE FROM {BUDGET_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {BUDGET_TABLE} (budget_year, category, "
-                        f"item_name, planned_amount) VALUES (?, ?, ?, ?)",
-                        (item["year"], item["category"], item["item_name"],
-                         item["amount"]),
+                        text("DELETE FROM sqlite_sequence WHERE name = :n"),
+                        {"n": BUDGET_TABLE},
                     )
+                    for item in self._items:
+                        conn.execute(
+                            text(
+                                f"INSERT INTO {BUDGET_TABLE} (budget_year, category, "
+                                "item_name, planned_amount) VALUES (:y, :cat, :nm, :amt)"
+                            ),
+                            {"y": item["year"], "cat": item["category"],
+                             "nm": item["item_name"], "amt": item["amount"]},
+                        )
             log.info("Saved %d budget items to database", len(self._items))
             return True
         except Exception as exc:
@@ -234,13 +239,20 @@ class BudgetManager:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(BUDGET_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": BUDGET_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                rows = conn.fetch_all(
-                    f"SELECT budget_id, budget_year, category, item_name, "
-                    f"planned_amount FROM {BUDGET_TABLE} ORDER BY budget_id"
-                )
+                rows = conn.execute(
+                    text(
+                        f"SELECT budget_id, budget_year, category, item_name, "
+                        f"planned_amount FROM {BUDGET_TABLE} ORDER BY budget_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("budget load_db error: %s", exc)
             return False
@@ -250,9 +262,15 @@ class BudgetManager:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                if conn.table_exists(BUDGET_TABLE):
-                    conn.execute(f"DELETE FROM {BUDGET_TABLE}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    exists = conn.execute(
+                        text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                        {"n": BUDGET_TABLE},
+                    ).fetchone()
+                    if exists:
+                        conn.execute(text(f"DELETE FROM {BUDGET_TABLE}"))
             return True
         except Exception as exc:
             log.error("budget clear_db error: %s", exc)

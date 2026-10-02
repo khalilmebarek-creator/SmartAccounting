@@ -3,7 +3,8 @@
 # أصناف + حركات (دخول/خروج/تسوية) + تكلفة متوسط متحرك + نقاط إعادة الطلب
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("inventory")
@@ -234,7 +235,7 @@ class InventoryManager:
     # ===== قاعدة البيانات =====
 
     def _ensure_tables(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {ITEM_TABLE} (
                 item_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sku VARCHAR(100) UNIQUE,
@@ -248,8 +249,8 @@ class InventoryManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        conn.execute(f"""
+        """))
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {MOVEMENT_TABLE} (
                 movement_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 item_id INTEGER NOT NULL,
@@ -262,34 +263,44 @@ class InventoryManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (item_id) REFERENCES inventory_items(item_id)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_tables(conn)
-                conn.execute(f"DELETE FROM {MOVEMENT_TABLE}")
-                conn.execute(f"DELETE FROM {ITEM_TABLE}")
-                conn.execute("DELETE FROM sqlite_sequence WHERE name IN (?, ?)",
-                             (MOVEMENT_TABLE, ITEM_TABLE))
-                for item in self._items.values():
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_tables(conn)
+                    conn.execute(text(f"DELETE FROM {MOVEMENT_TABLE}"))
+                    conn.execute(text(f"DELETE FROM {ITEM_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {ITEM_TABLE} (sku, item_name, category, "
-                        f"unit, quantity, avg_cost, sale_price, min_quantity) "
-                        f"VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        (item["sku"] or None, item["name"], item["category"],
-                         item["unit"], item["quantity"], item["avg_cost"],
-                         item["sale_price"], item["min_quantity"]),
+                        text("DELETE FROM sqlite_sequence WHERE name IN (:n1, :n2)"),
+                        {"n1": MOVEMENT_TABLE, "n2": ITEM_TABLE},
                     )
-                for item_id, movements in self._movements.items():
-                    for m in movements:
+                    for item in self._items.values():
                         conn.execute(
-                            f"INSERT INTO {MOVEMENT_TABLE} (item_id, "
-                            f"movement_date, movement_type, quantity, "
-                            f"unit_cost, reference, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                            (item_id, m["date"], m["type"], m["quantity"],
-                             m.get("unit_cost") or 0, m["reference"], m["notes"]),
+                            text(
+                                f"INSERT INTO {ITEM_TABLE} (sku, item_name, category, "
+                                "unit, quantity, avg_cost, sale_price, min_quantity) "
+                                "VALUES (:sku, :nm, :cat, :un, :q, :ac, :sp, :mq)"
+                            ),
+                            {"sku": item["sku"] or None, "nm": item["name"],
+                             "cat": item["category"], "un": item["unit"],
+                             "q": item["quantity"], "ac": item["avg_cost"],
+                             "sp": item["sale_price"], "mq": item["min_quantity"]},
                         )
+                    for item_id, movements in self._movements.items():
+                        for m in movements:
+                            conn.execute(
+                                text(
+                                    f"INSERT INTO {MOVEMENT_TABLE} (item_id, "
+                                    "movement_date, movement_type, quantity, "
+                                    "unit_cost, reference, notes) VALUES (:iid, :d, :t, :q, :uc, :ref, :nt)"
+                                ),
+                                {"iid": item_id, "d": m["date"], "t": m["type"],
+                                 "q": m["quantity"], "uc": m.get("unit_cost") or 0,
+                                 "ref": m["reference"], "nt": m["notes"]},
+                            )
             log.info("Saved %d inventory items to database", len(self._items))
             return True
         except Exception as exc:
@@ -298,19 +309,28 @@ class InventoryManager:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(ITEM_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": ITEM_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                item_rows = conn.fetch_all(
-                    f"SELECT item_id, sku, item_name, category, unit, quantity, "
-                    f"avg_cost, sale_price, min_quantity "
-                    f"FROM {ITEM_TABLE} ORDER BY item_id"
-                )
-                mov_rows = conn.fetch_all(
-                    f"SELECT movement_id, item_id, movement_date, movement_type, "
-                    f"quantity, unit_cost, reference, notes "
-                    f"FROM {MOVEMENT_TABLE} ORDER BY movement_id"
-                )
+                item_rows = conn.execute(
+                    text(
+                        f"SELECT item_id, sku, item_name, category, unit, quantity, "
+                        f"avg_cost, sale_price, min_quantity "
+                        f"FROM {ITEM_TABLE} ORDER BY item_id"
+                    ),
+                ).fetchall()
+                mov_rows = conn.execute(
+                    text(
+                        f"SELECT movement_id, item_id, movement_date, movement_type, "
+                        f"quantity, unit_cost, reference, notes "
+                        f"FROM {MOVEMENT_TABLE} ORDER BY movement_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("inventory load_db error: %s", exc)
             return False
@@ -329,10 +349,16 @@ class InventoryManager:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                for tbl in (MOVEMENT_TABLE, ITEM_TABLE):
-                    if conn.table_exists(tbl):
-                        conn.execute(f"DELETE FROM {tbl}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    for tbl in (MOVEMENT_TABLE, ITEM_TABLE):
+                        exists = conn.execute(
+                            text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                            {"n": tbl},
+                        ).fetchone()
+                        if exists:
+                            conn.execute(text(f"DELETE FROM {tbl}"))
             return True
         except Exception as exc:
             log.error("inventory clear_db error: %s", exc)

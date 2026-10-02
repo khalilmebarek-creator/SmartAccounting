@@ -264,24 +264,25 @@ class TestInventoryDB(unittest.TestCase):
         self.assertFalse(other.load_db())
 
     def test_save_db_raises_error(self):
-        with mock.patch("modules.inventory.get_connection",
+        with mock.patch("modules.inventory.get_engine",
                         side_effect=Exception("boom")):
             self.assertFalse(self.mgr.save_db())
 
     def test_load_db_raises_error(self):
-        with mock.patch("modules.inventory.get_connection",
+        with mock.patch("modules.inventory.get_engine",
                         side_effect=Exception("boom")):
             self.assertFalse(self.mgr.load_db())
 
     def test_load_db_missing_table(self):
         conn = mock.MagicMock()
-        conn.table_exists.return_value = False
-        with mock.patch("modules.inventory.get_connection") as get_conn:
-            get_conn.return_value.__enter__.return_value = conn
+        conn.execute.return_value.fetchone.return_value = None
+        engine = mock.MagicMock()
+        engine.connect.return_value.__enter__.return_value = conn
+        with mock.patch("modules.inventory.get_engine", return_value=engine):
             self.assertFalse(self.mgr.load_db())
 
     def test_clear_db_raises_error(self):
-        with mock.patch("modules.inventory.get_connection",
+        with mock.patch("modules.inventory.get_engine",
                         side_effect=Exception("boom")):
             self.assertFalse(self.mgr.clear_db())
 

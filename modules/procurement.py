@@ -3,7 +3,8 @@
 # طلبات شراء + موردين + بنود + تاريخ الحالة + تكامل المخزون
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("procurement")
@@ -202,7 +203,7 @@ class ProcurementManager:
         self._next_item_id = 1
 
     def _ensure_tables(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {ORDERS_TABLE} (
                 order_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 supplier VARCHAR(255) NOT NULL,
@@ -216,8 +217,8 @@ class ProcurementManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        conn.execute(f"""
+        """))
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {ITEMS_TABLE} (
                 item_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 order_id INTEGER NOT NULL,
@@ -231,38 +232,47 @@ class ProcurementManager:
                 grand_total DECIMAL(15,2) DEFAULT 0,
                 FOREIGN KEY (order_id) REFERENCES {ORDERS_TABLE}(order_id)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_tables(conn)
-                conn.execute(f"DELETE FROM {ITEMS_TABLE}")
-                conn.execute(f"DELETE FROM {ORDERS_TABLE}")
-                conn.execute("DELETE FROM sqlite_sequence WHERE name IN (?, ?)",
-                             (ITEMS_TABLE, ORDERS_TABLE))
-                for order in self._orders.values():
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_tables(conn)
+                    conn.execute(text(f"DELETE FROM {ITEMS_TABLE}"))
+                    conn.execute(text(f"DELETE FROM {ORDERS_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {ORDERS_TABLE} (supplier, order_date, "
-                        f"reference, notes, status, total, tax, grand_total) "
-                        f"VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        (order["supplier"], order["date"],
-                         order["reference"] or None, order["notes"] or None,
-                         order["status"], order["total"], order["tax"],
-                         order["grand_total"]),
+                        text("DELETE FROM sqlite_sequence WHERE name IN (:n1, :n2)"),
+                        {"n1": ITEMS_TABLE, "n2": ORDERS_TABLE},
                     )
-                for order_id, items in self._items.items():
-                    for item in items:
+                    for order in self._orders.values():
                         conn.execute(
-                            f"INSERT INTO {ITEMS_TABLE} (order_id, item_name, "
-                            f"quantity, unit_price, unit, tax_rate, "
-                            f"line_total, tax, grand_total) "
-                            f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            (order_id, item["name"], item["quantity"],
-                             item["unit_price"], item["unit"] or None,
-                             item["tax_rate"], item["line_total"],
-                             item["tax"], item["grand_total"]),
+                            text(
+                                f"INSERT INTO {ORDERS_TABLE} (supplier, order_date, "
+                                "reference, notes, status, total, tax, grand_total) "
+                                "VALUES (:sup, :d, :ref, :nt, :sts, :tot, :tax, :gt)"
+                            ),
+                            {"sup": order["supplier"], "d": order["date"],
+                             "ref": order["reference"] or None, "nt": order["notes"] or None,
+                             "sts": order["status"], "tot": order["total"],
+                             "tax": order["tax"], "gt": order["grand_total"]},
                         )
+                    for order_id, items in self._items.items():
+                        for item in items:
+                            conn.execute(
+                                text(
+                                    f"INSERT INTO {ITEMS_TABLE} (order_id, item_name, "
+                                    "quantity, unit_price, unit, tax_rate, "
+                                    "line_total, tax, grand_total) "
+                                    "VALUES (:oid, :nm, :q, :up, :un, :tr, :lt, :tax, :gt)"
+                                ),
+                                {"oid": order_id, "nm": item["name"],
+                                 "q": item["quantity"], "up": item["unit_price"],
+                                 "un": item["unit"] or None, "tr": item["tax_rate"],
+                                 "lt": item["line_total"], "tax": item["tax"],
+                                 "gt": item["grand_total"]},
+                            )
             log.info("Saved %d procurement orders to database",
                      len(self._orders))
             return True
@@ -272,19 +282,28 @@ class ProcurementManager:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(ORDERS_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": ORDERS_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                order_rows = conn.fetch_all(
-                    f"SELECT order_id, supplier, order_date, reference, "
-                    f"notes, status, total, tax, grand_total "
-                    f"FROM {ORDERS_TABLE} ORDER BY order_id"
-                )
-                item_rows = conn.fetch_all(
-                    f"SELECT item_id, order_id, item_name, quantity, "
-                    f"unit_price, unit, tax_rate, line_total, tax, "
-                    f"grand_total FROM {ITEMS_TABLE} ORDER BY item_id"
-                )
+                order_rows = conn.execute(
+                    text(
+                        f"SELECT order_id, supplier, order_date, reference, "
+                        f"notes, status, total, tax, grand_total "
+                        f"FROM {ORDERS_TABLE} ORDER BY order_id"
+                    ),
+                ).fetchall()
+                item_rows = conn.execute(
+                    text(
+                        f"SELECT item_id, order_id, item_name, quantity, "
+                        f"unit_price, unit, tax_rate, line_total, tax, "
+                        f"grand_total FROM {ITEMS_TABLE} ORDER BY item_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("procurement load_db error: %s", exc)
             return False
@@ -306,10 +325,16 @@ class ProcurementManager:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                for tbl in (ITEMS_TABLE, ORDERS_TABLE):
-                    if conn.table_exists(tbl):
-                        conn.execute(f"DELETE FROM {tbl}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    for tbl in (ITEMS_TABLE, ORDERS_TABLE):
+                        exists = conn.execute(
+                            text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                            {"n": tbl},
+                        ).fetchone()
+                        if exists:
+                            conn.execute(text(f"DELETE FROM {tbl}"))
             return True
         except Exception as exc:
             log.error("procurement clear_db error: %s", exc)

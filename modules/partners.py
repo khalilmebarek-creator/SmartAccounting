@@ -3,7 +3,8 @@
 # إدارة الأطراف (عملاء/موردون) + معاملاتهم + الأرصدة + آجال الاستحقاق
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("partners")
@@ -274,7 +275,7 @@ class PartnerManager:
     # ===== قاعدة البيانات =====
 
     def _ensure_tables(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {PARTNER_TABLE} (
                 partner_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 partner_type VARCHAR(20) NOT NULL,
@@ -287,8 +288,8 @@ class PartnerManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        conn.execute(f"""
+        """))
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {PARTNER_TX_TABLE} (
                 transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 partner_id INTEGER NOT NULL,
@@ -300,32 +301,41 @@ class PartnerManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (partner_id) REFERENCES partners(partner_id)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_tables(conn)
-                conn.execute(f"DELETE FROM {PARTNER_TABLE}")
-                conn.execute(f"DELETE FROM {PARTNER_TX_TABLE}")
-                conn.execute("DELETE FROM sqlite_sequence WHERE name IN (?, ?)",
-                             (PARTNER_TABLE, PARTNER_TX_TABLE))
-                for p in self._partners:
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_tables(conn)
+                    conn.execute(text(f"DELETE FROM {PARTNER_TABLE}"))
+                    conn.execute(text(f"DELETE FROM {PARTNER_TX_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {PARTNER_TABLE} "
-                        f"(partner_type, partner_name, phone, email, address, "
-                        f"tax_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (p["type"], p["name"], p["phone"], p["email"],
-                         p["address"], p["tax_id"], p["notes"]),
+                        text("DELETE FROM sqlite_sequence WHERE name IN (:n1, :n2)"),
+                        {"n1": PARTNER_TABLE, "n2": PARTNER_TX_TABLE},
                     )
-                for t in self._transactions:
-                    conn.execute(
-                        f"INSERT INTO {PARTNER_TX_TABLE} "
-                        f"(partner_id, transaction_date, transaction_type, "
-                        f"amount, reference, notes) VALUES (?, ?, ?, ?, ?, ?)",
-                        (t["partner_id"], t["date"], t["type"], t["amount"],
-                         t["reference"], t["notes"]),
-                    )
+                    for p in self._partners:
+                        conn.execute(
+                            text(
+                                f"INSERT INTO {PARTNER_TABLE} "
+                                "(partner_type, partner_name, phone, email, address, "
+                                "tax_id, notes) VALUES (:t, :n, :ph, :em, :ad, :tax, :nt)"
+                            ),
+                            {"t": p["type"], "n": p["name"], "ph": p["phone"],
+                             "em": p["email"], "ad": p["address"], "tax": p["tax_id"],
+                             "nt": p["notes"]},
+                        )
+                    for t in self._transactions:
+                        conn.execute(
+                            text(
+                                f"INSERT INTO {PARTNER_TX_TABLE} "
+                                "(partner_id, transaction_date, transaction_type, "
+                                "amount, reference, notes) VALUES (:pid, :d, :t, :amt, :ref, :nt)"
+                            ),
+                            {"pid": t["partner_id"], "d": t["date"], "t": t["type"],
+                             "amt": t["amount"], "ref": t["reference"], "nt": t["notes"]},
+                        )
             log.info("Saved %d partners to database", len(self._partners))
             return True
         except Exception as exc:
@@ -334,19 +344,28 @@ class PartnerManager:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(PARTNER_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": PARTNER_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                p_rows = conn.fetch_all(
-                    f"SELECT partner_id, partner_type, partner_name, phone, "
-                    f"email, address, tax_id, notes FROM {PARTNER_TABLE} "
-                    f"ORDER BY partner_id"
-                )
-                t_rows = conn.fetch_all(
-                    f"SELECT transaction_id, partner_id, transaction_date, "
-                    f"transaction_type, amount, reference, notes "
-                    f"FROM {PARTNER_TX_TABLE} ORDER BY transaction_id"
-                )
+                p_rows = conn.execute(
+                    text(
+                        f"SELECT partner_id, partner_type, partner_name, phone, "
+                        f"email, address, tax_id, notes FROM {PARTNER_TABLE} "
+                        f"ORDER BY partner_id"
+                    ),
+                ).fetchall()
+                t_rows = conn.execute(
+                    text(
+                        f"SELECT transaction_id, partner_id, transaction_date, "
+                        f"transaction_type, amount, reference, notes "
+                        f"FROM {PARTNER_TX_TABLE} ORDER BY transaction_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("partners load_db error: %s", exc)
             return False
@@ -358,10 +377,16 @@ class PartnerManager:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                for tbl in (PARTNER_TABLE, PARTNER_TX_TABLE):
-                    if conn.table_exists(tbl):
-                        conn.execute(f"DELETE FROM {tbl}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    for tbl in (PARTNER_TABLE, PARTNER_TX_TABLE):
+                        exists = conn.execute(
+                            text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                            {"n": tbl},
+                        ).fetchone()
+                        if exists:
+                            conn.execute(text(f"DELETE FROM {tbl}"))
             return True
         except Exception as exc:
             log.error("partners clear_db error: %s", exc)

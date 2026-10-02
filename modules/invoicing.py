@@ -3,7 +3,8 @@
 # فواتير بيع/شراء مرقّمة تلقائياً + TVA + عناصر + حالات + تصدير PDF/CSV
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("invoicing")
@@ -234,7 +235,7 @@ class InvoiceManager:
     # ===== قاعدة البيانات =====
 
     def _ensure_tables(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {INVOICE_TABLE} (
                 invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 invoice_number VARCHAR(50) NOT NULL,
@@ -251,8 +252,8 @@ class InvoiceManager:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(invoice_number)
             )
-        """)
-        conn.execute(f"""
+        """))
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {INVOICE_ITEM_TABLE} (
                 item_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 invoice_id INTEGER NOT NULL,
@@ -262,39 +263,46 @@ class InvoiceManager:
                 amount DECIMAL(15,2) DEFAULT 0,
                 FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_tables(conn)
-                conn.execute(f"DELETE FROM {INVOICE_ITEM_TABLE}")
-                conn.execute(f"DELETE FROM {INVOICE_TABLE}")
-                conn.execute(
-                    "DELETE FROM sqlite_sequence WHERE name IN (?, ?)",
-                    (INVOICE_ITEM_TABLE, INVOICE_TABLE),
-                )
-                for inv in self._invoices.values():
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_tables(conn)
+                    conn.execute(text(f"DELETE FROM {INVOICE_ITEM_TABLE}"))
+                    conn.execute(text(f"DELETE FROM {INVOICE_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {INVOICE_TABLE} (invoice_number, "
-                        f"invoice_type, partner_id, invoice_date, due_date, "
-                        f"subtotal, tva_rate, tva_amount, total, status, notes) "
-                        f"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                        (inv["number"], inv["type"], inv["partner_id"],
-                         inv["date"], inv.get("due_date"),
-                         inv.get("subtotal", 0), inv["tva_rate"],
-                         inv.get("tva_amount", 0), inv.get("total", 0),
-                         inv["status"], inv.get("notes", "")),
+                        text("DELETE FROM sqlite_sequence WHERE name IN (:n1, :n2)"),
+                        {"n1": INVOICE_ITEM_TABLE, "n2": INVOICE_TABLE},
                     )
-                for inv_id, items in self._items.items():
-                    for it in items:
+                    for inv in self._invoices.values():
                         conn.execute(
-                            f"INSERT INTO {INVOICE_ITEM_TABLE} (invoice_id, "
-                            f"description, quantity, unit_price, amount) "
-                            f"VALUES (?, ?, ?, ?, ?)",
-                            (inv_id, it["description"], it["quantity"],
-                             it["unit_price"], it["amount"]),
+                            text(
+                                f"INSERT INTO {INVOICE_TABLE} (invoice_number, "
+                                "invoice_type, partner_id, invoice_date, due_date, "
+                                "subtotal, tva_rate, tva_amount, total, status, notes) "
+                                "VALUES (:num, :t, :pid, :d, :dd, :st, :tr, :ta, :tot, :sts, :nt)"
+                            ),
+                            {"num": inv["number"], "t": inv["type"], "pid": inv["partner_id"],
+                             "d": inv["date"], "dd": inv.get("due_date"),
+                             "st": inv.get("subtotal", 0), "tr": inv["tva_rate"],
+                             "ta": inv.get("tva_amount", 0), "tot": inv.get("total", 0),
+                             "sts": inv["status"], "nt": inv.get("notes", "")},
                         )
+                    for inv_id, items in self._items.items():
+                        for it in items:
+                            conn.execute(
+                                text(
+                                    f"INSERT INTO {INVOICE_ITEM_TABLE} (invoice_id, "
+                                    "description, quantity, unit_price, amount) "
+                                    "VALUES (:iid, :desc, :q, :up, :amt)"
+                                ),
+                                {"iid": inv_id, "desc": it["description"],
+                                 "q": it["quantity"], "up": it["unit_price"],
+                                 "amt": it["amount"]},
+                            )
             log.info("Saved %d invoices to database", len(self._invoices))
             return True
         except Exception as exc:
@@ -303,20 +311,29 @@ class InvoiceManager:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(INVOICE_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": INVOICE_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                inv_rows = conn.fetch_all(
-                    f"SELECT invoice_id, invoice_number, invoice_type, "
-                    f"partner_id, invoice_date, due_date, subtotal, tva_rate, "
-                    f"tva_amount, total, status, notes "
-                    f"FROM {INVOICE_TABLE} ORDER BY invoice_id"
-                )
-                item_rows = conn.fetch_all(
-                    f"SELECT item_id, invoice_id, description, quantity, "
-                    f"unit_price, amount FROM {INVOICE_ITEM_TABLE} "
-                    f"ORDER BY item_id"
-                )
+                inv_rows = conn.execute(
+                    text(
+                        f"SELECT invoice_id, invoice_number, invoice_type, "
+                        f"partner_id, invoice_date, due_date, subtotal, tva_rate, "
+                        f"tva_amount, total, status, notes "
+                        f"FROM {INVOICE_TABLE} ORDER BY invoice_id"
+                    ),
+                ).fetchall()
+                item_rows = conn.execute(
+                    text(
+                        f"SELECT item_id, invoice_id, description, quantity, "
+                        f"unit_price, amount FROM {INVOICE_ITEM_TABLE} "
+                        f"ORDER BY item_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("invoices load_db error: %s", exc)
             return False
@@ -334,10 +351,16 @@ class InvoiceManager:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                for tbl in (INVOICE_ITEM_TABLE, INVOICE_TABLE):
-                    if conn.table_exists(tbl):
-                        conn.execute(f"DELETE FROM {tbl}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    for tbl in (INVOICE_ITEM_TABLE, INVOICE_TABLE):
+                        exists = conn.execute(
+                            text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                            {"n": tbl},
+                        ).fetchone()
+                        if exists:
+                            conn.execute(text(f"DELETE FROM {tbl}"))
             return True
         except Exception as exc:
             log.error("invoices clear_db error: %s", exc)

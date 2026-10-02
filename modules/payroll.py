@@ -4,7 +4,8 @@
 #   CNAS الموظف 9% + التأمين على البطالة 1.5% + IRG التصاعدي الشهري + CNAS رب العمل 26%
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("payroll")
@@ -257,7 +258,7 @@ class PayrollEngine:
     # ===== قاعدة البيانات =====
 
     def _ensure_tables(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {EMPLOYEE_TABLE} (
                 employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 employee_name VARCHAR(255) NOT NULL,
@@ -270,8 +271,8 @@ class PayrollEngine:
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
-        conn.execute(f"""
+        """))
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {PAYROLL_TABLE} (
                 run_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 employee_id INTEGER NOT NULL,
@@ -287,37 +288,47 @@ class PayrollEngine:
                 UNIQUE(employee_id, pay_month, pay_year),
                 FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
             )
-        """)
+        """))
 
     def save_db(self):
         try:
-            with get_connection() as conn:
-                self._ensure_tables(conn)
-                conn.execute(f"DELETE FROM {PAYROLL_TABLE}")
-                conn.execute(f"DELETE FROM {EMPLOYEE_TABLE}")
-                conn.execute("DELETE FROM sqlite_sequence WHERE name IN (?, ?)",
-                             (PAYROLL_TABLE, EMPLOYEE_TABLE))
-                for emp in self._employees.values():
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_tables(conn)
+                    conn.execute(text(f"DELETE FROM {PAYROLL_TABLE}"))
+                    conn.execute(text(f"DELETE FROM {EMPLOYEE_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {EMPLOYEE_TABLE} (employee_name, "
-                        f"position, department, base_salary, hire_date, "
-                        f"status, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (emp["name"], emp["position"], emp["department"],
-                         emp["base_salary"], emp["hire_date"], emp["status"],
-                         emp["notes"]),
+                        text("DELETE FROM sqlite_sequence WHERE name IN (:n1, :n2)"),
+                        {"n1": PAYROLL_TABLE, "n2": EMPLOYEE_TABLE},
                     )
-                for emp_id, runs in self._runs.items():
-                    for (month, year), run in runs.items():
+                    for emp in self._employees.values():
                         conn.execute(
-                            f"INSERT INTO {PAYROLL_TABLE} (employee_id, "
-                            f"pay_month, pay_year, base_salary, cnas_employee, "
-                            f"unemployment_insurance, taxable_salary, irg, "
-                            f"net_salary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                            (emp_id, month, year, run["base_salary"],
-                             run["cnas_employee"], run["unemployment_insurance"],
-                             run["taxable_salary"], run["irg"],
-                             run["net_salary"]),
+                            text(
+                                f"INSERT INTO {EMPLOYEE_TABLE} (employee_name, "
+                                "position, department, base_salary, hire_date, "
+                                "status, notes) VALUES (:nm, :pos, :dep, :bs, :hd, :sts, :nt)"
+                            ),
+                            {"nm": emp["name"], "pos": emp["position"],
+                             "dep": emp["department"], "bs": emp["base_salary"],
+                             "hd": emp["hire_date"], "sts": emp["status"],
+                             "nt": emp["notes"]},
                         )
+                    for emp_id, runs in self._runs.items():
+                        for (month, year), run in runs.items():
+                            conn.execute(
+                                text(
+                                    f"INSERT INTO {PAYROLL_TABLE} (employee_id, "
+                                    "pay_month, pay_year, base_salary, cnas_employee, "
+                                    "unemployment_insurance, taxable_salary, irg, "
+                                    "net_salary) VALUES (:eid, :m, :y, :bs, :ce, :ui, :ts, :irg, :ns)"
+                                ),
+                                {"eid": emp_id, "m": month, "y": year,
+                                 "bs": run["base_salary"], "ce": run["cnas_employee"],
+                                 "ui": run["unemployment_insurance"],
+                                 "ts": run["taxable_salary"], "irg": run["irg"],
+                                 "ns": run["net_salary"]},
+                            )
             log.info("Saved %d employees to database", len(self._employees))
             return True
         except Exception as exc:
@@ -326,19 +337,28 @@ class PayrollEngine:
 
     def load_db(self):
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(EMPLOYEE_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": EMPLOYEE_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                emp_rows = conn.fetch_all(
-                    f"SELECT employee_id, employee_name, position, department, "
-                    f"base_salary, hire_date, status, notes "
-                    f"FROM {EMPLOYEE_TABLE} ORDER BY employee_id"
-                )
-                run_rows = conn.fetch_all(
-                    f"SELECT employee_id, pay_month, pay_year, base_salary, "
-                    f"cnas_employee, unemployment_insurance, taxable_salary, "
-                    f"irg, net_salary FROM {PAYROLL_TABLE}"
-                )
+                emp_rows = conn.execute(
+                    text(
+                        f"SELECT employee_id, employee_name, position, department, "
+                        f"base_salary, hire_date, status, notes "
+                        f"FROM {EMPLOYEE_TABLE} ORDER BY employee_id"
+                    ),
+                ).fetchall()
+                run_rows = conn.execute(
+                    text(
+                        f"SELECT employee_id, pay_month, pay_year, base_salary, "
+                        f"cnas_employee, unemployment_insurance, taxable_salary, "
+                        f"irg, net_salary FROM {PAYROLL_TABLE}"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("payroll load_db error: %s", exc)
             return False
@@ -364,10 +384,16 @@ class PayrollEngine:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                for tbl in (PAYROLL_TABLE, EMPLOYEE_TABLE):
-                    if conn.table_exists(tbl):
-                        conn.execute(f"DELETE FROM {tbl}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    for tbl in (PAYROLL_TABLE, EMPLOYEE_TABLE):
+                        exists = conn.execute(
+                            text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                            {"n": tbl},
+                        ).fetchone()
+                        if exists:
+                            conn.execute(text(f"DELETE FROM {tbl}"))
             return True
         except Exception as exc:
             log.error("payroll clear_db error: %s", exc)
