@@ -3,7 +3,8 @@
 # سجل القيود المحاسبية + ميزان المراجعة + أرصدة الحسابات + ترحيلات شهرية
 
 from datetime import date
-from database.db_connection import get_connection
+from sqlalchemy import text
+from database.engine import get_engine
 from utils.app_logger import get_logger
 
 log = get_logger("ledger")
@@ -157,10 +158,10 @@ class LedgerBook:
             log.error("export_csv error: %s", exc)
             return False
 
-    # ===== قاعدة البيانات =====
+    # ===== قاعدة البيانات (SQLAlchemy Core) =====
 
     def _ensure_table(self, conn):
-        conn.execute(f"""
+        conn.execute(text(f"""
             CREATE TABLE IF NOT EXISTS {LEDGER_TABLE} (
                 entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 entry_date DATE NOT NULL,
@@ -172,27 +173,35 @@ class LedgerBook:
                 reference VARCHAR(100),
                 created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """))
 
     def save_db(self):
         """حفظ كل القيود في قاعدة SQLite (إعادة كتابة كاملة)."""
         try:
-            with get_connection() as conn:
-                self._ensure_table(conn)
-                conn.execute(f"DELETE FROM {LEDGER_TABLE}")
-                conn.execute(
-                    "DELETE FROM sqlite_sequence WHERE name = ?",
-                    (LEDGER_TABLE,),
-                )
-                for e in self._entries:
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    self._ensure_table(conn)
+                    conn.execute(text(f"DELETE FROM {LEDGER_TABLE}"))
                     conn.execute(
-                        f"INSERT INTO {LEDGER_TABLE} "
-                        f"(entry_date, account_code, account_name, description, "
-                        f"debit, credit, reference) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        (e["date"], e["account_code"], e["account_name"],
-                         e["description"], e["debit"], e["credit"],
-                         e.get("reference")),
+                        text("DELETE FROM sqlite_sequence WHERE name = :n"),
+                        {"n": LEDGER_TABLE},
                     )
+                    for e in self._entries:
+                        conn.execute(
+                            text(
+                                f"INSERT INTO {LEDGER_TABLE} "
+                                "(entry_date, account_code, account_name, description, "
+                                "debit, credit, reference) "
+                                "VALUES (:d, :ac, :an, :desc, :dr, :cr, :ref)"
+                            ),
+                            {
+                                "d": e["date"], "ac": e["account_code"],
+                                "an": e["account_name"], "desc": e["description"],
+                                "dr": e["debit"], "cr": e["credit"],
+                                "ref": e.get("reference"),
+                            },
+                        )
             log.info("Saved %d ledger entries to database", len(self._entries))
             return True
         except Exception as exc:
@@ -202,14 +211,21 @@ class LedgerBook:
     def load_db(self):
         """تحميل القيود من قاعدة SQLite إلى الذاكرة (يستبدل الحالة)."""
         try:
-            with get_connection() as conn:
-                if not conn.table_exists(LEDGER_TABLE):
+            engine = get_engine()
+            with engine.connect() as conn:
+                exists = conn.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                    {"n": LEDGER_TABLE},
+                ).fetchone()
+                if not exists:
                     return False
-                rows = conn.fetch_all(
-                    f"SELECT entry_id, entry_date, account_code, account_name, "
-                    f"description, debit, credit, reference "
-                    f"FROM {LEDGER_TABLE} ORDER BY entry_id"
-                )
+                rows = conn.execute(
+                    text(
+                        f"SELECT entry_id, entry_date, account_code, account_name, "
+                        f"description, debit, credit, reference "
+                        f"FROM {LEDGER_TABLE} ORDER BY entry_id"
+                    ),
+                ).fetchall()
         except Exception as exc:
             log.error("ledger load_db error: %s", exc)
             return False
@@ -219,9 +235,15 @@ class LedgerBook:
 
     def clear_db(self):
         try:
-            with get_connection() as conn:
-                if conn.table_exists(LEDGER_TABLE):
-                    conn.execute(f"DELETE FROM {LEDGER_TABLE}")
+            engine = get_engine()
+            with engine.connect() as conn:
+                with conn.begin():
+                    exists = conn.execute(
+                        text("SELECT name FROM sqlite_master WHERE type='table' AND name = :n"),
+                        {"n": LEDGER_TABLE},
+                    ).fetchone()
+                    if exists:
+                        conn.execute(text(f"DELETE FROM {LEDGER_TABLE}"))
             return True
         except Exception as exc:
             log.error("ledger clear_db error: %s", exc)

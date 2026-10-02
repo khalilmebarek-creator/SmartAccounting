@@ -2,9 +2,9 @@
 
 **Title (working):** *Smart Accounting Platform: Design and Implementation of a Tax-Compliant Financial Analysis System for Algerian SMEs*
 
-**Proposed framework:** Master's thesis under the national mechanism "One Diploma, One Startup / One Diploma, One Patent" (Arrêté ministériel n° 1275 du 27 septembre 2022, modifié par l'arrêté n° 008) — the thesis presents a functional software product (Smart Accounting Platform v3.1.7) eligible for startup status or a software patent.
+**Proposed framework:** Master's thesis under the national mechanism "One Diploma, One Startup / One Diploma, One Patent" (Arrêté ministériel n° 1275 du 27 septembre 2022, modifié par l'arrêté n° 008) — the thesis presents a functional software product (Smart Accounting Platform v3.2.1) eligible for startup status or a software patent.
 
-> **Note on project data:** earlier drafts cited "22 screens / 318 tests". The actual system (v3.1.7, Aug 2026) comprises **35 screens, 37 engine modules, 20 financial ratios + Z-Score + DuPont, 1800 passing tests, 100% module coverage, 3 languages (AR/EN/FR) with 1925 i18n keys**. All page estimates below assume A4, Times New Roman 12pt, 1.5 line spacing.
+> **Note on project data:** earlier drafts cited "22 screens / 318 tests". The actual system (v3.2.1, Aug 2026) comprises **42 screens, 56 modules, 20 financial ratios + Z-Score + DuPont, 2142 passing tests, 100% module coverage, 3 languages (AR/EN/FR) with 2296 i18n keys**. All page estimates below assume A4, Times New Roman 12pt, 1.5 line spacing.
 
 ---
 
@@ -26,14 +26,14 @@
 - **Explicit research questions (RQ1–RQ4)** listed here (see Style Guide for format).
 
 ### 1.3 Research Objectives
-- O1: Design a modular desktop architecture for an SME accounting platform (MVP→35 screens).
+- O1: Design a modular desktop architecture for an SME accounting platform (MVP→42 screens).
 - O2: Implement the Algerian tax engine (IBS 19/23/26%, TVA 19/9/6/0%, IRG progressive brackets, CNAS/CNAC social contributions, VF, DAS) with an automated tax calendar.
 - O3: Provide advanced financial analysis (20 ratios, DuPont decomposition, Altman Z-Score, scenario analysis, benchmarking, cost-center profitability).
 - O4: Integrate lightweight AI capabilities (forecasting, anomaly detection, risk patterns) without heavy ML dependencies.
-- O5: Validate quality via 1800 automated tests + 100% module coverage + performance targets (startup ≈44 ms, memory ≤45 MB).
+- O5: Validate quality via 2142 automated tests + 100% module coverage + performance targets (startup ≈44 ms, memory ≤45 MB).
 
 ### 1.4 Methodology (brief)
-Design-science research: problem identification → requirement elicitation → iterative prototyping (v1.0→v3.1.7) → automated testing → UAT. Full methodology in Chapter 3.
+Design-science research: problem identification → requirement elicitation → iterative prototyping (v1.0→v3.2.1) → automated testing → UAT. Full methodology in Chapter 3.
 
 ### 1.5 Thesis Structure
 One-paragraph preview of chapters I–VIII.
@@ -95,7 +95,7 @@ One-paragraph preview of chapters I–VIII.
 - Security: PBKDF2 (100 k iterations + salt), AES-256 vault, encrypted SMTP/API keys, HTTPS-only update, 2FA, roles.
 - Usability: 3 languages + RTL, 3 themes (light/dark/modern), accessibility contrast, keyboard shortcuts.
 - Portability: Nuitka standalone (no Python install), silent auto-update.
-- Maintainability: 100% module coverage, 1800 tests, i18n 1925 keys ×3.
+- Maintainability: 100% module coverage, 2142 tests, i18n 2296 keys ×3.
 
 ---
 
@@ -109,15 +109,15 @@ One-paragraph preview of chapters I–VIII.
 - Figure 4.3: data flow for a typical analysis request (view → engine → state/db → chart/PDF).
 
 ### 4.2 Technology Stack & Justification
-- PyQt5 (desktop, RTL, themes), SQLite (zero-admin, WAL, pooling), matplotlib/NumPy/Pandas (analysis), FPDF/openpyxl (Arabic PDF/Excel), Nuitka (standalone exe 143 MB), Inno Setup (installer 66.9 MB), GitHub Actions CI.
+- PyQt6 (desktop, RTL, themes), SQLite (zero-admin, WAL, pooling), pyqtgraph/NumPy/Pandas (analysis), FPDF/openpyxl (Arabic PDF/Excel), Nuitka (standalone exe 420 MB), Inno Setup (installer 186 MB), GitHub Actions CI.
 - Table 4.1: technology vs alternative vs rationale.
 
-### 4.3 Feature Modules (map to the 35 screens)
+### 4.3 Feature Modules (map to the 42 screens)
 - Group by domain: data entry, analysis (ratios/DuPont/Z-Score/comparative/cash flow/forecasting/benchmarks/scenarios/cost centers/AI insights), tax (calculators/declarations/reminders), business (ledger/partners/invoicing/inventory/payroll/budgeting), platform (settings/security/currency/cloud sync/demo data/user testing/import/backup).
 - Each group: screen list, engine module, key algorithm pointer.
 
 ### 4.4 Design Patterns
-- Lazy view factory + PEP 562 module proxy (startup 778→44 ms), theme system, unified exporters, i18n engine (1925×3), command shortcuts.
+- Lazy view factory + PEP 562 module proxy (startup 778→44 ms), theme system, unified exporters, i18n engine (2296×3), command shortcuts.
 
 ### 4.5 Unique Features (differentiators)
 - Algerian tax engine with legal calendar; RTL trilingual UI; offline AI insights; audit & exceptions logging; competitive benchmarking; demo companies with consistent fiscal data.
@@ -155,7 +155,7 @@ One-paragraph preview of chapters I–VIII.
 - **Interoperability with the desktop platform (key novelty):** the app reads the *same* cloud-sync snapshot files — wrapper format (app/format/checksum SHA-256) + **SACF1 decryption** (Argon2id + AES-256-GCM) re-implemented in Dart (`cryptography` 2.9.0); wrong passphrase/tampering fail with GCM authentication.
 - **Parity guarantee:** the mobile Health Score and executive summary reproduce `modules/ai_platform.py` formulas/thresholds exactly; parity is enforced by tests comparing against fixtures generated by the desktop engine (`tools/gen_mobile_fixtures.py`) — string-for-string for the Arabic summary.
 - **Local notifications:** tax deadline alerts 3 days before due dates (pure planning function + thin plugin wrapper).
-- **Quality:** 51 Flutter tests + clean `flutter analyze`; release APK 18.2 MB (arm64); toolchain AGP 8.9.1/Gradle 8.11.1 (AGP 9 rejected due to plugin incompatibility — documented).
+- **Quality:** 59 Flutter tests + clean `flutter analyze`; release APK 24.8 MB (arm64); toolchain AGP 8.9.1/Gradle 8.11.1 (AGP 9 rejected due to plugin incompatibility — documented).
 - **Figures:** 5.3–5.6 screenshots (AR/EN) from `mobile/screenshots/`; Table 5.3: desktop/mobile feature parity matrix.
 
 ---
@@ -166,17 +166,17 @@ One-paragraph preview of chapters I–VIII.
 
 ### 6.1 Testing Strategy
 - Pyramid: unit (37 modules) → integration (workflows, DB integrity, concurrency, stress) → UI (35 views) → UAT (9 end-to-end journeys) → performance (4 regression tests).
-- Table 6.1: test suite inventory (test files, counts, focus) — total 1800.
+- Table 6.1: test suite inventory (test files, counts, focus) — total 2142.
 - CI: GitHub Actions (Ubuntu, Python 3.11, xvfb-run) + coverage informational.
 
 ### 6.2 Test Results
-- Figure 6.1: pass-rate trend across versions (v1.x → v3.1.7: 318 → 1800).
+- Figure 6.1: pass-rate trend across versions (v1.x → v3.2.1: 318 → 2142).
 - Figure 6.2: coverage by module (all 100%, 5768 lines).
 - Bugs found & fixed table (Table 6.2): e.g., installer empty screens (missing sqlite3/pandas in upgrade), DuPont freeze (missing numpy), language-switch crash (_clear_layout), black-screen navigation animation, update resetting credentials (installer Excludes).
 
 ### 6.3 Performance & Validation Results
 - Table 6.3: startup 778→44 ms, RSS 128→45 MB, DB write 4.6×, read 17×.
-- UAT: full journey across 35 screens in 3 languages, user-satisfaction module results.
+- UAT: full journey across 42 screens in 3 languages, user-satisfaction module results.
 - Validation of tax calculations against hand-computed cases (Table 6.4: IBS/TVA/IRG/CNAS test vectors).
 
 ---
@@ -193,32 +193,34 @@ One-paragraph preview of chapters I–VIII.
 - Single-machine (no multi-user), static tax rates require config updates, forecasting accuracy limited on short histories, no bank API integration (manual bank sync), AI insights are rule-based (no deep learning).
 
 ### 7.3 Threats to Validity & Ethics
-- Data privacy (GDPR-aligned consent), licensing of bundled libraries (PyQt5 GPL/commercial note), tax data handling.
+- Data privacy (GDPR-aligned consent), licensing of bundled libraries (PyQt6 GPL/commercial note), tax data handling.
 
 ---
 
 ## VIII. Conclusion & Future Work — 2–3 pages
 
 ### 8.1 Conclusion
-- Restate problem → solution → verified results (1800 tests, 100% coverage, 44 ms startup, tax compliance embedded).
+- Restate problem → solution → verified results (2142 tests, 100% coverage, 44 ms startup, tax compliance embedded).
 
 ### 8.2 Contributions
 - Scientific: localized tax-compliance model for SME software; lightweight explainable AI-in-finance pattern; open test-driven methodology for desktop financial apps; **cross-platform snapshot interoperability (desktop SACF1 encryption re-implemented and verified on mobile)**.
-- Practical: deployable product (v3.1.8+), installer + portable + auto-update + **Android companion app (18.2 MB APK)**.
+- Practical: deployable product (v3.2.1+), installer + portable + auto-update + **Android companion app (24.8 MB APK)**.
 - Commercial: startup readiness under Arrêté 1275; patentable novelty (Algerian tax engine + unified export + offline AI + mobile parity engine).
 
 ### 8.3 Future Enhancements
 - Cloud SaaS + multi-user, iOS build of the mobile companion (needs macOS), bank API (SADAD/ETEB interbank), OCR document capture, deeper ML (XGBoost/Prophet), ERP integration (SAP-style charts of accounts), e-filing DGI integration, FCM server push (mobile notifications currently local-only).
+- **Data-layer unification (acknowledged technical debt):** migrate the 8 remaining modules (ledger / partners / invoicing / inventory / payroll / budgeting / einvoicing / procurement) from bespoke raw-SQL CRUD to the single `database/repository.py` (SQLAlchemy Core) source — consolidates a currently-duplicated persistence pattern under one reviewed, parameterized data-access layer.
+- **QR snapshot confidentiality:** wrap the desktop→mobile QR payload (currently gzip+base64, unauthenticated) with the same authenticated encryption used in cloud sync (Argon2id + AES-256-GCM) to protect financial data against screen capture / shoulder-surfing.
 
 ---
 
 ## IX. References
-- See REFERENCES_TEMPLATE.md (APA 7th). Sections: academic papers (~25–35), regulations & official texts (loi 01-18/2001, arrêté 1275/2022, DGI directives, MIM bulletins), software documentation (PyQt5, SQLite, Nuitka, FPDF, pandas).
+- See REFERENCES_TEMPLATE.md (APA 7th). Sections: academic papers (~25–35), regulations & official texts (loi 01-18/2001, arrêté 1275/2022, DGI directives, MIM bulletins), software documentation (PyQt6, SQLite, Nuitka, FPDF, pandas).
 
 ---
 
 ## X. Appendices (suggested)
-- A: installation & run guide; B: screen catalogue (35 screens, 1 page each optional); C: test vectors for tax calculations; D: coverage report summary; E: i18n key statistics; F: patent/startup dossier notes (Arrêté 1275: description of innovation, novelty, prototype evidence).
+- A: installation & run guide; B: screen catalogue (42 screens, 1 page each optional); C: test vectors for tax calculations; D: coverage report summary; E: i18n key statistics; F: patent/startup dossier notes (Arrêté 1275: description of innovation, novelty, prototype evidence).
 
 ---
 
