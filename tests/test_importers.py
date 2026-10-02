@@ -105,6 +105,28 @@ class TestDataImporterUncovered(unittest.TestCase):
         self.assertIn("goodtablename", insert_query)
         db.connection.commit.assert_called_once()
 
+    def test_export_neutralizes_malicious_column_name(self):
+        self.importer.data = pd.DataFrame([{
+            "safe_col": 1,
+            "evil) ; DROP TABLE users; --": 2,
+        }])
+        db = mock.MagicMock()
+        db.connect.return_value = True
+        db.cursor.execute.return_value = None
+        result = self.importer.export_to_database(db, "test_table")
+        self.assertTrue(result)
+        insert_query = db.cursor.execute.call_args[0][0]
+        self.assertNotIn(";", insert_query)
+        self.assertNotIn("DROP TABLE", insert_query)
+        self.assertIn("[evilDROPTABLEusers]", insert_query)
+
+    def test_export_rejects_empty_column_name(self):
+        self.importer.data = pd.DataFrame([{"!!!": 1}])
+        db = mock.MagicMock()
+        db.connect.return_value = True
+        result = self.importer.export_to_database(db, "test_table")
+        self.assertFalse(result)
+
     def test_export_connect_failure_returns_false(self):
         self._set_data()
         db = mock.MagicMock()

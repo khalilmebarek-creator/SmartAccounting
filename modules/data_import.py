@@ -162,8 +162,15 @@ class DataImporter:
             # تنظيف القيم NaN → None (عشان SQLite يفهمها)
             data_clean = self.data.where(pd.notnull(self.data), None)
             
-            # بناء استعلام INSERT ديناميكي
-            columns = ', '.join(data_clean.columns)
+            # بناء استعلام INSERT ديناميكي — تعقيم أسماء الأعمدة لمنع SQL injection
+            safe_columns = []
+            for col in data_clean.columns:
+                clean = ''.join(c for c in str(col) if c.isalnum() or c == '_')
+                if not clean or not (clean[0].isalpha() or clean[0] == '_'):
+                    print(f"❌ اسم عمود غير صالح: {col}")
+                    return False
+                safe_columns.append(f"[{clean}]")
+            columns = ', '.join(safe_columns)
             placeholders = ', '.join(['?'] * len(data_clean.columns))
             insert_query = f"INSERT INTO {safe_name} ({columns}) VALUES ({placeholders})"
             
